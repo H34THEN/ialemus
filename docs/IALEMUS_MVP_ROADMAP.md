@@ -84,6 +84,14 @@ Deliverables:
 - Default service URLs use LAN IP (`192.168.1.213`) not `baphomet.local`
 - WebView desktop user-agent for MeTube; error codes + external browser fallback
 
+### MVP 1B.4 — EVA contrast + Spotify scaffold (shipped — `0.3.6-mvp1b4`)
+
+- EVA theme contrast fix (`hudDarkColorScheme`, `HudOutlinedTextField`)
+- Now Playing icon-only controls
+- Streaming tab + Spotify integration scaffold
+- Docker Web UI modules on Downloads page
+- MeTube WebView render warning + debug panel
+
 ### MVP 1C / remaining polish (next)
 
 Deliverables (full MVP 1):

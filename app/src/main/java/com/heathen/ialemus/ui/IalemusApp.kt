@@ -21,8 +21,8 @@ import com.heathen.ialemus.ui.components.HudBottomNavigation
 import com.heathen.ialemus.ui.components.HudScaffold
 import com.heathen.ialemus.ui.components.MiniPlayerBar
 import com.heathen.ialemus.ui.navigation.AppDestination
-import com.heathen.ialemus.ui.screens.AcquireScreen
 import com.heathen.ialemus.ui.screens.DownloadsScreen
+import com.heathen.ialemus.ui.screens.StreamingScreen
 import com.heathen.ialemus.ui.screens.library.LibraryScreen
 import com.heathen.ialemus.ui.screens.nowplaying.NowPlayingScreen
 import com.heathen.ialemus.ui.screens.settings.SettingsScreen
@@ -66,7 +66,7 @@ fun IalemusApp(
     }
 
     LaunchedEffect(destination) {
-        if (destination != AppDestination.ACQUIRE) {
+        if (destination != AppDestination.DOWNLOADS) {
             hideMiniPlayerForWebView = false
         }
     }
@@ -112,13 +112,13 @@ fun IalemusApp(
                     playerViewModel = playerViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )
-                AppDestination.ACQUIRE -> AcquireScreen(
+                AppDestination.STREAMING -> StreamingScreen(
                     settingsViewModel = settingsViewModel,
-                    onWebViewActive = { hideMiniPlayerForWebView = it },
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.DOWNLOADS -> DownloadsScreen(
                     settingsViewModel = settingsViewModel,
+                    onWebViewActive = { hideMiniPlayerForWebView = it },
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.SETTINGS -> SettingsScreen(

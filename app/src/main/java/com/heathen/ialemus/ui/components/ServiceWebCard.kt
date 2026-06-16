@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,15 +56,14 @@ fun ServiceWebCard(
                 overflow = TextOverflow.Ellipsis,
             )
         } else {
-            OutlinedTextField(
+            HudOutlinedTextField(
                 value = draftUrl,
                 onValueChange = { draftUrl = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Service URL") },
-                placeholder = { Text(urlPlaceholder) },
-                singleLine = true,
+                label = "Service URL",
+                placeholder = urlPlaceholder,
                 isError = validationError != null,
-                supportingText = validationError?.let { { Text(it) } },
+                supportingText = validationError,
             )
         }
 

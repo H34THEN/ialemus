@@ -306,7 +306,17 @@ Now Playing | Library | Acquire | Downloads | Settings
 
 Now Playing may be default landing or merge with mini-player bar on Library — decide at UI scaffold.
 
-**Mini player (`0.3.5-mvp1b3`):** Persistent EVA HUD bar above the icon-only command dock when a track is loaded and `showMiniPlayerBar` is enabled — except on Now Playing (redundant) and during in-app WebView (full height). Tap track info to open Now Playing; transport buttons use separate click targets. Repeat cycles OFF → QUEUE → ONE.
+**Navigation (MVP 1B.4):** Now Playing | Library | **Streaming** | Downloads | Settings
+
+**Streaming tab:** Spotify account/remote playback scaffold. Docker download tools (MeTube, slskd, NAS UI, spotDL) live on **Downloads**.
+
+**Playback sources:**
+- **LOCAL CORE** — Ialemus ExoPlayer for device/SAF files
+- **SPOTIFY REMOTE** — external Spotify app / Connect / App Remote (scaffold); never raw Spotify in ExoPlayer queue
+
+See `docs/SPOTIFY_INTEGRATION_PLAN.md`.
+
+**Mini player (`0.3.5-mvp1b3`):**** Persistent EVA HUD bar above the icon-only command dock when a track is loaded and `showMiniPlayerBar` is enabled — except on Now Playing (redundant) and during in-app WebView (full height). Tap track info to open Now Playing; transport buttons use separate click targets. Repeat cycles OFF → QUEUE → ONE.
 
 ---
 

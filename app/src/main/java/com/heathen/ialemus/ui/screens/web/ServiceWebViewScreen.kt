@@ -31,6 +31,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +46,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.heathen.ialemus.core.network.ServiceUrlValidator
 import com.heathen.ialemus.ui.components.HudButton
 import com.heathen.ialemus.ui.components.HudButtonAccent
+import com.heathen.ialemus.ui.components.HudCollapsiblePanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.theme.screenHorizontalPadding
 import com.heathen.ialemus.ui.util.openUrlInBrowser
+import kotlinx.coroutines.delay
 
 private enum class WebLoadState(val label: String) {
     LOADING("Loading"),
@@ -73,6 +76,18 @@ fun ServiceWebViewScreen(
     var pageError by remember { mutableStateOf<String?>(null) }
     var httpStatus by remember { mutableStateOf<Int?>(null) }
     var currentUrl by remember(loadUrl) { mutableStateOf(loadUrl) }
+    var showRenderWarning by remember(loadUrl) { mutableStateOf(false) }
+    var debugExpanded by remember { mutableStateOf(false) }
+    val preferDesktopUserAgent = state.serviceName.contains("MeTube", ignoreCase = true) ||
+        state.serviceName.contains("NAS", ignoreCase = true)
+
+    LaunchedEffect(loadUrl) {
+        showRenderWarning = false
+        delay(12_000)
+        if (pageError == null) {
+            showRenderWarning = true
+        }
+    }
 
     BackHandler {
         val view = webView
@@ -157,6 +172,53 @@ fun ServiceWebViewScreen(
             )
         }
 
+        if (showRenderWarning && pageError == null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalPad, vertical = 4.dp),
+            ) {
+                HudStatusChip(label = "RENDER WARNING", warning = true)
+                Text(
+                    text = "Service reachable, but WebView did not render. Try external browser.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.warningColor,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                HudButton(
+                    label = "Open external browser",
+                    onClick = { openUrlInBrowser(context, loadUrl) },
+                    accent = HudButtonAccent.Neutral,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+        }
+
+        HudCollapsiblePanel(
+            title = "WebView debug",
+            sectionTag = "DEBUG",
+            subtitle = "Load state, URL, and errors.",
+            expanded = debugExpanded,
+            onToggle = { debugExpanded = !debugExpanded },
+            statusLabel = loadState.label.uppercase(),
+            modifier = Modifier.padding(horizontal = horizontalPad),
+        ) {
+            Text("State: ${loadState.label}", style = MaterialTheme.typography.bodySmall, color = tokens.textPrimary)
+            Text("Progress: $loadProgress%", style = MaterialTheme.typography.bodySmall, color = tokens.textMuted)
+            Text("URL: $currentUrl", style = MaterialTheme.typography.bodySmall, color = tokens.textMuted)
+            pageError?.let {
+                Text("Error: $it", style = MaterialTheme.typography.bodySmall, color = tokens.warningColor)
+            }
+            httpStatus?.let {
+                Text("HTTP: $it", style = MaterialTheme.typography.bodySmall, color = tokens.textMuted)
+            }
+            Text(
+                text = "UA: ${if (preferDesktopUserAgent) "Desktop Chrome" else "Mobile Chrome"}",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.textMuted,
+            )
+        }
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -168,6 +230,7 @@ fun ServiceWebViewScreen(
             if (pageError == null) {
                 HudServiceWebView(
                     url = loadUrl,
+                    preferDesktopUserAgent = preferDesktopUserAgent,
                     onWebViewReady = { webView = it },
                     onLoadStateChanged = { loadState = it },
                     onProgressChanged = { loadProgress = it },
@@ -176,6 +239,7 @@ fun ServiceWebViewScreen(
                         pageError = message
                         httpStatus = status
                         loadState = WebLoadState.ERROR
+                        showRenderWarning = false
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -266,6 +330,7 @@ private fun buildStatusLine(
 @Composable
 private fun HudServiceWebView(
     url: String,
+    preferDesktopUserAgent: Boolean,
     onWebViewReady: (WebView) -> Unit,
     onLoadStateChanged: (WebLoadState) -> Unit,
     onProgressChanged: (Int) -> Unit,
@@ -292,8 +357,14 @@ private fun HudServiceWebView(
                 settings.allowFileAccess = false
                 settings.allowContentAccess = true
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-                settings.userAgentString =
+                settings.mediaPlaybackRequiresUserGesture = false
+                settings.cacheMode = WebSettings.LOAD_DEFAULT
+                settings.setSupportZoom(true)
+                settings.userAgentString = if (preferDesktopUserAgent) {
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                } else {
                     "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                }
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(
                         view: WebView?,

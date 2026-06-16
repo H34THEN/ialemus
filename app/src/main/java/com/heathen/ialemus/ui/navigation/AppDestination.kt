@@ -2,10 +2,10 @@ package com.heathen.ialemus.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -20,7 +20,7 @@ enum class AppDestination(
 ) {
     NOW_PLAYING("Now Playing", Icons.Filled.PlayCircle),
     LIBRARY("Library", Icons.Filled.LibraryMusic),
-    ACQUIRE("Acquire", Icons.Filled.ShoppingCart),
+    STREAMING("Streaming", Icons.Filled.GraphicEq),
     DOWNLOADS("Downloads", Icons.Filled.CloudDownload),
     SETTINGS("Settings", Icons.Filled.Settings),
 }

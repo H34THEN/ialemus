@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,11 +42,16 @@ import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasConnectionSettings
 import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.core.settings.SpotifyConnectionStatus
+import com.heathen.ialemus.core.settings.SpotifyDefaults
 import com.heathen.ialemus.ui.components.HudButton
+import com.heathen.ialemus.ui.components.HudButtonAccent
 import com.heathen.ialemus.ui.components.HudCollapsiblePanel
 import com.heathen.ialemus.ui.components.HudHeader
+import com.heathen.ialemus.ui.components.HudOutlinedTextField
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.components.MusicSourceControls
+import com.heathen.ialemus.ui.util.openSpotifyApp
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 
 @Composable
@@ -61,6 +66,8 @@ fun SettingsScreen(
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
     val nowPlayingLayoutMode by settingsViewModel.nowPlayingLayoutMode.collectAsStateWithLifecycle()
+    val spotifySettings by settingsViewModel.spotifySettings.collectAsStateWithLifecycle()
+    val spotifyStatus by settingsViewModel.spotifyConnectionStatus.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
     val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
     val bridgeStatus by settingsViewModel.bridgeTestStatus.collectAsStateWithLifecycle()
@@ -71,8 +78,8 @@ fun SettingsScreen(
     val permissionState by libraryViewModel.permissionState.collectAsStateWithLifecycle()
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
-    var themeExpanded by rememberSaveable { mutableStateOf(false) }
     var playbackExpanded by rememberSaveable { mutableStateOf(true) }
+    var spotifyExpanded by rememberSaveable { mutableStateOf(false) }
     var sourceExpanded by rememberSaveable { mutableStateOf(false) }
     var nasExpanded by rememberSaveable { mutableStateOf(false) }
     var libraryExpanded by rememberSaveable { mutableStateOf(true) }
@@ -95,6 +102,19 @@ fun SettingsScreen(
     }
     var connectionMode by rememberSaveable(nasSettings.connectionMode.name) {
         mutableStateOf(nasSettings.connectionMode)
+    }
+    var spotifyClientId by rememberSaveable(spotifySettings.clientId) { mutableStateOf(spotifySettings.clientId) }
+    var spotifyRedirectUri by rememberSaveable(spotifySettings.redirectUri) {
+        mutableStateOf(spotifySettings.redirectUri.ifBlank { SpotifyDefaults.REDIRECT_URI })
+    }
+
+    val saveSpotifySettings: () -> Unit = {
+        settingsViewModel.saveSpotifySettings(
+            spotifySettings.copy(
+                clientId = spotifyClientId,
+                redirectUri = spotifyRedirectUri,
+            ),
+        )
     }
 
     val activity = context as? androidx.activity.ComponentActivity
@@ -146,13 +166,13 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.3 · Now Playing layouts & service URLs",
+            subtitle = "Ialemus MVP 1B.4 · EVA contrast, Spotify scaffold, Docker in Downloads",
         )
 
         HudCollapsiblePanel(
-            title = "Playback",
+            title = "Visual / Playback UI",
             sectionTag = "NOW PLAYING",
-            subtitle = "Mini player visibility and Now Playing layout modes.",
+            subtitle = "Mini player, layout modes, themes, and DAP mode.",
             expanded = playbackExpanded,
             onToggle = { playbackExpanded = !playbackExpanded },
             statusLabel = nowPlayingLayoutMode.displayName.uppercase(),
@@ -168,15 +188,102 @@ fun SettingsScreen(
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
             )
+            RowSwitch(
+                label = "DAP low-power HUD (reduced grid/scanlines)",
+                checked = dapMode,
+                onCheckedChange = settingsViewModel::setDapMode,
+            )
             Text(
                 text = "NOW PLAYING LAYOUT",
                 style = MaterialTheme.typography.labelSmall,
                 color = tokens.accentActive,
-                modifier = Modifier.padding(bottom = 4.dp),
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
             )
             NowPlayingLayoutSelector(
                 selected = nowPlayingLayoutMode,
                 onSelect = settingsViewModel::setNowPlayingLayoutMode,
+            )
+            Text(
+                text = "THEME SELECT",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.accentActive,
+                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+            )
+            ThemeGroupPanel(
+                title = "EVA Themes",
+                themes = ThemeId.evaThemes,
+                selectedTheme = selectedTheme,
+                onSelect = settingsViewModel::setTheme,
+            )
+            ThemeGroupPanel(
+                title = "Ialemus Original",
+                themes = ThemeId.ialemusThemes,
+                selectedTheme = selectedTheme,
+                onSelect = settingsViewModel::setTheme,
+            )
+        }
+
+        HudCollapsiblePanel(
+            title = "Spotify Integration",
+            sectionTag = "SPOTIFY REMOTE",
+            subtitle = "External Spotify playback — not local ExoPlayer streaming.",
+            expanded = spotifyExpanded,
+            onToggle = { spotifyExpanded = !spotifyExpanded },
+            statusLabel = spotifyStatus.label.uppercase(),
+        ) {
+            HudStatusChip(
+                label = spotifyStatus.label.uppercase(),
+                highlighted = spotifyStatus == SpotifyConnectionStatus.CONNECTED,
+                disabled = spotifyStatus == SpotifyConnectionStatus.NOT_CONFIGURED,
+            )
+            HudOutlinedTextField(
+                value = spotifyClientId,
+                onValueChange = { spotifyClientId = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                label = "Spotify Client ID",
+                placeholder = "From Spotify Developer Dashboard",
+            )
+            HudOutlinedTextField(
+                value = spotifyRedirectUri,
+                onValueChange = { spotifyRedirectUri = it },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                label = "Redirect URI",
+                placeholder = SpotifyDefaults.REDIRECT_URI,
+            )
+            Text(
+                text = "Package: ${SpotifyDefaults.PACKAGE_NAME} · Auth: Authorization Code with PKCE (scaffold). " +
+                    "Playback uses Spotify app / App Remote — Ialemus does not stream Spotify audio through ExoPlayer.",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+            HudButton(label = "Save Spotify settings", onClick = saveSpotifySettings, modifier = Modifier.padding(top = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                HudButton(
+                    label = "Login with Spotify",
+                    onClick = {
+                        saveSpotifySettings()
+                        settingsViewModel.loginWithSpotifyScaffold(context)
+                    },
+                    enabled = spotifyClientId.isNotBlank(),
+                    modifier = Modifier.weight(1f),
+                )
+                HudButton(
+                    label = "Logout",
+                    onClick = settingsViewModel::logoutSpotify,
+                    enabled = spotifySettings.connected,
+                    modifier = Modifier.weight(1f),
+                    accent = HudButtonAccent.Neutral,
+                )
+            }
+            HudButton(
+                label = "Open Spotify App",
+                onClick = { openSpotifyApp(context) },
+                modifier = Modifier.padding(top = 8.dp),
+                accent = HudButtonAccent.Neutral,
             )
         }
 
@@ -189,11 +296,6 @@ fun SettingsScreen(
             statusLabel = "$trackCount TRACKS",
         ) {
             HudStatusChip(label = "$trackCount tracks", highlighted = trackCount > 0)
-            RowSwitch(
-                label = "DAP low-power HUD (reduced grid/scanlines)",
-                checked = dapMode,
-                onCheckedChange = settingsViewModel::setDapMode,
-            )
         }
 
         HudCollapsiblePanel(
@@ -242,48 +344,25 @@ fun SettingsScreen(
         }
 
         HudCollapsiblePanel(
-            title = "Theme Select",
-            sectionTag = "COMMAND DOCK",
-            subtitle = "EVA themes first, then Ialemus originals.",
-            expanded = themeExpanded,
-            onToggle = { themeExpanded = !themeExpanded },
-            statusLabel = selectedTheme.displayName.uppercase(),
-        ) {
-            ThemeGroupPanel(
-                title = "EVA Themes",
-                themes = ThemeId.evaThemes,
-                selectedTheme = selectedTheme,
-                onSelect = settingsViewModel::setTheme,
-            )
-            ThemeGroupPanel(
-                title = "Ialemus Original",
-                themes = ThemeId.ialemusThemes,
-                selectedTheme = selectedTheme,
-                onSelect = settingsViewModel::setTheme,
-            )
-        }
-
-        HudCollapsiblePanel(
             title = "NAS / Docker Web UIs",
             sectionTag = "DOCKER WEB",
-            subtitle = "Wrap running MeTube, slskd, and NAS web UIs. No shell/SSH/Docker from Android.",
+            subtitle = "Configure URLs here; open modules from Downloads.",
             expanded = nasExpanded,
             onToggle = { nasExpanded = !nasExpanded },
             statusLabel = if (nasSettings.meTubeConfigured || nasSettings.slskdConfigured) "READY" else "SETUP",
         ) {
-            OutlinedTextField(
+            HudOutlinedTextField(
                 value = meTubeUrl,
                 onValueChange = {
                     meTubeUrl = it
                     settingsViewModel.clearValidationError()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("MeTube URL") },
-                placeholder = { Text(NasUrlPlaceholders.METUBE) },
-                singleLine = true,
+                label = "MeTube URL",
+                placeholder = NasUrlPlaceholders.METUBE,
                 isError = validationError?.contains("MeTube") == true,
             )
-            OutlinedTextField(
+            HudOutlinedTextField(
                 value = slskdUrl,
                 onValueChange = {
                     slskdUrl = it
@@ -292,12 +371,11 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                label = { Text("slskd URL") },
-                placeholder = { Text(NasUrlPlaceholders.SLSKD) },
-                singleLine = true,
+                label = "slskd URL",
+                placeholder = NasUrlPlaceholders.SLSKD,
                 isError = validationError?.contains("slskd") == true,
             )
-            OutlinedTextField(
+            HudOutlinedTextField(
                 value = nasUiUrl,
                 onValueChange = {
                     nasUiUrl = it
@@ -306,12 +384,11 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                label = { Text("Ugreen NAS UI URL") },
-                placeholder = { Text(NasUrlPlaceholders.NAS_UI) },
-                singleLine = true,
+                label = "Ugreen NAS UI URL",
+                placeholder = NasUrlPlaceholders.NAS_UI,
                 isError = validationError?.contains("NAS UI") == true,
             )
-            OutlinedTextField(
+            HudOutlinedTextField(
                 value = bridgeUrl,
                 onValueChange = {
                     bridgeUrl = it
@@ -320,9 +397,8 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                label = { Text("Ialemus Bridge URL (future — not required)") },
-                placeholder = { Text(NasUrlPlaceholders.BRIDGE) },
-                singleLine = true,
+                label = "Ialemus Bridge URL (future — not required)",
+                placeholder = NasUrlPlaceholders.BRIDGE,
                 isError = validationError?.contains("Bridge") == true,
             )
             if (validationError != null) {
@@ -556,12 +632,22 @@ private fun RowSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val tokens = LocalIalemusTokens.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, style = MaterialTheme.typography.bodySmall)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = tokens.textPrimary)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = tokens.accentActive,
+                checkedTrackColor = tokens.accentActive.copy(alpha = 0.35f),
+                uncheckedThumbColor = tokens.textMuted,
+                uncheckedTrackColor = tokens.hudBorderColor.copy(alpha = 0.45f),
+            ),
+        )
     }
 }

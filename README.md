@@ -6,7 +6,17 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.3 — Now Playing layout overhaul, metadata panel, mini-player toggle, display title overrides. Debug APK buildable.
+**Status:** MVP 1B.4 — EVA contrast fix, icon Now Playing controls, Spotify scaffold, Docker modules in Downloads.
+
+### MVP 1B.4 (`0.3.6-mvp1b4`)
+
+- **EVA contrast fix** — explicit `hudDarkColorScheme()` on-* colors; `HudOutlinedTextField` for readable labels/text on dark HUD surfaces
+- **Now Playing icon controls** — shuffle, previous, play/pause, next, repeat in one row; secondary action icon row (favorite, queue, lyrics, metadata, cleanup, more)
+- **Streaming tab** — replaces Acquire/shopping cart; Spotify account + remote playback scaffold (SPOTIFY REMOTE, not LOCAL CORE)
+- **Spotify settings** — Client ID, Redirect URI, login/logout scaffold, Open Spotify app
+- **Docker modules in Downloads** — MeTube, slskd, NAS UI, spotDL modules with in-app WebView; Settings retains URL configuration
+- **MeTube WebView** — desktop UA for MeTube/NAS, 12s render warning + debug panel, external browser fallback
+- **Preserved:** local playback, folder-first scan, slskd WebView, HiBy stability
 
 ### MVP 1B.3 (`0.3.5-mvp1b3`)
 

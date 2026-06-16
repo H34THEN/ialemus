@@ -128,16 +128,34 @@ private fun NowPlayingLayoutScaffold(
         }
 
         NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
-        NowPlayingTransportControls(playbackState = playbackState, playerViewModel = playerViewModel)
-        NowPlayingShuffleRepeatRow(playbackState = playbackState, playerViewModel = playerViewModel)
-        NowPlayingActionRow(
+        NowPlayingIconControls(
             playbackState = playbackState,
+            onToggleShuffle = playerViewModel::toggleShuffle,
+            onPrevious = playerViewModel::skipToPrevious,
+            onPlayPause = playerViewModel::playPause,
+            onNext = playerViewModel::skipToNext,
+            onCycleRepeat = playerViewModel::cycleRepeat,
+        )
+        NowPlayingActionIconRow(
             isFavorite = uiState.isFavorite,
             onToggleFavorite = {
                 playerViewModel.toggleFavorite(track.id, !uiState.isFavorite)
             },
             onOpenQueue = onOpenQueue,
-            onToggleShuffle = playerViewModel::toggleShuffle,
+            onToggleLyrics = {
+                onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+            },
+            onToggleMetadata = {
+                onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+            },
+            onToggleCleanup = {
+                onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+            },
+            onToggleTools = {
+                onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+            },
+            metadataActive = panelState.metadataExpanded,
+            cleanupActive = panelState.cleanupExpanded,
         )
 
         NowPlayingMetadataPanel(
@@ -311,8 +329,14 @@ private fun PlaylistRadioNowPlayingLayout(
         }
 
         NowPlayingTrackHeader(track = track, centered = false, compact = true)
-        NowPlayingTransportControls(playbackState = playbackState, playerViewModel = playerViewModel)
-        NowPlayingShuffleRepeatRow(playbackState = playbackState, playerViewModel = playerViewModel)
+        NowPlayingIconControls(
+            playbackState = playbackState,
+            onToggleShuffle = playerViewModel::toggleShuffle,
+            onPrevious = playerViewModel::skipToPrevious,
+            onPlayPause = playerViewModel::playPause,
+            onNext = playerViewModel::skipToNext,
+            onCycleRepeat = playerViewModel::cycleRepeat,
+        )
         Text(
             text = "Radio mode: TODO · Queue ${playbackState.queueIndex + 1}/${playbackState.queueSize}",
             style = MaterialTheme.typography.labelSmall,

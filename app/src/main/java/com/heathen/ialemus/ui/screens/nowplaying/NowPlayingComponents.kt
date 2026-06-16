@@ -17,11 +17,19 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lyrics
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -39,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.heathen.ialemus.core.library.TrackTitleCleanup
+import com.heathen.ialemus.core.model.RepeatMode
 import com.heathen.ialemus.core.model.QueueItem
 import com.heathen.ialemus.core.model.SourceType
 import com.heathen.ialemus.core.model.Track
@@ -48,6 +57,7 @@ import com.heathen.ialemus.ui.components.HudButton
 import com.heathen.ialemus.ui.components.HudButtonAccent
 import com.heathen.ialemus.ui.components.HudCollapsiblePanel
 import com.heathen.ialemus.ui.components.HudIconButton
+import com.heathen.ialemus.ui.components.HudOutlinedTextField
 import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.components.TrackRow
@@ -219,28 +229,156 @@ fun NowPlayingTransportControls(
     modifier: Modifier = Modifier,
     highlightedPlay: Boolean = true,
 ) {
+    NowPlayingIconControls(
+        playbackState = playbackState,
+        onToggleShuffle = playerViewModel::toggleShuffle,
+        onPrevious = playerViewModel::skipToPrevious,
+        onPlayPause = playerViewModel::playPause,
+        onNext = playerViewModel::skipToNext,
+        onCycleRepeat = playerViewModel::cycleRepeat,
+        modifier = modifier,
+        highlightedPlay = highlightedPlay,
+    )
+}
+
+@Composable
+fun NowPlayingIconControls(
+    playbackState: PlaybackState,
+    onToggleShuffle: () -> Unit,
+    onPrevious: () -> Unit,
+    onPlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onCycleRepeat: () -> Unit,
+    modifier: Modifier = Modifier,
+    highlightedPlay: Boolean = true,
+) {
+    val tokens = LocalIalemusTokens.current
+    Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HudIconButton(
+                icon = Icons.Filled.Shuffle,
+                contentDescription = if (playbackState.shuffleEnabled) "Shuffle on" else "Shuffle off",
+                onClick = onToggleShuffle,
+                highlighted = playbackState.shuffleEnabled,
+            )
+            HudIconButton(
+                icon = Icons.Filled.SkipPrevious,
+                contentDescription = "Previous",
+                onClick = onPrevious,
+                enabled = playbackState.canSkipPrevious,
+            )
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .border(
+                        width = if (highlightedPlay) 1.5.dp else 1.dp,
+                        color = if (highlightedPlay) tokens.accentActive else tokens.hudBorderColor,
+                        shape = MaterialTheme.shapes.small,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                IconButton(onClick = onPlayPause) {
+                    Icon(
+                        imageVector = if (playbackState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
+                        tint = tokens.accentActive,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            }
+            HudIconButton(
+                icon = Icons.Filled.SkipNext,
+                contentDescription = "Next",
+                onClick = onNext,
+                enabled = playbackState.canSkipNext,
+            )
+            HudIconButton(
+                icon = when (playbackState.repeatMode) {
+                    RepeatMode.ONE -> Icons.Filled.RepeatOne
+                    else -> Icons.Filled.Repeat
+                },
+                contentDescription = "Repeat ${playbackState.repeatMode.displayName}",
+                onClick = onCycleRepeat,
+                highlighted = playbackState.repeatMode != RepeatMode.OFF,
+            )
+        }
+        if (playbackState.shuffleEnabled || playbackState.repeatMode != RepeatMode.OFF) {
+            Row(
+                modifier = Modifier.padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (playbackState.shuffleEnabled) {
+                    HudStatusChip(label = "SHUFFLE", highlighted = true)
+                }
+                if (playbackState.repeatMode != RepeatMode.OFF) {
+                    HudStatusChip(
+                        label = when (playbackState.repeatMode) {
+                            RepeatMode.ONE -> "REPEAT ONE"
+                            RepeatMode.QUEUE -> "REPEAT QUEUE"
+                            RepeatMode.OFF -> "REPEAT"
+                        },
+                        warning = true,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NowPlayingActionIconRow(
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onOpenQueue: () -> Unit,
+    onToggleLyrics: () -> Unit,
+    onToggleMetadata: () -> Unit,
+    onToggleCleanup: () -> Unit,
+    onToggleTools: () -> Unit,
+    metadataActive: Boolean = false,
+    cleanupActive: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         HudIconButton(
-            icon = Icons.Filled.SkipPrevious,
-            contentDescription = "Previous",
-            onClick = playerViewModel::skipToPrevious,
-            enabled = playbackState.canSkipPrevious,
+            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = if (isFavorite) "Remove favorite" else "Add favorite",
+            onClick = onToggleFavorite,
+            highlighted = isFavorite,
         )
         HudIconButton(
-            icon = if (playbackState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
-            onClick = playerViewModel::playPause,
-            highlighted = highlightedPlay,
+            icon = Icons.Filled.QueueMusic,
+            contentDescription = "Open queue",
+            onClick = onOpenQueue,
         )
         HudIconButton(
-            icon = Icons.Filled.SkipNext,
-            contentDescription = "Next",
-            onClick = playerViewModel::skipToNext,
-            enabled = playbackState.canSkipNext,
+            icon = Icons.Filled.Lyrics,
+            contentDescription = "Lyrics",
+            onClick = onToggleLyrics,
+        )
+        HudIconButton(
+            icon = Icons.Filled.Info,
+            contentDescription = "Local signal metadata",
+            onClick = onToggleMetadata,
+            highlighted = metadataActive,
+        )
+        HudIconButton(
+            icon = Icons.Filled.Edit,
+            contentDescription = "Track cleanup",
+            onClick = onToggleCleanup,
+            highlighted = cleanupActive,
+        )
+        HudIconButton(
+            icon = Icons.Filled.MoreHoriz,
+            contentDescription = "More tools",
+            onClick = onToggleTools,
         )
     }
 }
@@ -254,25 +392,16 @@ fun NowPlayingActionRow(
     onToggleShuffle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        HudButton(
-            label = "Queue (${playbackState.queueSize})",
-            onClick = onOpenQueue,
-            modifier = Modifier.weight(1f),
-        )
-        HudButton(
-            label = if (playbackState.shuffleEnabled) "Shuffle On" else "Shuffle",
-            onClick = onToggleShuffle,
-            modifier = Modifier.weight(1f),
-            accent = HudButtonAccent.Neutral,
-        )
-        HudIconButton(
-            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = "Favorite",
-            onClick = onToggleFavorite,
-            highlighted = isFavorite,
-        )
-    }
+    NowPlayingActionIconRow(
+        isFavorite = isFavorite,
+        onToggleFavorite = onToggleFavorite,
+        onOpenQueue = onOpenQueue,
+        onToggleLyrics = {},
+        onToggleMetadata = {},
+        onToggleCleanup = {},
+        onToggleTools = {},
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -281,19 +410,7 @@ fun NowPlayingShuffleRepeatRow(
     playerViewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        HudButton(
-            label = if (playbackState.shuffleEnabled) "Shuffle On" else "Shuffle Off",
-            onClick = playerViewModel::toggleShuffle,
-            modifier = Modifier.weight(1f),
-        )
-        HudButton(
-            label = playbackState.repeatMode.displayName,
-            onClick = playerViewModel::cycleRepeat,
-            modifier = Modifier.weight(1f),
-            accent = HudButtonAccent.Warning,
-        )
-    }
+    // Merged into NowPlayingIconControls — kept for layout compatibility.
 }
 
 @Composable
@@ -386,12 +503,11 @@ fun NowPlayingTrackCleanupPanel(
         statusLabel = if (hasOverride) "OVERRIDE" else "EDIT",
         modifier = modifier,
     ) {
-        OutlinedTextField(
+        HudOutlinedTextField(
             value = editTitle,
             onValueChange = { editTitle = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Display title") },
-            singleLine = true,
+            label = "Display title",
         )
         if (suggested != null && suggested != track.displayTitle) {
             Text(

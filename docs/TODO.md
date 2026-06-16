@@ -158,6 +158,26 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## MVP 1B.4 — EVA contrast + Spotify scaffold (completed)
+
+- [x] EVA-01 / EVA theme contrast — explicit Material on-* colors via `hudDarkColorScheme`
+- [x] `HudOutlinedTextField` for readable text fields on HUD themes
+- [x] Now Playing icon-only transport + action rows
+- [x] Streaming tab (replaces Acquire/shopping cart)
+- [x] Spotify settings + login/playthrough scaffold (`docs/SPOTIFY_INTEGRATION_PLAN.md`)
+- [x] Docker modules moved to Downloads (MeTube, slskd, NAS UI, spotDL)
+- [x] MeTube WebView render warning + debug panel + desktop UA
+- [ ] Manual HiBy R4 acceptance on device
+- [ ] Audit contrast for every theme before release
+
+### Known limitations (MVP 1B.4)
+
+- Spotify PKCE auth not fully wired — login opens browser scaffold only; tokens not stored yet
+- Spotify App Remote dependency not added — remote controls are UI scaffold
+- Spotify playback never flows through Ialemus ExoPlayer (by design)
+- MeTube may still fail to render in WebView on some devices — use external browser fallback
+- spotDL remains Bridge-only on Downloads page
+
 ## MVP 1B.3 — Now Playing layouts + metadata (completed)
 
 - [x] Remove redundant Now Playing top banner
