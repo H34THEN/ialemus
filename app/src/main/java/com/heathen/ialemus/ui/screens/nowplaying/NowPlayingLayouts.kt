@@ -1,26 +1,49 @@
 package com.heathen.ialemus.ui.screens.nowplaying
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.heathen.ialemus.core.library.LibraryScanState
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.core.player.PlayerViewModel
+import com.heathen.ialemus.data.local.entity.TrackOverrideEntity
 import com.heathen.ialemus.ui.components.HudCollapsiblePanel
 import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.theme.isCompactWidth
 import com.heathen.ialemus.ui.theme.screenHorizontalPadding
+import com.heathen.ialemus.ui.util.formatDuration
+
+data class NowPlayingEmptyCallbacks(
+    val trackCount: Int = 0,
+    val sourceCount: Int = 0,
+    val scanState: LibraryScanState = LibraryScanState.NoSources,
+    val lastPlayedTrack: Track? = null,
+    val onChooseFolder: () -> Unit = {},
+    val onSyncAll: () -> Unit = {},
+    val onSyncFolder: () -> Unit = {},
+    val onShuffleAll: () -> Unit = {},
+    val onResumeLast: (Track) -> Unit = {},
+)
 
 @Composable
 fun NowPlayingLayoutRouter(
@@ -31,31 +54,40 @@ fun NowPlayingLayoutRouter(
     onOpenQueue: () -> Unit,
     panelState: NowPlayingPanelState,
     onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (String, String, String) -> Unit,
+    onResetOverrides: () -> Unit,
+    onAddToPlaylist: () -> Unit,
+    emptyCallbacks: NowPlayingEmptyCallbacks,
+    playCount: Int? = null,
+    lastPlayedAt: Long? = null,
     modifier: Modifier = Modifier,
 ) {
     when (layoutMode) {
         NowPlayingLayoutMode.BALANCED -> BalancedNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-            hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
+            override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+            playCount, lastPlayedAt, modifier, imageHeavy = false, textFirst = false,
         )
-        NowPlayingLayoutMode.IMAGE_HEAVY -> ImageHeavyNowPlayingLayout(
+        NowPlayingLayoutMode.IMAGE_HEAVY -> BalancedNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-            hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
+            override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+            playCount, lastPlayedAt, modifier, imageHeavy = true, textFirst = false,
         )
-        NowPlayingLayoutMode.TEXT_METADATA -> TextMetadataNowPlayingLayout(
+        NowPlayingLayoutMode.TEXT_METADATA -> BalancedNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-            hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
+            override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+            playCount, lastPlayedAt, modifier, imageHeavy = false, textFirst = true,
         )
         NowPlayingLayoutMode.PLAYLIST_RADIO -> PlaylistRadioNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-            hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
+            override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+            playCount, lastPlayedAt, modifier,
         )
         NowPlayingLayoutMode.CYBERPUNK_HUD -> CyberpunkHudNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-            hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
+            override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+            playCount, lastPlayedAt, modifier,
         )
     }
 }
@@ -77,154 +109,164 @@ private fun NowPlayingLayoutScaffold(
     onOpenQueue: () -> Unit,
     panelState: NowPlayingPanelState,
     onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (String, String, String) -> Unit,
+    onResetOverrides: () -> Unit,
+    onAddToPlaylist: () -> Unit,
+    emptyCallbacks: NowPlayingEmptyCallbacks,
+    playCount: Int?,
+    lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
     imageHeavy: Boolean = false,
-    showArtFirst: Boolean = true,
-    compactHeader: Boolean = false,
-    cyberpunk: Boolean = false,
+    textFirst: Boolean = false,
+    topContent: (@Composable () -> Unit)? = null,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
     val compact = isCompactWidth()
     val horizontalPad = screenHorizontalPadding()
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(horizontalPad)
             .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         NowPlayingStatusRow(track = track, playbackState = playbackState)
 
         if (track == null) {
-            NowPlayingInactivePanel(onOpenLibrary = onOpenLibrary)
+            NowPlayingEmptyState(
+                trackCount = emptyCallbacks.trackCount,
+                sourceCount = emptyCallbacks.sourceCount,
+                scanState = emptyCallbacks.scanState,
+                lastPlayedTrack = emptyCallbacks.lastPlayedTrack,
+                onChooseFolder = emptyCallbacks.onChooseFolder,
+                onSyncAll = emptyCallbacks.onSyncAll,
+                onSyncFolder = emptyCallbacks.onSyncFolder,
+                onOpenLibrary = onOpenLibrary,
+                onShuffleAll = emptyCallbacks.onShuffleAll,
+                onResumeLast = emptyCallbacks.onResumeLast,
+                modifier = Modifier.fillMaxWidth(),
+            )
             return@Column
         }
 
-        if (cyberpunk) {
-            HudPanel(title = "Audio Core", sectionTag = "PLAYBACK LINK") {
-                RowHudChips(playbackState)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (topContent != null) {
+                topContent()
+            } else if (textFirst) {
+                NowPlayingTextMetadataHeader(track = track)
+            } else {
+                NowPlayingArtworkPanel(track = track, compact = compact, imageHeavy = imageHeavy)
+                NowPlayingTrackHeader(track = track, centered = true, compact = imageHeavy)
             }
+
+            NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
+            NowPlayingPrimaryControls(
+                playbackState = playbackState,
+                onToggleShuffle = playerViewModel::toggleShuffle,
+                onPrevious = playerViewModel::skipToPrevious,
+                onPlayPause = playerViewModel::playPause,
+                onNext = playerViewModel::skipToNext,
+                onCycleRepeat = playerViewModel::cycleRepeat,
+            )
         }
 
-        if (showArtFirst) {
-            NowPlayingArtworkPanel(track = track, compact = compact, imageHeavy = imageHeavy)
-        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState)
+                .padding(top = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            NowPlayingActionIconRow(
+                isFavorite = uiState.isFavorite,
+                onToggleFavorite = {
+                    playerViewModel.toggleFavorite(track.id, !uiState.isFavorite)
+                },
+                onOpenQueue = onOpenQueue,
+                onAddToPlaylist = onAddToPlaylist,
+                onToggleLyrics = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
+                onToggleMetadata = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                onToggleCleanup = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
+                onToggleTools = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+                metadataActive = panelState.metadataExpanded,
+                cleanupActive = panelState.cleanupExpanded,
+                toolsActive = panelState.toolsExpanded,
+            )
 
-        NowPlayingTrackHeader(track = track, centered = !cyberpunk, compact = compactHeader)
-
-        if (!showArtFirst) {
-            NowPlayingArtworkPanel(
+            NowPlayingMetadataPanel(
                 track = track,
-                compact = true,
-                imageHeavy = false,
-                modifier = Modifier.fillMaxWidth(0.45f),
+                playbackState = playbackState,
+                isFavorite = uiState.isFavorite,
+                playCount = playCount,
+                lastPlayedAt = lastPlayedAt,
+                override = override,
+                expanded = panelState.metadataExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                showTechnicalDetails = panelState.showTechnicalDetails,
+                onToggleTechnicalDetails = {
+                    onPanelStateChange(panelState.copy(showTechnicalDetails = !panelState.showTechnicalDetails))
+                },
             )
-        }
 
-        NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
-        NowPlayingIconControls(
-            playbackState = playbackState,
-            onToggleShuffle = playerViewModel::toggleShuffle,
-            onPrevious = playerViewModel::skipToPrevious,
-            onPlayPause = playerViewModel::playPause,
-            onNext = playerViewModel::skipToNext,
-            onCycleRepeat = playerViewModel::cycleRepeat,
-        )
-        NowPlayingActionIconRow(
-            isFavorite = uiState.isFavorite,
-            onToggleFavorite = {
-                playerViewModel.toggleFavorite(track.id, !uiState.isFavorite)
-            },
-            onOpenQueue = onOpenQueue,
-            onToggleLyrics = {
-                onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
-            },
-            onToggleMetadata = {
-                onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
-            },
-            onToggleCleanup = {
-                onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
-            },
-            onToggleTools = {
-                onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
-            },
-            metadataActive = panelState.metadataExpanded,
-            cleanupActive = panelState.cleanupExpanded,
-        )
-
-        NowPlayingMetadataPanel(
-            track = track,
-            playbackState = playbackState,
-            isFavorite = uiState.isFavorite,
-            playCount = null,
-            lastPlayedAt = null,
-            expanded = panelState.metadataExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
-            },
-            showTechnicalDetails = panelState.showTechnicalDetails,
-            onToggleTechnicalDetails = {
-                onPanelStateChange(panelState.copy(showTechnicalDetails = !panelState.showTechnicalDetails))
-            },
-        )
-
-        NowPlayingQueuePreview(
-            queueItems = uiState.queueItems,
-            onPlayQueueItem = playerViewModel::playQueueItem,
-            expanded = panelState.queueExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(queueExpanded = !panelState.queueExpanded))
-            },
-        )
-
-        HudCollapsiblePanel(
-            title = "Lyrics",
-            sectionTag = "LYRICS",
-            subtitle = "Local lyrics panel — coming soon.",
-            expanded = panelState.lyricsExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
-            },
-            statusLabel = "TODO",
-        ) {
-            Text(
-                text = "Lyrics placeholder for MVP 1B.",
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalIalemusTokens.current.textMuted,
+            NowPlayingQueuePreview(
+                queueItems = uiState.queueItems,
+                onPlayQueueItem = playerViewModel::playQueueItem,
+                expanded = panelState.queueExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(queueExpanded = !panelState.queueExpanded))
+                },
             )
-        }
 
-        NowPlayingTrackCleanupPanel(
-            track = track,
-            hasOverride = hasTitleOverride,
-            onSaveOverride = onSaveTitleOverride,
-            onResetOverride = onResetTitleOverride,
-            expanded = panelState.cleanupExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
-            },
-        )
+            HudCollapsiblePanel(
+                title = "Lyrics",
+                sectionTag = "LYRICS",
+                subtitle = "Local lyrics panel — coming soon.",
+                expanded = panelState.lyricsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
+                statusLabel = "TODO",
+            ) {
+                Text(
+                    text = "Lyrics placeholder for MVP 1B.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalIalemusTokens.current.textMuted,
+                )
+            }
 
-        HudCollapsiblePanel(
-            title = "Audio Tools",
-            sectionTag = "SIGNAL",
-            subtitle = "Output device, bitrate, and rename tools.",
-            expanded = panelState.toolsExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
-            },
-            statusLabel = "TOOLS",
-        ) {
-            Text(
-                text = "Signal/output info TODO. Use Track Cleanup for display title overrides.",
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalIalemusTokens.current.textMuted,
+            NowPlayingTrackCleanupPanel(
+                track = track,
+                override = override,
+                onSaveOverrides = onSaveOverrides,
+                onResetOverrides = onResetOverrides,
+                expanded = panelState.cleanupExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
+            )
+
+            NowPlayingAudioToolsPanel(
+                track = track,
+                playbackState = playbackState,
+                expanded = panelState.toolsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+                onSetSpeed = playerViewModel::setPlaybackSpeed,
+                onSetSleepTimer = playerViewModel::setSleepTimer,
             )
         }
     }
@@ -238,61 +280,22 @@ private fun BalancedNowPlayingLayout(
     onOpenQueue: () -> Unit,
     panelState: NowPlayingPanelState,
     onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (String, String, String) -> Unit,
+    onResetOverrides: () -> Unit,
+    onAddToPlaylist: () -> Unit,
+    emptyCallbacks: NowPlayingEmptyCallbacks,
+    playCount: Int?,
+    lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
+    imageHeavy: Boolean,
+    textFirst: Boolean,
 ) {
+    val effectivePanelState = if (textFirst) panelState.copy(metadataExpanded = true) else panelState
     NowPlayingLayoutScaffold(
-        uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-        hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
-        imageHeavy = false,
-        showArtFirst = true,
-    )
-}
-
-@Composable
-private fun ImageHeavyNowPlayingLayout(
-    uiState: NowPlayingUiState,
-    playerViewModel: PlayerViewModel,
-    onOpenLibrary: () -> Unit,
-    onOpenQueue: () -> Unit,
-    panelState: NowPlayingPanelState,
-    onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    NowPlayingLayoutScaffold(
-        uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-        hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
-        imageHeavy = true,
-        showArtFirst = true,
-        compactHeader = true,
-    )
-}
-
-@Composable
-private fun TextMetadataNowPlayingLayout(
-    uiState: NowPlayingUiState,
-    playerViewModel: PlayerViewModel,
-    onOpenLibrary: () -> Unit,
-    onOpenQueue: () -> Unit,
-    panelState: NowPlayingPanelState,
-    onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val expandedMetadata = panelState.copy(metadataExpanded = true)
-    NowPlayingLayoutScaffold(
-        uiState, playerViewModel, onOpenLibrary, onOpenQueue, expandedMetadata, onPanelStateChange,
-        hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
-        imageHeavy = false,
-        showArtFirst = false,
-        compactHeader = false,
+        uiState, playerViewModel, onOpenLibrary, onOpenQueue, effectivePanelState, onPanelStateChange,
+        override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
+        playCount, lastPlayedAt, modifier, imageHeavy = imageHeavy, textFirst = textFirst,
     )
 }
 
@@ -304,65 +307,95 @@ private fun PlaylistRadioNowPlayingLayout(
     onOpenQueue: () -> Unit,
     panelState: NowPlayingPanelState,
     onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (String, String, String) -> Unit,
+    onResetOverrides: () -> Unit,
+    onAddToPlaylist: () -> Unit,
+    emptyCallbacks: NowPlayingEmptyCallbacks,
+    playCount: Int?,
+    lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
-    val compact = isCompactWidth()
     val horizontalPad = screenHorizontalPadding()
+    val scrollState = rememberScrollState()
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontalPad)
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier.fillMaxSize().padding(horizontalPad).padding(vertical = 8.dp),
     ) {
         NowPlayingStatusRow(track = track, playbackState = playbackState)
         if (track == null) {
-            NowPlayingInactivePanel(onOpenLibrary = onOpenLibrary)
+            NowPlayingEmptyState(
+                trackCount = emptyCallbacks.trackCount,
+                sourceCount = emptyCallbacks.sourceCount,
+                scanState = emptyCallbacks.scanState,
+                lastPlayedTrack = emptyCallbacks.lastPlayedTrack,
+                onChooseFolder = emptyCallbacks.onChooseFolder,
+                onSyncAll = emptyCallbacks.onSyncAll,
+                onSyncFolder = emptyCallbacks.onSyncFolder,
+                onOpenLibrary = onOpenLibrary,
+                onShuffleAll = emptyCallbacks.onShuffleAll,
+                onResumeLast = emptyCallbacks.onResumeLast,
+            )
             return@Column
         }
 
-        NowPlayingTrackHeader(track = track, centered = false, compact = true)
-        NowPlayingIconControls(
-            playbackState = playbackState,
-            onToggleShuffle = playerViewModel::toggleShuffle,
-            onPrevious = playerViewModel::skipToPrevious,
-            onPlayPause = playerViewModel::playPause,
-            onNext = playerViewModel::skipToNext,
-            onCycleRepeat = playerViewModel::cycleRepeat,
-        )
-        Text(
-            text = "Radio mode: TODO · Queue ${playbackState.queueIndex + 1}/${playbackState.queueSize}",
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalIalemusTokens.current.textMuted,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            NowPlayingTrackHeader(track = track, centered = false, compact = true)
+            NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
+            NowPlayingPrimaryControls(
+                playbackState = playbackState,
+                onToggleShuffle = playerViewModel::toggleShuffle,
+                onPrevious = playerViewModel::skipToPrevious,
+                onPlayPause = playerViewModel::playPause,
+                onNext = playerViewModel::skipToNext,
+                onCycleRepeat = playerViewModel::cycleRepeat,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                HudStatusChip(label = "PLAYLIST", highlighted = true)
+                HudStatusChip(label = "QUEUE ${playbackState.queueIndex + 1}/${playbackState.queueSize}", highlighted = true)
+            }
+        }
 
-        NowPlayingQueuePreview(
-            queueItems = uiState.queueItems,
-            onPlayQueueItem = playerViewModel::playQueueItem,
-            expanded = true,
-            onToggle = {
-                onPanelStateChange(panelState.copy(queueExpanded = !panelState.queueExpanded))
-            },
-        )
-
-        NowPlayingArtworkPanel(track = track, compact = compact, imageHeavy = false, modifier = Modifier.fillMaxWidth(0.5f))
-        NowPlayingTrackCleanupPanel(
-            track = track,
-            hasOverride = hasTitleOverride,
-            onSaveOverride = onSaveTitleOverride,
-            onResetOverride = onResetTitleOverride,
-            expanded = panelState.cleanupExpanded,
-            onToggle = {
-                onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
-            },
-        )
+        Column(
+            modifier = Modifier.weight(1f).verticalScroll(scrollState).padding(top = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            NowPlayingActionIconRow(
+                isFavorite = uiState.isFavorite,
+                onToggleFavorite = { playerViewModel.toggleFavorite(track.id, !uiState.isFavorite) },
+                onOpenQueue = onOpenQueue,
+                onAddToPlaylist = onAddToPlaylist,
+                onToggleLyrics = {},
+                onToggleMetadata = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                onToggleCleanup = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
+                onToggleTools = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+            )
+            NowPlayingQueuePreview(
+                queueItems = uiState.queueItems,
+                onPlayQueueItem = playerViewModel::playQueueItem,
+                expanded = true,
+                onToggle = {},
+            )
+            NowPlayingCompactArtwork(track = track, modifier = Modifier.padding(top = 4.dp))
+            NowPlayingAudioToolsPanel(
+                track = track,
+                playbackState = playbackState,
+                expanded = panelState.toolsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+                onSetSpeed = playerViewModel::setPlaybackSpeed,
+                onSetSleepTimer = playerViewModel::setSleepTimer,
+            )
+        }
     }
 }
 
@@ -374,29 +407,183 @@ private fun CyberpunkHudNowPlayingLayout(
     onOpenQueue: () -> Unit,
     panelState: NowPlayingPanelState,
     onPanelStateChange: (NowPlayingPanelState) -> Unit,
-    hasTitleOverride: Boolean,
-    onSaveTitleOverride: (String) -> Unit,
-    onResetTitleOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (String, String, String) -> Unit,
+    onResetOverrides: () -> Unit,
+    onAddToPlaylist: () -> Unit,
+    emptyCallbacks: NowPlayingEmptyCallbacks,
+    playCount: Int?,
+    lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
 ) {
-    NowPlayingLayoutScaffold(
-        uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
-        hasTitleOverride, onSaveTitleOverride, onResetTitleOverride, modifier,
-        imageHeavy = false,
-        showArtFirst = true,
-        cyberpunk = true,
-    )
-}
+    val track = uiState.track
+    val playbackState = uiState.playbackState
+    val tokens = LocalIalemusTokens.current
+    val horizontalPad = screenHorizontalPadding()
+    val scrollState = rememberScrollState()
+    val meterLevels = listOf(0.35f, 0.55f, 0.8f, 0.45f, 0.7f, 0.5f, 0.9f, 0.4f)
 
-@Composable
-private fun RowHudChips(playbackState: com.heathen.ialemus.core.player.PlaybackState) {
-    androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        HudStatusChip(label = "AUDIO CORE", highlighted = true)
-        HudStatusChip(label = "TRACK INDEX", highlighted = playbackState.currentTrack != null)
-        HudStatusChip(label = "QUEUE SYNC", highlighted = playbackState.queueSize > 0)
-        HudStatusChip(
-            label = playbackState.repeatMode.displayName.uppercase(),
-            warning = true,
-        )
+    Column(modifier = modifier.fillMaxSize().padding(horizontalPad).padding(vertical = 8.dp)) {
+        NowPlayingStatusRow(track = track, playbackState = playbackState)
+        if (track == null) {
+            NowPlayingEmptyState(
+                trackCount = emptyCallbacks.trackCount,
+                sourceCount = emptyCallbacks.sourceCount,
+                scanState = emptyCallbacks.scanState,
+                lastPlayedTrack = emptyCallbacks.lastPlayedTrack,
+                onChooseFolder = emptyCallbacks.onChooseFolder,
+                onSyncAll = emptyCallbacks.onSyncAll,
+                onSyncFolder = emptyCallbacks.onSyncFolder,
+                onOpenLibrary = onOpenLibrary,
+                onShuffleAll = emptyCallbacks.onShuffleAll,
+                onResumeLast = emptyCallbacks.onResumeLast,
+            )
+            return@Column
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            HudPanel(title = "NERV Playback Unit", sectionTag = "LOCAL SIGNAL") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    NowPlayingCompactArtwork(track = track, sizeDp = 64.dp)
+                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                        Text(track.displayTitle, style = MaterialTheme.typography.titleSmall, color = tokens.accentActive, fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(track.displayArtist, style = MaterialTheme.typography.bodySmall, color = tokens.glowColor, maxLines = 1)
+                        Text("SYNC RATE · ${playbackState.playbackSpeed}x", style = MaterialTheme.typography.labelSmall, color = tokens.textMuted)
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
+                    HudStatusChip(label = "AUDIO LINK", highlighted = playbackState.isPlaying)
+                    HudStatusChip(label = "QUEUE SYNC", highlighted = playbackState.queueSize > 0)
+                    HudStatusChip(label = playbackState.repeatMode.displayName.uppercase(), warning = true)
+                }
+            }
+
+            HudPanel(title = "Level Meter", sectionTag = "SIGNAL TRACE") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(36.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    meterLevels.forEach { level ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .height((36 * level).dp)
+                                .background(tokens.accentActive.copy(alpha = 0.35f + level * 0.4f))
+                                .border(0.5.dp, tokens.hudBorderColor),
+                        )
+                    }
+                }
+                Text(
+                    text = "WINAMP-STYLE METER · ${formatDuration(playbackState.positionMs)} / ${formatDuration(playbackState.durationMs)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tokens.textMuted,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+
+            NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
+
+            HudPanel(title = "Playback Core", sectionTag = "TRANSPORT") {
+                NowPlayingPrimaryControls(
+                    playbackState = playbackState,
+                    onToggleShuffle = playerViewModel::toggleShuffle,
+                    onPrevious = playerViewModel::skipToPrevious,
+                    onPlayPause = playerViewModel::playPause,
+                    onNext = playerViewModel::skipToNext,
+                    onCycleRepeat = playerViewModel::cycleRepeat,
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.weight(1f).verticalScroll(scrollState).padding(top = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            HudPanel(title = "Playlist Readout", sectionTag = "PLAYLIST") {
+                Text(
+                    text = "▶ ${track.displayTitle} — ${track.displayArtist}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.textPrimary,
+                )
+                Text(
+                    text = "NEXT IN QUEUE · ${uiState.queueItems.size.coerceAtLeast(1)} TRACKS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tokens.textMuted,
+                )
+            }
+
+            NowPlayingActionIconRow(
+                isFavorite = uiState.isFavorite,
+                onToggleFavorite = { playerViewModel.toggleFavorite(track.id, !uiState.isFavorite) },
+                onOpenQueue = onOpenQueue,
+                onAddToPlaylist = onAddToPlaylist,
+                onToggleLyrics = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
+                onToggleMetadata = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                onToggleCleanup = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
+                onToggleTools = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+            )
+
+            NowPlayingMetadataPanel(
+                track = track,
+                playbackState = playbackState,
+                isFavorite = uiState.isFavorite,
+                playCount = playCount,
+                lastPlayedAt = lastPlayedAt,
+                override = override,
+                expanded = panelState.metadataExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                showTechnicalDetails = panelState.showTechnicalDetails,
+                onToggleTechnicalDetails = {
+                    onPanelStateChange(panelState.copy(showTechnicalDetails = !panelState.showTechnicalDetails))
+                },
+            )
+
+            NowPlayingQueuePreview(
+                queueItems = uiState.queueItems,
+                onPlayQueueItem = playerViewModel::playQueueItem,
+                expanded = panelState.queueExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(queueExpanded = !panelState.queueExpanded))
+                },
+            )
+
+            NowPlayingTrackCleanupPanel(
+                track = track,
+                override = override,
+                onSaveOverrides = onSaveOverrides,
+                onResetOverrides = onResetOverrides,
+                expanded = panelState.cleanupExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
+            )
+
+            NowPlayingAudioToolsPanel(
+                track = track,
+                playbackState = playbackState,
+                expanded = panelState.toolsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+                onSetSpeed = playerViewModel::setPlaybackSpeed,
+                onSetSleepTimer = playerViewModel::setSleepTimer,
+            )
+        }
     }
 }

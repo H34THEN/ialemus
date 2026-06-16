@@ -107,6 +107,7 @@ fun IalemusApp(
             when (destination) {
                 AppDestination.NOW_PLAYING -> NowPlayingScreen(
                     playerViewModel = playerViewModel,
+                    libraryViewModel = libraryViewModel,
                     layoutMode = nowPlayingLayoutMode,
                     onOpenLibrary = { destination = AppDestination.LIBRARY },
                     modifier = Modifier.padding(innerPadding),

@@ -86,11 +86,11 @@ fun SettingsScreen(
     val permissionState by libraryViewModel.permissionState.collectAsStateWithLifecycle()
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
-    var playbackExpanded by rememberSaveable { mutableStateOf(true) }
+    var playbackExpanded by rememberSaveable { mutableStateOf(false) }
     var experimentalExpanded by rememberSaveable { mutableStateOf(false) }
     var sourceExpanded by rememberSaveable { mutableStateOf(false) }
     var nasExpanded by rememberSaveable { mutableStateOf(false) }
-    var libraryExpanded by rememberSaveable { mutableStateOf(true) }
+    var libraryExpanded by rememberSaveable { mutableStateOf(false) }
     var aboutExpanded by rememberSaveable { mutableStateOf(false) }
     var pendingFullDeviceScan by rememberSaveable { mutableStateOf(false) }
 

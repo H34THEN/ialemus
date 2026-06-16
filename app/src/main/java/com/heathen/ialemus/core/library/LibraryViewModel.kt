@@ -10,6 +10,8 @@ import com.heathen.ialemus.core.model.ArtistSummary
 import com.heathen.ialemus.core.model.FolderSummary
 import com.heathen.ialemus.core.model.LibrarySource
 import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.core.playlist.M3uImportResult
+import com.heathen.ialemus.core.playlist.PlaylistSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +23,7 @@ class LibraryViewModel(
     private val container: AppContainer,
 ) : ViewModel() {
     private val repository = container.libraryRepository
+    private val playlistRepository = container.playlistRepository
 
     val tracks: StateFlow<List<Track>> = repository.tracks.stateIn(
         scope = viewModelScope,
@@ -87,6 +90,15 @@ class LibraryViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyList(),
     )
+
+    val playlists: StateFlow<List<PlaylistSummary>> = playlistRepository.playlists.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    private val _importResult = MutableStateFlow<M3uImportResult?>(null)
+    val importResult: StateFlow<M3uImportResult?> = _importResult.asStateFlow()
 
     private val _permissionState = MutableStateFlow<MediaPermissionState>(MediaPermissionState.Unknown)
     val permissionState: StateFlow<MediaPermissionState> = _permissionState.asStateFlow()
@@ -167,6 +179,21 @@ class LibraryViewModel(
         }
     }
 
+    fun scanPrimaryFolder() {
+        if (_scanState.value is LibraryScanState.ScanningFolders) return
+        viewModelScope.launch {
+            _scanState.value = LibraryScanState.ScanningFolders
+            when (val result = repository.scanPrimaryFolder()) {
+                is LibraryScanResult.Success -> {
+                    _scanState.value = LibraryScanState.FolderScanComplete(result.trackCount)
+                }
+                is LibraryScanResult.Error -> {
+                    _scanState.value = LibraryScanState.Failed(result.message)
+                }
+            }
+        }
+    }
+
     fun scanFullDeviceLibrary() {
         if (_scanState.value is LibraryScanState.ScanningFullDevice) return
         viewModelScope.launch {
@@ -183,6 +210,52 @@ class LibraryViewModel(
     }
 
     fun requiredPermission(): String = repository.requiredPermission()
+
+    fun createPlaylist(name: String, onCreated: ((String) -> Unit)? = null) {
+        viewModelScope.launch {
+            val created = playlistRepository.createPlaylist(name)
+            onCreated?.invoke(created.id)
+        }
+    }
+
+    fun createPlaylistAndAddTrack(name: String, trackId: String) {
+        viewModelScope.launch {
+            val created = playlistRepository.createPlaylist(name)
+            playlistRepository.addTrack(created.id, trackId)
+        }
+    }
+
+    fun renamePlaylist(playlistId: String, name: String) {
+        viewModelScope.launch { playlistRepository.renamePlaylist(playlistId, name) }
+    }
+
+    fun deletePlaylist(playlistId: String) {
+        viewModelScope.launch { playlistRepository.deletePlaylist(playlistId) }
+    }
+
+    fun addTrackToPlaylist(playlistId: String, trackId: String) {
+        viewModelScope.launch { playlistRepository.addTrack(playlistId, trackId) }
+    }
+
+    fun removeTrackFromPlaylist(playlistId: String, trackId: String) {
+        viewModelScope.launch { playlistRepository.removeTrack(playlistId, trackId) }
+    }
+
+    suspend fun loadPlaylistTracks(playlistId: String): List<Track> =
+        playlistRepository.getTracksForPlaylist(playlistId)
+
+    fun observePlaylistTrackIds(playlistId: String) = playlistRepository.observeTrackIds(playlistId)
+
+    fun importM3uPlaylist(name: String, content: String) {
+        viewModelScope.launch {
+            val lines = content.lines()
+            _importResult.value = playlistRepository.importM3u(name, lines)
+        }
+    }
+
+    fun clearImportResult() {
+        _importResult.value = null
+    }
 
     class Factory(
         private val container: AppContainer,

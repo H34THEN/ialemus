@@ -3,6 +3,7 @@ package com.heathen.ialemus
 import android.content.Context
 import androidx.room.Room
 import com.heathen.ialemus.core.library.LibraryRepository
+import com.heathen.ialemus.core.playlist.PlaylistRepository
 import com.heathen.ialemus.core.library.MediaStoreScanner
 import com.heathen.ialemus.core.library.SafFolderScanner
 import com.heathen.ialemus.core.player.PlayerConnection
@@ -31,6 +32,7 @@ class AppContainer(context: Context) {
     val trackStatsDao = database.trackStatsDao()
     val trackOverrideDao = database.trackOverrideDao()
     val librarySourceDao = database.librarySourceDao()
+    val playlistDao = database.playlistDao()
 
     val settingsRepository = SettingsRepository(appContext)
     val widgetStateStore = WidgetStateStore(appContext)
@@ -42,6 +44,11 @@ class AppContainer(context: Context) {
 
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)
+    val playlistRepository = PlaylistRepository(
+        playlistDao = playlistDao,
+        trackDao = trackDao,
+    )
+
     val libraryRepository = LibraryRepository(
         context = appContext,
         mediaStoreScanner = mediaStoreScanner,

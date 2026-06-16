@@ -6,7 +6,20 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.7 + WebView hotfix — compact diagnostics; slskd false timeout fixed.
+**Status:** MVP 1B.8 — Now Playing usability, playlists, metadata/audio tools, collapsed modules (`0.3.11-mvp1b8`).
+
+### MVP 1B.8 (`0.3.11-mvp1b8`)
+
+- **Now Playing above-the-fold controls** — shared `NowPlayingPrimaryControls` row (shuffle / previous / play-pause / next / repeat) fixed above scroll in all 5 layouts
+- **Empty-state launchpad** — Sync All, Sync Folder, Choose Music Folder, Open Library, Shuffle All, Resume last track; Library **SOURCES** chip unchanged
+- **Text + Metadata artwork** — compact square thumbnail + text-first header (no tall portrait block)
+- **Cyberpunk HUD redesign** — EVA/NERV panels, level meter, signal trace, retro transport frame
+- **Local playlists (Room v4)** — create/rename/delete, add/remove tracks, playlist detail, M3U/M3U8 import (best-effort match)
+- **Metadata tools** — title/artist/album display overrides, prefix strip, original vs override readout, play count / last played
+- **Audio tools** — speed presets (0.75×–1.5×), sleep timer, session readout; EQ/normalize placeholders
+- **Downloads** — Job Queue, MeTube, slskd, NAS UI modules collapsed by default
+- **Settings** — all sections collapsed by default (Themes no longer open on launch)
+- **Preserved:** local playback, folder-first scan, slskd, hidden Spotify, Library SOURCES update
 
 ### WebView Hotfix (`0.3.10-webview-hotfix`)
 

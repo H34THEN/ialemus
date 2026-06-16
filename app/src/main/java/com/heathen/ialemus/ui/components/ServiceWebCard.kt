@@ -34,124 +34,167 @@ fun ServiceWebCard(
     statusNote: String? = null,
     modifier: Modifier = Modifier,
     futureActionLabel: String? = null,
+    expanded: Boolean = true,
+    onToggle: (() -> Unit)? = null,
+) {
+    val statusHighlighted = status == ConnectionTestStatus.REACHABLE || status == ConnectionTestStatus.READY
+    val body: @Composable () -> Unit = {
+        ServiceWebCardBody(
+            savedUrl = savedUrl,
+            urlPlaceholder = urlPlaceholder,
+            status = status,
+            statusHighlighted = statusHighlighted,
+            statusNote = statusNote,
+            validationError = validationError,
+            onOpenInApp = onOpenInApp,
+            onOpenExternal = onOpenExternal,
+            onTestConnection = onTestConnection,
+            onSaveUrl = onSaveUrl,
+            futureActionLabel = futureActionLabel,
+        )
+    }
+
+    if (onToggle != null) {
+        HudCollapsiblePanel(
+            title = title,
+            sectionTag = sectionTag,
+            subtitle = subtitle,
+            expanded = expanded,
+            onToggle = onToggle,
+            statusLabel = status.label.uppercase(),
+            modifier = modifier,
+        ) {
+            body()
+        }
+    } else {
+        HudPanel(
+            title = title,
+            sectionTag = sectionTag,
+            subtitle = subtitle,
+            modifier = modifier,
+        ) {
+            body()
+        }
+    }
+}
+
+@Composable
+private fun ServiceWebCardBody(
+    savedUrl: String,
+    urlPlaceholder: String,
+    status: ConnectionTestStatus,
+    statusHighlighted: Boolean,
+    statusNote: String?,
+    validationError: String?,
+    onOpenInApp: () -> Unit,
+    onOpenExternal: () -> Unit,
+    onTestConnection: () -> Unit,
+    onSaveUrl: (String) -> Unit,
+    futureActionLabel: String?,
 ) {
     val tokens = LocalIalemusTokens.current
     var editing by rememberSaveable { mutableStateOf(false) }
     var draftUrl by rememberSaveable(savedUrl) { mutableStateOf(savedUrl) }
     val displayUrl = savedUrl.ifBlank { urlPlaceholder }
-    val statusHighlighted = status == ConnectionTestStatus.REACHABLE || status == ConnectionTestStatus.READY
     val canOpen = savedUrl.isNotBlank()
 
-    HudPanel(
-        title = title,
-        sectionTag = sectionTag,
-        subtitle = subtitle,
-        modifier = modifier,
-    ) {
-        if (!editing) {
-            Text(
-                text = displayUrl,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (canOpen) tokens.textPrimary else tokens.textMuted,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        } else {
-            HudOutlinedTextField(
-                value = draftUrl,
-                onValueChange = { draftUrl = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = "Service URL",
-                placeholder = urlPlaceholder,
-                isError = validationError != null,
-                supportingText = validationError,
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HudStatusChip(
-                label = status.label.uppercase(),
-                highlighted = statusHighlighted,
-                disabled = status == ConnectionTestStatus.NOT_CONFIGURED,
-            )
-        }
-        statusNote?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.labelSmall,
-                color = tokens.warningColor,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            HudButton(
-                label = "Open in Ialemus",
-                onClick = onOpenInApp,
-                enabled = canOpen,
-                modifier = Modifier.weight(1f),
-                accent = HudButtonAccent.Primary,
-            )
-            HudButton(
-                label = "External",
-                onClick = onOpenExternal,
-                enabled = canOpen,
-                modifier = Modifier.weight(1f),
-                accent = HudButtonAccent.Neutral,
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            HudButton(
-                label = "Test",
-                onClick = onTestConnection,
-                enabled = canOpen && status != ConnectionTestStatus.CHECKING,
-                modifier = Modifier.weight(1f),
-                accent = HudButtonAccent.Neutral,
-            )
-            HudButton(
-                label = if (editing) "Save URL" else "Edit URL",
-                onClick = {
-                    if (editing) {
-                        onSaveUrl(draftUrl)
-                        editing = false
-                    } else {
-                        draftUrl = savedUrl.ifBlank { urlPlaceholder }
-                        editing = true
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                accent = HudButtonAccent.Neutral,
-            )
-        }
-        if (futureActionLabel != null) {
-            HudButton(
-                label = futureActionLabel,
-                onClick = { },
-                enabled = false,
-                modifier = Modifier.padding(top = 6.dp),
-                accent = HudButtonAccent.Neutral,
-            )
-        }
+    if (!editing) {
         Text(
-            text = "Loads the Docker web UI inside Ialemus. No shell, SSH, or credential storage.",
+            text = displayUrl,
             style = MaterialTheme.typography.bodySmall,
-            color = tokens.textMuted,
-            modifier = Modifier.padding(top = 6.dp),
+            color = if (canOpen) tokens.textPrimary else tokens.textMuted,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    } else {
+        HudOutlinedTextField(
+            value = draftUrl,
+            onValueChange = { draftUrl = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Service URL",
+            placeholder = urlPlaceholder,
+            isError = validationError != null,
+            supportingText = validationError,
         )
     }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        HudStatusChip(
+            label = status.label.uppercase(),
+            highlighted = statusHighlighted,
+            disabled = status == ConnectionTestStatus.NOT_CONFIGURED,
+        )
+    }
+    statusNote?.let {
+        Text(
+            text = it,
+            style = MaterialTheme.typography.labelSmall,
+            color = tokens.warningColor,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        HudButton(
+            label = "Open in Ialemus",
+            onClick = onOpenInApp,
+            enabled = canOpen,
+            modifier = Modifier.weight(1f),
+            accent = HudButtonAccent.Primary,
+        )
+        HudButton(
+            label = "External",
+            onClick = onOpenExternal,
+            enabled = canOpen,
+            modifier = Modifier.weight(1f),
+            accent = HudButtonAccent.Neutral,
+        )
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        HudButton(
+            label = "Test",
+            onClick = onTestConnection,
+            enabled = canOpen && status != ConnectionTestStatus.CHECKING,
+            modifier = Modifier.weight(1f),
+            accent = HudButtonAccent.Neutral,
+        )
+        HudButton(
+            label = if (editing) "Save URL" else "Edit URL",
+            onClick = {
+                if (editing) {
+                    onSaveUrl(draftUrl)
+                    editing = false
+                } else {
+                    draftUrl = savedUrl.ifBlank { urlPlaceholder }
+                    editing = true
+                }
+            },
+            modifier = Modifier.weight(1f),
+            accent = HudButtonAccent.Neutral,
+        )
+    }
+    if (futureActionLabel != null) {
+        HudButton(
+            label = futureActionLabel,
+            onClick = { },
+            enabled = false,
+            modifier = Modifier.padding(top = 6.dp),
+            accent = HudButtonAccent.Neutral,
+        )
+    }
+    Text(
+        text = "Loads the Docker web UI inside Ialemus. No shell, SSH, or credential storage.",
+        style = MaterialTheme.typography.bodySmall,
+        color = tokens.textMuted,
+        modifier = Modifier.padding(top = 6.dp),
+    )
 }

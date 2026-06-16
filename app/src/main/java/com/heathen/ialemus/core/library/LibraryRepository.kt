@@ -142,6 +142,16 @@ class LibraryRepository(
         if (sources.isEmpty()) {
             return LibraryScanResult.Error("No music folders selected. Choose a folder first.")
         }
+        return scanSources(sources)
+    }
+
+    suspend fun scanPrimaryFolder(): LibraryScanResult {
+        val source = librarySourceDao.getSafFoldersOnce().firstOrNull()?.toLibrarySource()
+            ?: return LibraryScanResult.Error("No music folders selected. Choose a folder first.")
+        return scanSources(listOf(source))
+    }
+
+    private suspend fun scanSources(sources: List<LibrarySource>): LibraryScanResult {
         return try {
             var total = 0
             sources.forEach { source ->
@@ -155,7 +165,8 @@ class LibraryRepository(
                 }
                 total += scanned.size
             }
-            LibraryScanResult.Success(total, "Selected folders")
+            val label = if (sources.size == 1) sources.first().displayName else "Selected folders"
+            LibraryScanResult.Success(total, label)
         } catch (error: Exception) {
             LibraryScanResult.Error(error.message ?: "Folder scan failed.")
         }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,6 +42,7 @@ class PlayerConnection(
     private var controller: MediaController? = null
     private var lastWidgetTitle: String? = null
     private var lastWidgetPlaying: Boolean? = null
+    private var sleepTimerJob: kotlinx.coroutines.Job? = null
 
     private val _playbackState = MutableStateFlow(PlaybackState())
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
@@ -290,6 +292,37 @@ class PlayerConnection(
     fun setShuffleMode(mode: ShuffleMode) {
         queueRepository.setShuffleMode(mode)
         syncPlayerQueue()
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        val clamped = speed.coerceIn(0.5f, 2f)
+        try {
+            controller?.setPlaybackSpeed(clamped)
+            _playbackState.update { it.copy(playbackSpeed = clamped) }
+        } catch (error: Exception) {
+            handleTransportError("setPlaybackSpeed", error)
+        }
+    }
+
+    fun setSleepTimer(minutes: Int?) {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        if (minutes == null || minutes <= 0) {
+            _playbackState.update { it.copy(sleepTimerMinutes = null, sleepTimerEndsAtMs = null) }
+            return
+        }
+        val endsAt = System.currentTimeMillis() + minutes * 60_000L
+        _playbackState.update { it.copy(sleepTimerMinutes = minutes, sleepTimerEndsAtMs = endsAt) }
+        sleepTimerJob = scope.launch {
+            delay(minutes * 60_000L)
+            try {
+                controller?.pause()
+                updateFromPlayer()
+            } catch (_: Exception) {
+            }
+            _playbackState.update { it.copy(sleepTimerMinutes = null, sleepTimerEndsAtMs = null) }
+            sleepTimerJob = null
+        }
     }
 
     private fun syncPlayerQueue() {

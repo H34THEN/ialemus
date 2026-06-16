@@ -3,10 +3,13 @@ package com.heathen.ialemus.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.heathen.ialemus.data.local.dao.LibrarySourceDao
+import com.heathen.ialemus.data.local.dao.PlaylistDao
 import com.heathen.ialemus.data.local.dao.TrackDao
 import com.heathen.ialemus.data.local.dao.TrackOverrideDao
 import com.heathen.ialemus.data.local.dao.TrackStatsDao
 import com.heathen.ialemus.data.local.entity.LibrarySourceEntity
+import com.heathen.ialemus.data.local.entity.PlaylistEntity
+import com.heathen.ialemus.data.local.entity.PlaylistTrackEntity
 import com.heathen.ialemus.data.local.entity.TrackEntity
 import com.heathen.ialemus.data.local.entity.TrackOverrideEntity
 import com.heathen.ialemus.data.local.entity.TrackStatsEntity
@@ -17,8 +20,10 @@ import com.heathen.ialemus.data.local.entity.TrackStatsEntity
         TrackStatsEntity::class,
         LibrarySourceEntity::class,
         TrackOverrideEntity::class,
+        PlaylistEntity::class,
+        PlaylistTrackEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class IalemusDatabase : RoomDatabase() {
@@ -26,4 +31,5 @@ abstract class IalemusDatabase : RoomDatabase() {
     abstract fun trackStatsDao(): TrackStatsDao
     abstract fun librarySourceDao(): LibrarySourceDao
     abstract fun trackOverrideDao(): TrackOverrideDao
+    abstract fun playlistDao(): PlaylistDao
 }

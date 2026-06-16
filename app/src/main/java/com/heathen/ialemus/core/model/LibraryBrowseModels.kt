@@ -45,4 +45,8 @@ sealed class LibraryDetail {
         val folderPath: String,
         val displayName: String,
     ) : LibraryDetail()
+    data class Playlist(
+        val playlistId: String,
+        val name: String,
+    ) : LibraryDetail()
 }

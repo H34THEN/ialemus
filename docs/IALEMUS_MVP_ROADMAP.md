@@ -92,6 +92,13 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.8 — Now Playing usability + playlists (shipped — `0.3.11-mvp1b8`)
+
+- Above-fold transport controls in all Now Playing layouts
+- Empty-state sync actions (Sync All / Sync Folder) on Now Playing; Library SOURCES preserved
+- Local Room playlists + M3U import; metadata/audio tools expansion
+- Downloads + Settings modules collapsed by default
+
 ### MVP 1B.7 — Spotify hidden, themes, MeTube WebView (shipped — `0.3.9-mvp1b7`)
 
 - Spotify visually deprecated (hidden dock tab; Settings experimental section)

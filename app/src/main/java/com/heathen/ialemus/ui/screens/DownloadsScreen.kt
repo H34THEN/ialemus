@@ -55,8 +55,8 @@ fun DownloadsScreen(
     val nasUiStatus by settingsViewModel.nasUiTestStatus.collectAsStateWithLifecycle()
     val validationError by settingsViewModel.urlValidationError.collectAsStateWithLifecycle()
 
-    var bridgeJobsExpanded by rememberSaveable { mutableStateOf(true) }
-    var meTubeExpanded by rememberSaveable { mutableStateOf(true) }
+    var bridgeJobsExpanded by rememberSaveable { mutableStateOf(false) }
+    var meTubeExpanded by rememberSaveable { mutableStateOf(false) }
     var slskdExpanded by rememberSaveable { mutableStateOf(false) }
     var nasUiExpanded by rememberSaveable { mutableStateOf(false) }
     var spotDlExpanded by rememberSaveable { mutableStateOf(false) }
@@ -152,6 +152,8 @@ fun DownloadsScreen(
             },
             validationError = validationError,
             modifier = Modifier.fillMaxWidth(),
+            expanded = meTubeExpanded,
+            onToggle = { meTubeExpanded = !meTubeExpanded },
         )
 
         ServiceWebCard(
@@ -175,6 +177,8 @@ fun DownloadsScreen(
             },
             validationError = validationError,
             modifier = Modifier.fillMaxWidth(),
+            expanded = slskdExpanded,
+            onToggle = { slskdExpanded = !slskdExpanded },
         )
 
         ServiceWebCard(
@@ -198,6 +202,8 @@ fun DownloadsScreen(
             },
             validationError = validationError,
             modifier = Modifier.fillMaxWidth(),
+            expanded = nasUiExpanded,
+            onToggle = { nasUiExpanded = !nasUiExpanded },
         )
 
         HudCollapsiblePanel(

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.heathen.ialemus.core.library.TrackTitleCleanup
+import com.heathen.ialemus.data.local.entity.TrackOverrideEntity
 import com.heathen.ialemus.core.model.RepeatMode
 import com.heathen.ialemus.core.model.QueueItem
 import com.heathen.ialemus.core.model.SourceType
@@ -107,13 +109,13 @@ fun NowPlayingArtworkPanel(
     val tokens = LocalIalemusTokens.current
     val artUri = track.albumArtUri()
     val aspect = when {
-        imageHeavy -> if (compact) 0.82f else 0.95f
-        compact -> 0.75f
+        imageHeavy -> if (compact) 0.72f else 0.88f
+        compact -> 1f
         else -> 1f
     }
     val widthFraction = when {
-        imageHeavy -> 1f
-        compact -> 0.92f
+        imageHeavy -> if (compact) 0.88f else 1f
+        compact -> 0.72f
         else -> 1f
     }
     Box(
@@ -147,6 +149,77 @@ fun NowPlayingArtworkPanel(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun NowPlayingCompactArtwork(
+    track: Track,
+    modifier: Modifier = Modifier,
+    sizeDp: androidx.compose.ui.unit.Dp = 72.dp,
+) {
+    val tokens = LocalIalemusTokens.current
+    val artUri = track.albumArtUri()
+    Box(
+        modifier = modifier
+            .size(sizeDp)
+            .border(1.5.dp, tokens.accentActive.copy(alpha = 0.5f), MaterialTheme.shapes.small)
+            .background(tokens.surfaceDeep, MaterialTheme.shapes.small),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (artUri != null) {
+            AsyncImage(
+                model = artUri,
+                contentDescription = "Album art",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Text(
+                text = "◢",
+                style = MaterialTheme.typography.labelLarge,
+                color = tokens.glowColor,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+fun NowPlayingPrimaryControls(
+    playbackState: PlaybackState,
+    onToggleShuffle: () -> Unit,
+    onPrevious: () -> Unit,
+    onPlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onCycleRepeat: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NowPlayingIconControls(
+        playbackState = playbackState,
+        onToggleShuffle = onToggleShuffle,
+        onPrevious = onPrevious,
+        onPlayPause = onPlayPause,
+        onNext = onNext,
+        onCycleRepeat = onCycleRepeat,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun NowPlayingTextMetadataHeader(
+    track: Track,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        NowPlayingCompactArtwork(track = track)
+        Column(modifier = Modifier.weight(1f)) {
+            NowPlayingTrackHeader(track = track, centered = false, compact = false)
         }
     }
 }
@@ -338,8 +411,10 @@ fun NowPlayingActionIconRow(
     onToggleMetadata: () -> Unit,
     onToggleCleanup: () -> Unit,
     onToggleTools: () -> Unit,
+    onAddToPlaylist: () -> Unit = {},
     metadataActive: Boolean = false,
     cleanupActive: Boolean = false,
+    toolsActive: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -352,6 +427,11 @@ fun NowPlayingActionIconRow(
             contentDescription = if (isFavorite) "Remove favorite" else "Add favorite",
             onClick = onToggleFavorite,
             highlighted = isFavorite,
+        )
+        HudIconButton(
+            icon = Icons.Filled.PlaylistAdd,
+            contentDescription = "Add to playlist",
+            onClick = onAddToPlaylist,
         )
         HudIconButton(
             icon = Icons.Filled.QueueMusic,
@@ -377,8 +457,9 @@ fun NowPlayingActionIconRow(
         )
         HudIconButton(
             icon = Icons.Filled.MoreHoriz,
-            contentDescription = "More tools",
+            contentDescription = "Audio tools",
             onClick = onToggleTools,
+            highlighted = toolsActive,
         )
     }
 }
@@ -420,6 +501,7 @@ fun NowPlayingMetadataPanel(
     isFavorite: Boolean,
     playCount: Int?,
     lastPlayedAt: Long?,
+    override: TrackOverrideEntity?,
     expanded: Boolean,
     onToggle: () -> Unit,
     showTechnicalDetails: Boolean,
@@ -439,9 +521,22 @@ fun NowPlayingMetadataPanel(
         modifier = modifier,
     ) {
         MetadataLine("Title", track.displayTitle)
-        MetadataLine("Scanned title", track.title)
+        if (override?.displayTitleOverride != null) {
+            MetadataLine("Original title", track.title)
+            MetadataLine("Display override", override.displayTitleOverride)
+        } else {
+            MetadataLine("Scanned title", track.title)
+        }
         MetadataLine("Artist", track.displayArtist)
+        if (override?.displayArtistOverride != null) {
+            MetadataLine("Original artist", track.artist.orEmpty())
+            MetadataLine("Artist override", override.displayArtistOverride)
+        }
         MetadataLine("Album", track.displayAlbum)
+        if (override?.displayAlbumOverride != null) {
+            MetadataLine("Original album", track.album.orEmpty())
+            MetadataLine("Album override", override.displayAlbumOverride)
+        }
         track.trackNumber?.let { MetadataLine("Track #", it.toString()) }
         track.discNumber?.let { MetadataLine("Disc #", it.toString()) }
         MetadataLine("Duration", formatDuration(track.durationMs))
@@ -484,20 +579,25 @@ fun NowPlayingMetadataPanel(
 @Composable
 fun NowPlayingTrackCleanupPanel(
     track: Track,
-    hasOverride: Boolean,
-    onSaveOverride: (String) -> Unit,
-    onResetOverride: () -> Unit,
+    override: TrackOverrideEntity?,
+    onSaveOverrides: (title: String, artist: String, album: String) -> Unit,
+    onResetOverrides: () -> Unit,
     expanded: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var editTitle by remember(track.id, track.displayTitle) { mutableStateOf(track.displayTitle) }
+    var editArtist by remember(track.id, track.displayArtist) { mutableStateOf(track.displayArtist) }
+    var editAlbum by remember(track.id, track.displayAlbum) { mutableStateOf(track.displayAlbum) }
     val suggested = remember(track.title) { TrackTitleCleanup.stripTrackNumberPrefix(track.title) }
+    val hasOverride = override?.displayTitleOverride != null ||
+        override?.displayArtistOverride != null ||
+        override?.displayAlbumOverride != null
 
     HudCollapsiblePanel(
         title = "Track Cleanup",
         sectionTag = "DISPLAY OVERRIDE",
-        subtitle = "Change how Ialemus shows this track. Does not rename the file.",
+        subtitle = "Override display metadata without renaming files.",
         expanded = expanded,
         onToggle = onToggle,
         statusLabel = if (hasOverride) "OVERRIDE" else "EDIT",
@@ -509,9 +609,21 @@ fun NowPlayingTrackCleanupPanel(
             modifier = Modifier.fillMaxWidth(),
             label = "Display title",
         )
+        HudOutlinedTextField(
+            value = editArtist,
+            onValueChange = { editArtist = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Display artist",
+        )
+        HudOutlinedTextField(
+            value = editAlbum,
+            onValueChange = { editAlbum = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Display album",
+        )
         if (suggested != null && suggested != track.displayTitle) {
             Text(
-                text = "Suggested: \"$suggested\"",
+                text = "Suggested title: \"$suggested\"",
                 style = MaterialTheme.typography.bodySmall,
                 color = LocalIalemusTokens.current.glowColor,
             )
@@ -523,21 +635,21 @@ fun NowPlayingTrackCleanupPanel(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             HudButton(
-                label = "Save display title",
-                onClick = { onSaveOverride(editTitle) },
+                label = "Save overrides",
+                onClick = { onSaveOverrides(editTitle, editArtist, editAlbum) },
                 modifier = Modifier.weight(1f),
             )
             if (hasOverride) {
                 HudButton(
-                    label = "Reset",
-                    onClick = onResetOverride,
+                    label = "Reset all",
+                    onClick = onResetOverrides,
                     modifier = Modifier.weight(1f),
                     accent = HudButtonAccent.Warning,
                 )
             }
         }
         Text(
-            text = "Future: rename file · edit embedded tags · write album/artist metadata (requires source write permission).",
+            text = "Overrides affect display only. Embedded tag editing requires future write support.",
             style = MaterialTheme.typography.labelSmall,
             color = LocalIalemusTokens.current.textMuted,
         )
@@ -586,46 +698,9 @@ fun NowPlayingQueuePreview(
 
 @Composable
 fun NowPlayingInactivePanel(onOpenLibrary: () -> Unit, modifier: Modifier = Modifier) {
-    HudPanel(
-        title = "Inactive Audio Core",
-        sectionTag = "PLAYBACK CORE",
-        subtitle = "No local signal linked. Choose a music folder in Library to begin.",
-        modifier = modifier,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1.4f)
-                    .background(
-                        LocalIalemusTokens.current.surfaceDeep.copy(alpha = 0.8f),
-                        MaterialTheme.shapes.medium,
-                    )
-                    .border(
-                        1.dp,
-                        LocalIalemusTokens.current.hudBorderColor.copy(alpha = 0.4f),
-                        MaterialTheme.shapes.medium,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Filled.GraphicEq,
-                        contentDescription = null,
-                        tint = LocalIalemusTokens.current.textMuted,
-                        modifier = Modifier.size(48.dp),
-                    )
-                    Text(
-                        text = "AUDIO CORE OFFLINE",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = LocalIalemusTokens.current.warningColor,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            }
-            HudButton(label = "Open Library", onClick = onOpenLibrary)
-        }
+    // Legacy alias — use NowPlayingEmptyState from layouts.
+    HudPanel(title = "Inactive", sectionTag = "CORE", modifier = modifier) {
+        HudButton(label = "Open Library", onClick = onOpenLibrary)
     }
 }
 

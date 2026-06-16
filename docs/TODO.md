@@ -172,6 +172,30 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - MeTube may still not render in WebView on some devices — use external browser
 - Subresource warnings (fonts, API calls) are normal for SPAs and hidden in diagnostics
 
+## MVP 1B.8 — Now Playing usability, playlists, collapsed modules (completed)
+
+- [x] `NowPlayingPrimaryControls` — shuffle/previous/play-pause/next/repeat above fold in all 5 layouts
+- [x] Now Playing empty-state launchpad — Sync All, Sync Folder, Choose Folder, Open Library, Shuffle All, Resume
+- [x] Library SOURCES upper-right chip preserved unchanged
+- [x] Text + Metadata — compact square artwork, text-first header
+- [x] Cyberpunk HUD — EVA/NERV + retro level meter / transport panels
+- [x] Room playlists v4 — `PlaylistEntity`, `PlaylistTrackEntity`, CRUD, detail view
+- [x] M3U/M3U8 import (best-effort local track match + unmatched report)
+- [x] Add to Playlist from Now Playing
+- [x] Metadata tools — title/artist/album overrides, prefix strip, original vs override
+- [x] Audio tools — speed presets, sleep timer, session readout
+- [x] Downloads — MeTube/slskd/NAS/Job Queue collapsed by default
+- [x] Settings — all sections collapsed by default
+- [ ] Manual HiBy R4 acceptance on device
+
+### Known limitations (MVP 1B.8)
+
+- M3U import matching is best-effort (path/title/filename); unmatched entries reported only
+- Sleep timer uses in-app pause (not system alarm); no end-of-track timer yet
+- Bitrate/sample rate/replaygain not scanned from files yet
+- NAS Bridge playlist sync not implemented
+- Playlist rename UI only via future polish (create/delete/detail work)
+
 ## MVP 1B.7 — Spotify hidden, theme expansion, MeTube WebView (completed)
 
 - [x] Spotify tab hidden from bottom dock (`visibleInDock = false`)
@@ -308,7 +332,7 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 ### Known limitations (MVP 1B)
 
 - Genres: not indexed yet (honest empty state; TODO MediaStore/metadata retriever)
-- Playlists: UI scaffold only (no Room playlist schema yet)
+- Playlists: Room schema + local CRUD + M3U import (MVP 1B.8); NAS sync still future
 - Audiobooks: heuristic classification only (no resume/chapters/speed/bookmarks)
 - Widget: open-app only; no MediaSession transport from widget yet
 - SAF tracks may lack artist/album metadata until tag extraction is added

@@ -56,6 +56,8 @@ fun LibraryScreen(
     var detailFolderSourceId by rememberSaveable { mutableStateOf("") }
     var detailFolderPath by rememberSaveable { mutableStateOf("") }
     var detailFolderName by rememberSaveable { mutableStateOf("") }
+    var detailPlaylistId by rememberSaveable { mutableStateOf("") }
+    var detailPlaylistName by rememberSaveable { mutableStateOf("") }
     var sourceExpanded by rememberSaveable { mutableStateOf(false) }
     var pendingFullDeviceScan by rememberSaveable { mutableStateOf(false) }
 
@@ -170,6 +172,7 @@ fun LibraryScreen(
                 "artist" -> LibraryDetail.Artist(detailArtist)
                 "album" -> LibraryDetail.Album(detailAlbum, detailArtist)
                 "folder" -> LibraryDetail.Folder(detailFolderSourceId, detailFolderPath, detailFolderName)
+                "playlist" -> LibraryDetail.Playlist(detailPlaylistId, detailPlaylistName)
                 else -> null
             }
             if (detail != null) {
@@ -207,6 +210,11 @@ fun LibraryScreen(
                             detailFolderSourceId = detail.librarySourceId
                             detailFolderPath = detail.folderPath
                             detailFolderName = detail.displayName
+                        }
+                        is LibraryDetail.Playlist -> {
+                            detailKind = "playlist"
+                            detailPlaylistId = detail.playlistId
+                            detailPlaylistName = detail.name
                         }
                     }
                 },

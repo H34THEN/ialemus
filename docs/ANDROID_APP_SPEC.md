@@ -91,23 +91,29 @@ Background rescans via WorkManager.
 
 ### 3.3 Now Playing screen
 
-**Responsibility:** Primary playback HUD (MVP 1B.3).
+**Responsibility:** Primary playback HUD (MVP 1B.3, usability pass MVP 1B.8).
+
+**Above-the-fold transport (MVP 1B.8):** All layout modes show `NowPlayingPrimaryControls` (shuffle, previous, play/pause, next, repeat) without scrolling on HiBy R4 portrait. Fixed header column + scrollable panels below.
+
+**Empty state (MVP 1B.8):** When no track is loaded, show Playback Launchpad — Sync All (`scanSelectedFolders`), Sync Folder (`scanPrimaryFolder`), Choose Music Folder, Open Library, Shuffle All, Resume last played. Library upper-right **SOURCES** chip unchanged.
 
 **Layout modes** (Settings → Playback → Now Playing Layout):
 
 | Mode | Description |
 |------|-------------|
-| Balanced | Spotify-like: art, title, controls, collapsible metadata |
-| Image Heavy | Large cover-forward; minimal metadata above fold |
-| Text + Metadata | Smaller art; expanded track/source details |
-| Playlist / Radio | Queue-heavy Up Next preview; shuffle/repeat controls |
-| Cyberpunk HUD | Dense EVA command panels, signal chips, tactical labels |
+| Balanced | Art, title, seek, controls above fold; panels scroll below |
+| Image Heavy | Compact cover; controls still above fold |
+| Text + Metadata | Compact square thumbnail + text header (no portrait art block) |
+| Playlist / Radio | Queue-first with seek + controls above fold |
+| Cyberpunk HUD | EVA/NERV panels, level meter, retro transport frame |
 
-**Collapsible panels:** Local Signal / Metadata, Queue / Up Next, Track Cleanup, Lyrics (placeholder), future audio tools.
+**Collapsible panels:** Local Signal / Metadata (original vs override values, play count), Queue / Up Next, Track Cleanup (title/artist/album overrides), Lyrics (placeholder), **Audio Tools** (speed, sleep timer, session readout).
+
+**Playlists (MVP 1B.8):** Add to Playlist action on Now Playing; Library → Playlists tab for create/import/detail.
 
 **Mini player:** Hidden on Now Playing by default. Global toggle `showMiniPlayerBar` in Settings shows/hides bar on Library, Acquire, Downloads, Settings.
 
-**Track Cleanup (MVP 1B.3):** Display title override stored in Room (`TrackOverrideEntity` keyed by `trackId`). Quick “Remove track number prefix” for patterns like `01 - `. Reset restores scanned title. Physical file rename and embedded tag edit are future/disabled — requires SAF write + tag writer.
+**Track Cleanup (MVP 1B.3 / 1B.8):** Display title/artist/album overrides in Room (`TrackOverrideEntity`). Quick “Remove track number prefix”. Reset clears all overrides. Physical file rename and embedded tag edit remain future.
 
 **Portrait (all modes):**
 

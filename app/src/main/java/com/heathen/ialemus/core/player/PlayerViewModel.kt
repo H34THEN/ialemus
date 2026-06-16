@@ -142,6 +142,25 @@ class PlayerViewModel(
         }
     }
 
+    fun saveDisplayOverrides(
+        trackId: String,
+        title: String?,
+        artist: String?,
+        album: String?,
+    ) {
+        viewModelScope.launch {
+            trackOverrideRepository.saveAllOverrides(trackId, title, artist, album)
+        }
+    }
+
+    fun clearAllOverrides(trackId: String) = clearDisplayTitleOverride(trackId)
+
+    fun observeTrackStats(trackId: String) = trackStatsDao.observeStatsForTrack(trackId)
+
+    fun setPlaybackSpeed(speed: Float) = playerConnection.setPlaybackSpeed(speed)
+
+    fun setSleepTimer(minutes: Int?) = playerConnection.setSleepTimer(minutes)
+
     fun observeTrackOverride(trackId: String) = trackOverrideRepository.observeForTrack(trackId)
 
     class Factory(

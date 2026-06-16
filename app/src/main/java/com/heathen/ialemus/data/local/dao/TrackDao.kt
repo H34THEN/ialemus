@@ -125,4 +125,10 @@ interface TrackDao {
 
     @Query("SELECT * FROM tracks ORDER BY dateAdded DESC LIMIT :limit")
     fun observeRecentlyAddedTracks(limit: Int = 50): Flow<List<TrackEntity>>
+
+    @Query("SELECT * FROM tracks")
+    suspend fun getAllOnce(): List<TrackEntity>
+
+    @Query("SELECT * FROM tracks WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<String>): List<TrackEntity>
 }

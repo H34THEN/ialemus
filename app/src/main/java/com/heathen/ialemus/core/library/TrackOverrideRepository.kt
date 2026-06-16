@@ -26,6 +26,43 @@ class TrackOverrideRepository(
         )
     }
 
+    suspend fun saveArtistOverride(trackId: String, displayArtist: String) {
+        val existing = trackOverrideDao.getForTrack(trackId)
+        trackOverrideDao.upsert(
+            (existing ?: TrackOverrideEntity(trackId = trackId)).copy(
+                displayArtistOverride = displayArtist.trim(),
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    suspend fun saveAlbumOverride(trackId: String, displayAlbum: String) {
+        val existing = trackOverrideDao.getForTrack(trackId)
+        trackOverrideDao.upsert(
+            (existing ?: TrackOverrideEntity(trackId = trackId)).copy(
+                displayAlbumOverride = displayAlbum.trim(),
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    suspend fun saveAllOverrides(
+        trackId: String,
+        displayTitle: String?,
+        displayArtist: String?,
+        displayAlbum: String?,
+    ) {
+        val existing = trackOverrideDao.getForTrack(trackId)
+        trackOverrideDao.upsert(
+            (existing ?: TrackOverrideEntity(trackId = trackId)).copy(
+                displayTitleOverride = displayTitle?.trim()?.ifBlank { null },
+                displayArtistOverride = displayArtist?.trim()?.ifBlank { null },
+                displayAlbumOverride = displayAlbum?.trim()?.ifBlank { null },
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+    }
+
     suspend fun clearOverride(trackId: String) {
         trackOverrideDao.deleteForTrack(trackId)
     }

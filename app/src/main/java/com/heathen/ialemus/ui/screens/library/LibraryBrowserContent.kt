@@ -15,7 +15,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +44,9 @@ import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.components.PlaceholderCard
 import com.heathen.ialemus.ui.components.TrackRow
+import com.heathen.ialemus.core.playlist.PlaylistSummary
+import com.heathen.ialemus.ui.screens.nowplaying.CreatePlaylistDialog
+import com.heathen.ialemus.ui.screens.nowplaying.ImportResultBanner
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 
 private val ListBottomPadding = PaddingValues(bottom = 12.dp)
@@ -72,7 +78,11 @@ fun LibraryBrowserContent(
             modifier = modifier,
         )
         LibraryBrowseMode.GENRES -> GenresBrowsePane(modifier = modifier)
-        LibraryBrowseMode.PLAYLISTS -> PlaylistsBrowsePane(modifier = modifier)
+        LibraryBrowseMode.PLAYLISTS -> PlaylistsBrowsePane(
+            libraryViewModel = libraryViewModel,
+            onOpenDetail = onOpenDetail,
+            modifier = modifier,
+        )
         LibraryBrowseMode.FOLDERS -> FoldersBrowsePane(
             libraryViewModel = libraryViewModel,
             onOpenDetail = onOpenDetail,
@@ -124,6 +134,15 @@ fun LibraryDetailContent(
             librarySourceId = detail.librarySourceId,
             folderPath = detail.folderPath,
             displayName = detail.displayName,
+            libraryViewModel = libraryViewModel,
+            playerViewModel = playerViewModel,
+            currentTrackId = currentTrackId,
+            onBack = onBack,
+            modifier = modifier,
+        )
+        is LibraryDetail.Playlist -> PlaylistDetailPane(
+            playlistId = detail.playlistId,
+            playlistName = detail.name,
             libraryViewModel = libraryViewModel,
             playerViewModel = playerViewModel,
             currentTrackId = currentTrackId,
@@ -311,31 +330,165 @@ private fun GenresBrowsePane(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PlaylistsBrowsePane(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+private fun PlaylistsBrowsePane(
+    libraryViewModel: LibraryViewModel,
+    onOpenDetail: (LibraryDetail) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
+    val importResult by libraryViewModel.importResult.collectAsStateWithLifecycle()
+    var showCreate by rememberSaveable { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        runCatching {
+            val name = uri.lastPathSegment?.substringAfterLast('/')?.substringBeforeLast('.') ?: "Imported Playlist"
+            context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { reader ->
+                libraryViewModel.importM3uPlaylist(name, reader.readText())
+            }
+        }
+    }
+
+    Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            HudButton(label = "Create Playlist", onClick = { showCreate = true }, modifier = Modifier.weight(1f))
+            HudButton(
+                label = "Import M3U",
+                onClick = { importLauncher.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "text/*")) },
+                modifier = Modifier.weight(1f),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+            )
+        }
+
+        importResult?.let { result ->
+            ImportResultBanner(
+                matched = result.matchedCount,
+                unmatched = result.unmatchedEntries.size,
+                onDismiss = libraryViewModel::clearImportResult,
+            )
+        }
+
+        if (playlists.isEmpty()) {
+            EmptyLibraryState(
+                title = "No playlists yet",
+                body = "Create a playlist or import an M3U/M3U8 file.",
+                sectionTag = "PLAYLISTS",
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = ListBottomPadding,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                items(playlists, key = { it.id }) { playlist ->
+                    PlaylistBrowseRow(
+                        playlist = playlist,
+                        onClick = { onOpenDetail(LibraryDetail.Playlist(playlist.id, playlist.name)) },
+                        onDelete = { libraryViewModel.deletePlaylist(playlist.id) },
+                    )
+                }
+            }
+        }
+    }
+
+    if (showCreate) {
+        CreatePlaylistDialog(
+            onDismiss = { showCreate = false },
+            onCreate = { name ->
+                libraryViewModel.createPlaylist(name)
+                showCreate = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun PlaylistBrowseRow(
+    playlist: PlaylistSummary,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    HudPanel(
+        title = playlist.name,
+        sectionTag = "PLAYLIST",
+        subtitle = "${playlist.trackCount} tracks · ${playlist.sourceType.uppercase()}",
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
-        PlaceholderCard(
-            title = "Local playlists",
-            body = "Room playlist schema scaffold — create/add tracks arrives in a future pass.",
-            sectionTag = "PLAYLISTS",
-        )
-        PlaceholderCard(
-            title = "M3U / M3U8 import",
-            body = "Import/export playlist files — placeholder only.",
-            sectionTag = "FUTURE MODULE",
-        )
-        PlaceholderCard(
-            title = "NAS / spot-dl playlists",
-            body = "Bridge and spot-dl generated playlist imports require NAS Bridge (MVP 2+).",
-            sectionTag = "NAS BRIDGE REQUIRED",
-        )
-        Text(
-            text = "TODO: create playlist · add track · M3U import/export · spot-dl playlist import",
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalIalemusTokens.current.textMuted,
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HudButton(label = "Open", onClick = onClick, modifier = Modifier.weight(1f))
+            HudButton(
+                label = "Delete",
+                onClick = onDelete,
+                modifier = Modifier.weight(1f),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Warning,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaylistDetailPane(
+    playlistId: String,
+    playlistName: String,
+    libraryViewModel: LibraryViewModel,
+    playerViewModel: PlayerViewModel,
+    currentTrackId: String?,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var tracks by remember(playlistId) { mutableStateOf<List<Track>>(emptyList()) }
+    val trackIds by libraryViewModel.observePlaylistTrackIds(playlistId)
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+
+    LaunchedEffect(playlistId, trackIds) {
+        tracks = libraryViewModel.loadPlaylistTracks(playlistId)
+    }
+
+    Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        HudButton(label = "← Back", onClick = onBack, accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral)
+        HudPanel(title = playlistName, sectionTag = "PLAYLIST", subtitle = "${tracks.size} tracks") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                HudButton(
+                    label = "Play All",
+                    onClick = { playerViewModel.playCollection(tracks) },
+                    enabled = tracks.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                )
+                HudButton(
+                    label = "Shuffle",
+                    onClick = { playerViewModel.playCollection(tracks, shuffle = true) },
+                    enabled = tracks.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    accent = com.heathen.ialemus.ui.components.HudButtonAccent.Warning,
+                )
+            }
+        }
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = ListBottomPadding,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TrackRow(
+                        track = track,
+                        onClick = { playerViewModel.playTrack(tracks, track) },
+                        isPlaying = track.id == currentTrackId,
+                        index = index,
+                    )
+                    HudButton(
+                        label = "Remove from playlist",
+                        onClick = { libraryViewModel.removeTrackFromPlaylist(playlistId, track.id) },
+                        accent = com.heathen.ialemus.ui.components.HudButtonAccent.Warning,
+                    )
+                }
+            }
+        }
     }
 }
 

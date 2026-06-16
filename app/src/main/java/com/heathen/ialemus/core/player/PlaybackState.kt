@@ -16,4 +16,7 @@ data class PlaybackState(
     val canSkipPrevious: Boolean = false,
     val shuffleEnabled: Boolean = false,
     val repeatMode: com.heathen.ialemus.core.model.RepeatMode = com.heathen.ialemus.core.model.RepeatMode.OFF,
+    val playbackSpeed: Float = 1f,
+    val sleepTimerMinutes: Int? = null,
+    val sleepTimerEndsAtMs: Long? = null,
 )
