@@ -15,8 +15,10 @@ data class Track(
     val dateAdded: Long = 0L,
     val dateModified: Long = 0L,
     val size: Long? = null,
-    val sourceType: SourceType = SourceType.LOCAL,
+    val sourceType: SourceType = SourceType.SAF_FOLDER,
     val origin: TrackOrigin = TrackOrigin.MANUAL,
+    val librarySourceId: String? = null,
+    val sourceLabel: String? = null,
     val lastScannedAt: Long = 0L,
 ) {
     val displayArtist: String
@@ -24,13 +26,24 @@ data class Track(
 
     val displayAlbum: String
         get() = album?.takeIf { it.isNotBlank() } ?: "Unknown Album"
+
+    val sourceChipLabel: String
+        get() = when (sourceType) {
+            SourceType.SAF_FOLDER -> "LOCAL FOLDER"
+            SourceType.MEDIASTORE_FULL_DEVICE, SourceType.LOCAL -> "FULL SCAN"
+            SourceType.FUTURE_NAS, SourceType.NAS_INDEXED, SourceType.NAS_STREAM -> "NAS"
+            SourceType.DEVICE_CACHE -> "CACHE"
+        }
 }
 
 enum class SourceType {
+    SAF_FOLDER,
+    MEDIASTORE_FULL_DEVICE,
     LOCAL,
     NAS_INDEXED,
     NAS_STREAM,
     DEVICE_CACHE,
+    FUTURE_NAS,
 }
 
 enum class TrackOrigin {
@@ -43,3 +56,6 @@ enum class TrackOrigin {
 }
 
 fun localTrackId(mediaStoreId: Long): String = "local_$mediaStoreId"
+
+fun safTrackId(sourceId: String, documentUri: String): String =
+    "saf_${sourceId}_${documentUri.hashCode()}"

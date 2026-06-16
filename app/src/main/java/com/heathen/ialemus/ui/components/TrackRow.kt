@@ -1,6 +1,8 @@
 package com.heathen.ialemus.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.util.formatDuration
 
 @Composable
@@ -27,20 +30,26 @@ fun TrackRow(
     track: Track,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isPlaying: Boolean = false,
     isFavorite: Boolean = false,
     onFavoriteClick: (() -> Unit)? = null,
 ) {
+    val tokens = LocalIalemusTokens.current
+    val borderColor = if (isPlaying) tokens.successAccent else tokens.hudBorderColor.copy(alpha = 0.25f)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .border(1.dp, borderColor, MaterialTheme.shapes.small)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = track.title,
                 style = MaterialTheme.typography.bodyLarge,
+                color = if (isPlaying) tokens.glowColor else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -51,18 +60,19 @@ fun TrackRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            StatusChip(
+                label = track.sourceChipLabel,
+                highlighted = isPlaying,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
         Text(
             text = formatDuration(track.durationMs),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            modifier = Modifier.padding(horizontal = 8.dp),
         )
         if (onFavoriteClick != null) {
-            IconButton(
-                onClick = onFavoriteClick,
-                modifier = Modifier.size(36.dp),
-            ) {
+            IconButton(onClick = onFavoriteClick, modifier = Modifier.size(36.dp)) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Favorite",
@@ -70,14 +80,8 @@ fun TrackRow(
                 )
             }
         }
-        IconButton(
-            onClick = { /* TODO(MVP 1B): track overflow menu */ },
-            modifier = Modifier.size(36.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.MoreVert,
-                contentDescription = "More",
-            )
+        IconButton(onClick = { /* TODO(MVP 1B) */ }, modifier = Modifier.size(36.dp)) {
+            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "More")
         }
     }
 }

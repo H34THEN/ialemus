@@ -1,5 +1,6 @@
 package com.heathen.ialemus.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,9 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 
 @Composable
 fun MiniPlayerBar(
@@ -30,13 +33,16 @@ fun MiniPlayerBar(
     modifier: Modifier = Modifier,
 ) {
     if (track == null) return
+    val tokens = LocalIalemusTokens.current
 
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .border(1.dp, tokens.glowColor.copy(alpha = 0.6f), MaterialTheme.shapes.medium)
             .clickable(onClick = onOpenNowPlaying),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = tokens.panelOverlay),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
         Row(
             modifier = Modifier
@@ -45,6 +51,12 @@ fun MiniPlayerBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "SYNC",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = tokens.successAccent,
+                )
                 Text(
                     text = track.title,
                     style = MaterialTheme.typography.bodyMedium,
@@ -63,6 +75,7 @@ fun MiniPlayerBar(
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play",
+                    tint = tokens.glowColor,
                 )
             }
         }

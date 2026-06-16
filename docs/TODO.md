@@ -71,7 +71,18 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] DataStore theme + DAP mode toggle
 - [x] Settings: local track count, MVP 1A build label
 
-### MVP 1B — Next tasks
+## MVP 1A Hotfix — Playback + folder scan + EVA UI (completed)
+
+- [x] Fix tap-to-play always starting first track
+- [x] SAF folder picker + persisted sources (Room `library_sources`)
+- [x] Scan selected folders only by default
+- [x] Full-device MediaStore scan explicit opt-in
+- [x] EVA-inspired theme system (7 themes) + preserve 8 Ialemus themes
+- [x] EVA-01 Berserk default theme
+- [x] HUD panels, status chips, themed Library/Now Playing/Mini Player
+- [x] `PlaybackIndexMapper` unit test
+
+### MVP 1B — Next tasks (blocked until hotfix verified on device)
 
 - [ ] Album detail view
 - [ ] Artist detail view

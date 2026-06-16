@@ -77,15 +77,30 @@ class PlayerConnection(
 
     fun playTracks(tracks: List<Track>, startIndex: Int, mode: ShuffleMode = queueRepository.shuffleMode.value) {
         if (tracks.isEmpty()) return
-        queueRepository.setQueue(tracks, startIndex, mode)
+        val safeStart = startIndex.coerceIn(0, tracks.lastIndex)
+        val selectedTrack = tracks[safeStart]
+        val playerStartIndex = queueRepository.setQueue(tracks, safeStart, mode)
         val queue = queueRepository.activeQueue.value
         val mediaController = controller ?: return
+
+        PlaybackIndexMapper.logSelection(
+            selectedTrack = selectedTrack,
+            listIndex = safeStart,
+            playerStartIndex = playerStartIndex,
+            queueSize = queue.size,
+        )
+
         mediaController.shuffleModeEnabled = false
         mediaController.repeatMode = shuffleEngine.playerRepeatMode(mode)
-        mediaController.setMediaItems(queue.toMediaItems(), 0, 0L)
+        mediaController.setMediaItems(queue.toMediaItems(), playerStartIndex, 0L)
         mediaController.prepare()
         mediaController.play()
         updateFromPlayer()
+    }
+
+    fun playTrackById(tracks: List<Track>, trackId: String, mode: ShuffleMode = queueRepository.shuffleMode.value) {
+        val startIndex = PlaybackIndexMapper.resolveStartIndex(tracks, trackId) ?: return
+        playTracks(tracks, startIndex, mode)
     }
 
     fun playPause() {
@@ -113,17 +128,24 @@ class PlayerConnection(
     }
 
     fun playQueueItem(index: Int) {
+        val queue = queueRepository.activeQueue.value
+        val track = queue.getOrNull(index) ?: return
         controller?.seekToDefaultPosition(index)
         controller?.play()
         queueRepository.updateCurrentIndex(index)
+        PlaybackIndexMapper.logSelection(
+            selectedTrack = track,
+            listIndex = index,
+            playerStartIndex = index,
+            queueSize = queue.size,
+        )
         updateFromPlayer()
     }
 
     fun setShuffleMode(mode: ShuffleMode) {
         queueRepository.setShuffleMode(mode)
         val current = queueRepository.currentTrack() ?: return
-        val originalIndex = queueRepository.activeQueue.value.indexOfFirst { it.id == current.id }
-        playTracks(queueRepository.activeQueue.value, originalIndex.coerceAtLeast(0), mode)
+        playTrackById(queueRepository.activeQueue.value, current.id, mode)
     }
 
     private fun startPositionUpdates() {

@@ -6,22 +6,31 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1A — local MediaStore scan, Room library, Media3 playback, mini player. Debug APK buildable.
+**Status:** MVP 1A Hotfix — tap-to-play fixed, folder-first SAF scan, EVA-01 default theme. Debug APK buildable.
 
-### MVP 1A (current)
+### MVP 1A Hotfix (current)
 
-- Grant `READ_MEDIA_AUDIO` (Android 13+) or legacy read permission
-- Scan local music via MediaStore (30s minimum duration filter)
-- Persist tracks in Room
-- Tap track in Library to play via ExoPlayer / `MediaSessionService`
-- Now Playing + mini player with play/pause, previous/next, seek bar
-- Queue sheet (view + tap to play)
-- Favorites toggle (Room-backed)
-- DataStore theme + DAP mode toggle
+- **Fixed:** Tapping any library track now starts that exact track (not always the first file)
+- **Folder-first scan:** Choose Music Folder via SAF before scanning; no auto full-device scan
+- **Full Device Music Scan:** Explicit opt-in only; requires `READ_MEDIA_AUDIO` permission
+- **EVA UI pass:** EVA-01 Berserk default theme + 6 more EVA-inspired themes; original 8 Ialemus themes preserved
+- Playback, Room, Media3, mini player, queue sheet unchanged in scope
 
-**Not yet:** NAS Bridge, spot-dl, MeTube, slskd, SAF folder browse, WorkManager rescan, play-count thresholds, widget, landscape polish.
+**Not yet:** MVP 1B album/artist views, NAS Bridge, acquisition tools.
 
-### Permissions (MVP 1A)
+### Scan behavior
+
+1. **Choose Music Folder** — SAF `OpenDocumentTree`; URI permission persisted in Room/DataStore flow
+2. **Scan Selected Folders** — scans only user-approved SAF folders (audio MIME/extensions, 30s min duration)
+3. **Full Device Music Scan** — explicit opt-in MediaStore scan; never runs on first launch
+
+Fresh install does **not** auto-scan all device music.
+
+### Default theme
+
+**EVA-01 Berserk** (`ThemeId.EVA_01_BERSERK`) — mecha-inspired violet/green/orange HUD (original styling, no copyrighted assets).
+
+---
 
 | Permission | Purpose |
 |------------|---------|

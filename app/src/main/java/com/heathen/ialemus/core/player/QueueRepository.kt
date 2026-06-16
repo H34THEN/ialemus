@@ -22,15 +22,18 @@ class QueueRepository(
     private val _currentIndex = MutableStateFlow(-1)
     val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
+    /**
+     * Builds the active queue and returns the index ExoPlayer must start at.
+     */
     fun setQueue(
         tracks: List<Track>,
         startIndex: Int,
         mode: ShuffleMode = _shuffleMode.value,
         reshuffle: Boolean = false,
-    ) {
+    ): Int {
         if (tracks.isEmpty()) {
             clear()
-            return
+            return 0
         }
         val safeStart = startIndex.coerceIn(0, tracks.lastIndex)
         val startTrack = tracks[safeStart]
@@ -46,7 +49,9 @@ class QueueRepository(
             startTrackId = startTrack.id,
         )
         _activeQueue.value = ordered
-        _currentIndex.value = 0
+        val playerStartIndex = PlaybackIndexMapper.resolveStartIndexInQueue(ordered, startTrack.id)
+        _currentIndex.value = playerStartIndex
+        return playerStartIndex
     }
 
     fun updateCurrentIndex(index: Int) {

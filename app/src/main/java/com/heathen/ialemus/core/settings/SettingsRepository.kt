@@ -24,6 +24,10 @@ class SettingsRepository(context: Context) {
         prefs[KEY_DAP_MODE] ?: false
     }
 
+    val fullDeviceScanEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[KEY_FULL_DEVICE_SCAN] ?: false
+    }
+
     suspend fun setTheme(themeId: ThemeId) {
         dataStore.edit { prefs -> prefs[KEY_THEME] = themeId.name }
     }
@@ -32,8 +36,13 @@ class SettingsRepository(context: Context) {
         dataStore.edit { prefs -> prefs[KEY_DAP_MODE] = enabled }
     }
 
+    suspend fun setFullDeviceScanEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[KEY_FULL_DEVICE_SCAN] = enabled }
+    }
+
     companion object {
         private val KEY_THEME = stringPreferencesKey("theme_id")
         private val KEY_DAP_MODE = booleanPreferencesKey("dap_mode")
+        private val KEY_FULL_DEVICE_SCAN = booleanPreferencesKey("full_device_scan_enabled")
     }
 }

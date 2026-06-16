@@ -29,7 +29,7 @@ import com.heathen.ialemus.BuildConfig
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.settings.SettingsPlaceholder
 import com.heathen.ialemus.core.settings.SettingsViewModel
-import com.heathen.ialemus.ui.components.PlaceholderCard
+import com.heathen.ialemus.ui.components.HudPanel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,16 +51,15 @@ fun SettingsScreen(
     ) {
         Text(text = "Settings", style = MaterialTheme.typography.headlineMedium)
 
-        PlaceholderCard(
-            title = "Local library",
-            body = "$trackCount tracks indexed on device.",
-        )
+        HudPanel(title = "Local Library", subtitle = "$trackCount tracks indexed on device.") {}
 
         RowSwitch(
-            label = "DAP low-power mode",
+            label = "DAP low-power mode (reduced motion / battery-friendly visuals)",
             checked = dapMode,
             onCheckedChange = settingsViewModel::setDapMode,
         )
+
+        Text("EVA THEMES", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
 
         ExposedDropdownMenuBox(
             expanded = themeMenuExpanded,
@@ -81,7 +80,21 @@ fun SettingsScreen(
                 expanded = themeMenuExpanded,
                 onDismissRequest = { themeMenuExpanded = false },
             ) {
-                ThemeId.entries.forEach { theme ->
+                ThemeId.evaThemes.forEach { theme ->
+                    DropdownMenuItem(
+                        text = { Text(theme.displayName) },
+                        onClick = {
+                            settingsViewModel.setTheme(theme)
+                            themeMenuExpanded = false
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("— Ialemus Original —") },
+                    onClick = {},
+                    enabled = false,
+                )
+                ThemeId.ialemusThemes.forEach { theme ->
                     DropdownMenuItem(
                         text = { Text(theme.displayName) },
                         onClick = {
@@ -93,10 +106,10 @@ fun SettingsScreen(
             }
         }
 
-        PlaceholderCard(
-            title = "NAS Bridge (future integration)",
-            body = "Bridge URL, token, and connection test arrive in MVP 2. No shell/SSH/Docker from Android.",
-        )
+        HudPanel(
+            title = "NAS Bridge",
+            subtitle = "Future integration (MVP 2). No shell/SSH/Docker from Android.",
+        ) {}
 
         OutlinedTextField(
             value = "http://nas.local:8787/api",
@@ -124,10 +137,10 @@ fun SettingsScreen(
             Text("Test connection (MVP 2)")
         }
 
-        PlaceholderCard(
+        HudPanel(
             title = "About",
-            body = "Ialemus MVP 1A\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-        )
+            subtitle = "Ialemus MVP 1A Hotfix / EVA UI Pass\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+        ) {}
     }
 }
 

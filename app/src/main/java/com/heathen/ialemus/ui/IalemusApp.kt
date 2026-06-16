@@ -43,6 +43,7 @@ fun IalemusApp(
 ) {
     var destination by rememberSaveable { mutableStateOf(AppDestination.NOW_PLAYING) }
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
+    val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -52,7 +53,7 @@ fun IalemusApp(
         }
     }
 
-    IalemusTheme(themeId = selectedTheme) {
+    IalemusTheme(themeId = selectedTheme, dapMode = dapMode) {
         Scaffold(
             bottomBar = {
                 androidx.compose.foundation.layout.Column {

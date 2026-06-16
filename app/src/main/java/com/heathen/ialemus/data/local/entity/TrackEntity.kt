@@ -21,5 +21,7 @@ data class TrackEntity(
     val size: Long?,
     val sourceType: String,
     val origin: String,
+    val librarySourceId: String?,
+    val sourceLabel: String?,
     val lastScannedAt: Long,
 )

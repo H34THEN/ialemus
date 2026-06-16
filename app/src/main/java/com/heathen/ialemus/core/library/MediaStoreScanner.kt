@@ -15,7 +15,9 @@ class MediaStoreScanner(
     private val context: Context,
     private val minimumDurationMs: Long = 30_000L,
 ) {
-    suspend fun scan(): List<Track> = withContext(Dispatchers.IO) {
+    suspend fun scan(): List<Track> = scanFullDevice()
+
+    suspend fun scanFullDevice(): List<Track> = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         val projection = buildProjection()
         val selection = """
@@ -72,8 +74,10 @@ class MediaStoreScanner(
                     dateAdded = cursor.getLong(dateAddedCol),
                     dateModified = cursor.getLong(dateModifiedCol),
                     size = cursor.getLong(sizeCol),
-                    sourceType = SourceType.LOCAL,
+                    sourceType = SourceType.MEDIASTORE_FULL_DEVICE,
                     origin = TrackOrigin.MANUAL,
+                    librarySourceId = "mediastore_full_device",
+                    sourceLabel = "Full Device Scan",
                     lastScannedAt = now,
                 )
             }

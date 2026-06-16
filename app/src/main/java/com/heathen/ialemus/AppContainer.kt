@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.heathen.ialemus.core.library.LibraryRepository
 import com.heathen.ialemus.core.library.MediaStoreScanner
+import com.heathen.ialemus.core.library.SafFolderScanner
 import com.heathen.ialemus.core.player.PlayerConnection
 import com.heathen.ialemus.core.player.QueueRepository
 import com.heathen.ialemus.core.player.ShuffleEngine
@@ -22,22 +23,26 @@ class AppContainer(context: Context) {
         IalemusDatabase::class.java,
         "ialemus.db",
     )
-        // Early MVP: destructive migration acceptable until schema stabilizes.
         .fallbackToDestructiveMigration()
         .build()
 
     val trackDao = database.trackDao()
     val trackStatsDao = database.trackStatsDao()
-
-    private val mediaStoreScanner = MediaStoreScanner(appContext)
-    val libraryRepository = LibraryRepository(
-        context = appContext,
-        scanner = mediaStoreScanner,
-        trackDao = trackDao,
-        trackStatsDao = trackStatsDao,
-    )
+    val librarySourceDao = database.librarySourceDao()
 
     val settingsRepository = SettingsRepository(appContext)
+
+    private val mediaStoreScanner = MediaStoreScanner(appContext)
+    private val safFolderScanner = SafFolderScanner(appContext)
+    val libraryRepository = LibraryRepository(
+        context = appContext,
+        mediaStoreScanner = mediaStoreScanner,
+        safFolderScanner = safFolderScanner,
+        trackDao = trackDao,
+        trackStatsDao = trackStatsDao,
+        librarySourceDao = librarySourceDao,
+        settingsRepository = settingsRepository,
+    )
 
     private val shuffleEngine = ShuffleEngine()
     val queueRepository = QueueRepository(shuffleEngine)

@@ -43,8 +43,10 @@ import coil.compose.AsyncImage
 import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.ui.components.EmptyLibraryState
-import com.heathen.ialemus.ui.components.PlaceholderCard
+import com.heathen.ialemus.ui.components.HudPanel
+import com.heathen.ialemus.ui.components.StatusChip
 import com.heathen.ialemus.ui.screens.queue.QueueSheet
+import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.util.albumArtUri
 import com.heathen.ialemus.ui.util.formatDuration
 
@@ -53,6 +55,7 @@ fun NowPlayingScreen(
     playerViewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val tokens = LocalIalemusTokens.current
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
     val shuffleMode by playerViewModel.shuffleMode.collectAsStateWithLifecycle()
     val track = playbackState.currentTrack
@@ -70,10 +73,12 @@ fun NowPlayingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Now Playing",
+            text = "NOW PLAYING",
             style = MaterialTheme.typography.headlineMedium,
+            color = tokens.glowColor,
             modifier = Modifier.fillMaxWidth(),
         )
+        StatusChip(label = "LOCAL SIGNAL", highlighted = track != null)
 
         if (track == null) {
             EmptyLibraryState(
@@ -156,10 +161,15 @@ fun NowPlayingScreen(
                 }
             }
 
-            PlaceholderCard(
-                title = "Shuffle / repeat",
-                body = "Mode: ${shuffleMode.displayName}",
-            )
+            HudPanel(title = "Signal Panel", subtitle = "Audio telemetry placeholder") {
+                Text(
+                    text = "Bitrate/sample rate HUD arrives later. Playback is local-only in MVP 1A hotfix.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                )
+            }
+
+            HudPanel(title = "Shuffle / Repeat", subtitle = "Mode: ${shuffleMode.displayName}") {}
         }
 
         // TODO: Landscape first-class three-pane HUD (MVP 5).
