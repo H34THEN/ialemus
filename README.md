@@ -6,7 +6,30 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 0 — Android scaffold initialized (Kotlin + Jetpack Compose). Debug APK buildable.
+**Status:** MVP 1A — local MediaStore scan, Room library, Media3 playback, mini player. Debug APK buildable.
+
+### MVP 1A (current)
+
+- Grant `READ_MEDIA_AUDIO` (Android 13+) or legacy read permission
+- Scan local music via MediaStore (30s minimum duration filter)
+- Persist tracks in Room
+- Tap track in Library to play via ExoPlayer / `MediaSessionService`
+- Now Playing + mini player with play/pause, previous/next, seek bar
+- Queue sheet (view + tap to play)
+- Favorites toggle (Room-backed)
+- DataStore theme + DAP mode toggle
+
+**Not yet:** NAS Bridge, spot-dl, MeTube, slskd, SAF folder browse, WorkManager rescan, play-count thresholds, widget, landscape polish.
+
+### Permissions (MVP 1A)
+
+| Permission | Purpose |
+|------------|---------|
+| `READ_MEDIA_AUDIO` | Local music scan (API 33+) |
+| `READ_EXTERNAL_STORAGE` | Local music scan (API 32 and below, `maxSdkVersion=32`) |
+| `FOREGROUND_SERVICE` / `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | Background playback service |
+| `POST_NOTIFICATIONS` | Playback notification (API 33+, optional) |
+| `INTERNET` | Reserved for future bridge (unused in 1A playback) |
 
 ---
 

@@ -3,8 +3,10 @@
 **App name:** Ialemus  
 **Package (proposed):** `com.heathen.ialemus`  
 **Targets:** HiBy R4 DAP, Android phones  
-**Minimum SDK:** Android 12+ (API 31)  
+**Minimum SDK:** API 26 (`minSdk`), target API 35  
 **Distribution:** Sideload/APK friendly; no Google Play Services required for core playback
+
+**Implementation status (MVP 1A):** Local MediaStore scan, Room library, Media3 playback service, Library/Now Playing/Mini Player wired. NAS/Bridge/Acquire remain placeholders.
 
 See also: `DECISIONS.md`, `IALEMUS_PROJECT_SPEC.md`, `NAS_BRIDGE_SPEC.md`.
 
@@ -38,7 +40,7 @@ The app **must not**:
 | Networking | Retrofit + OkHttp or Ktor Client |
 | Artwork | Coil |
 | Widget | Glance or RemoteViews |
-| DI | Hilt or Koin (TBD at init) |
+| DI | Manual `AppContainer` (Hilt/Koin TBD) |
 
 ---
 

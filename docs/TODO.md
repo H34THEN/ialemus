@@ -42,22 +42,53 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 ### Android project init
 
 - [x] Create Kotlin + Jetpack Compose project
-- [ ] Add Media3, Room, DataStore, WorkManager, networking, Coil (deps stubbed in `app/build.gradle.kts`)
-- [x] Navigation shell + empty screens (state-based bottom nav; Navigation Compose later)
-- [x] Theme stubs for all eight themes (default: Archive Black)
-- [x] Settings scaffold with masked API token placeholder
-- [ ] Local music permission flow stub
+- [x] Add Media3, Room, DataStore, Coil (WorkManager/networking deferred)
+- [x] Local music permission flow
+- [x] Install debug APK on Android device / HiBy R4 (manual)
 
 ### Next steps (post-scaffold)
 
 - [x] Verify debug APK builds (`./gradlew assembleDebug`)
-- [ ] Install debug APK on Android device / HiBy R4
-- [ ] Add local playback with Media3 / ExoPlayer + MediaSessionService (MVP 1)
+- [ ] Install and verify on HiBy R4 with real music library
+- [x] Add local playback with Media3 / ExoPlayer + MediaSessionService (MVP 1A)
 - [ ] Migrate to Navigation Compose for deep links and back stack
 
 ---
 
-## MVP 1 — Local library scanning and playback
+## MVP 1A — Local scan + playback (completed)
+
+- [x] MediaStore scan with 30s duration filter
+- [x] Room schema: `TrackEntity`, `TrackStatsEntity`
+- [x] Permission flow (`READ_MEDIA_AUDIO` / legacy read)
+- [x] Library screen: real track list, tap-to-play
+- [x] Media3 + `IalemusPlaybackService` (`MediaSessionService`)
+- [x] Play / pause / seek / previous / next
+- [x] In-memory queue + queue sheet
+- [x] Mini player bar
+- [x] Now Playing with album art (Coil), seek bar, action placeholders
+- [x] Favorite toggle (Room)
+- [x] ShuffleEngine stub (OFF / TRUE_RANDOM / REPEAT_QUEUE / REPEAT_ONE)
+- [x] DataStore theme + DAP mode toggle
+- [x] Settings: local track count, MVP 1A build label
+
+### MVP 1B — Next tasks
+
+- [ ] Album detail view
+- [ ] Artist detail view
+- [ ] Folder browsing (SAF)
+- [ ] Richer queue UI (remove/reorder)
+- [ ] Favorite persistence polish across screens
+- [ ] Play count threshold polish (50% / 4 min rule)
+- [ ] Local lyrics panel
+- [ ] Widget
+- [ ] Landscape two-pane Now Playing
+- [ ] WorkManager background rescan
+- [ ] Incremental MediaStore scan (API 30+ generation markers)
+- [ ] Storage Access Framework folder grants
+
+---
+
+## MVP 1 — Local library scanning and playback (remaining)
 
 ### Library scanner
 

@@ -1,13 +1,13 @@
 package com.heathen.ialemus.core.model
 
 enum class ShuffleMode(val displayName: String) {
-    PURE_CHAOS("Pure Chaos"),
-    SMART_CHAOS("Smart Chaos"),
-    DEEP_CUT_RITUAL("Deep Cut Ritual"),
-    FAVORITE_STORM("Favorite Storm"),
+    OFF("Off"),
+    TRUE_RANDOM("True Random"),
+    REPEAT_QUEUE("Repeat Queue"),
+    REPEAT_ONE("Repeat One"),
     ;
 
     companion object {
-        val DEFAULT = PURE_CHAOS
+        val DEFAULT = OFF
     }
 }

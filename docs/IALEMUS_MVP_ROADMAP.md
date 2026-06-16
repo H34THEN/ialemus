@@ -26,7 +26,23 @@ Deliverables:
 
 **Goal:** Fully usable offline/local player.
 
-Deliverables:
+### MVP 1A (shipped)
+
+- MediaStore scanner with Room persistence
+- Permission flow for local audio access
+- Library track list with tap-to-play
+- Media3 / `IalemusPlaybackService` playback
+- Now Playing, mini player, queue sheet
+- Favorites (Room), DataStore settings
+
+### MVP 1B (next)
+
+- Album / artist / folder views
+- WorkManager rescan, play-count rules
+- Queue reorder/remove, lyrics panel, widget
+- Landscape Now Playing polish
+
+Deliverables (full MVP 1):
 
 - Local library scanner (MediaStore, SAF)
 - Room database and library UI
