@@ -63,7 +63,14 @@ Deliverables:
 - spotDL Bridge-only playlist job form (disabled until Bridge MVP 2)
 - Downloads job category placeholders aligned with Job Queue style
 
-### MVP 1C / remaining 1B polish (next)
+### MVP 1B.2 — Docker Web UI wrappers (shipped — `0.3.3-mvp1b2`)
+
+- In-app WebView wrappers for MeTube, slskd, Ugreen NAS UI
+- Settings NAS / Docker Web UIs with local LAN defaults
+- Acquire Open in Ialemus + external browser; spotDL still Bridge-only
+- No shell/SSH/Docker from Android
+
+### MVP 1C / remaining polish (next)
 
 Deliverables (full MVP 1):
 

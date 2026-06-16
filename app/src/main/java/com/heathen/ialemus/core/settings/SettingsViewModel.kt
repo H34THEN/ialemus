@@ -7,10 +7,12 @@ import com.heathen.ialemus.AppContainer
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.network.ServiceUrlTester
+import com.heathen.ialemus.core.network.ServiceUrlValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -44,32 +46,40 @@ class SettingsViewModel(
             initialValue = NasConnectionSettings(),
         )
 
+    private val _urlValidationError = MutableStateFlow<String?>(null)
+    val urlValidationError: StateFlow<String?> = _urlValidationError.asStateFlow()
+
     private val _bridgeTestResult = MutableStateFlow<Result<Int>?>(null)
     private val _meTubeTestResult = MutableStateFlow<Result<Int>?>(null)
     private val _slskdTestResult = MutableStateFlow<Result<Int>?>(null)
+    private val _nasUiTestResult = MutableStateFlow<Result<Int>?>(null)
     private val _bridgeChecking = MutableStateFlow(false)
     private val _meTubeChecking = MutableStateFlow(false)
     private val _slskdChecking = MutableStateFlow(false)
+    private val _nasUiChecking = MutableStateFlow(false)
 
     val bridgeTestStatus: StateFlow<ConnectionTestStatus> = combineTestStatus(
-        urlFlow = nasConnectionSettings,
         urlSelector = { it.bridgeUrl },
         resultFlow = _bridgeTestResult,
         checkingFlow = _bridgeChecking,
     )
 
     val meTubeTestStatus: StateFlow<ConnectionTestStatus> = combineTestStatus(
-        urlFlow = nasConnectionSettings,
         urlSelector = { it.meTubeUrl },
         resultFlow = _meTubeTestResult,
         checkingFlow = _meTubeChecking,
     )
 
     val slskdTestStatus: StateFlow<ConnectionTestStatus> = combineTestStatus(
-        urlFlow = nasConnectionSettings,
         urlSelector = { it.slskdUrl },
         resultFlow = _slskdTestResult,
         checkingFlow = _slskdChecking,
+    )
+
+    val nasUiTestStatus: StateFlow<ConnectionTestStatus> = combineTestStatus(
+        urlSelector = { it.nasUiUrl },
+        resultFlow = _nasUiTestResult,
+        checkingFlow = _nasUiChecking,
     )
 
     fun setTheme(themeId: ThemeId) {
@@ -80,12 +90,29 @@ class SettingsViewModel(
         viewModelScope.launch { settingsRepository.setDapMode(enabled) }
     }
 
-    fun saveNasConnectionSettings(settings: NasConnectionSettings) {
+    fun clearValidationError() {
+        _urlValidationError.value = null
+    }
+
+    fun saveNasConnectionSettings(settings: NasConnectionSettings): Boolean {
+        val validationError = validateSettings(settings)
+        if (validationError != null) {
+            _urlValidationError.value = validationError
+            return false
+        }
+        _urlValidationError.value = null
         viewModelScope.launch {
-            settingsRepository.saveNasConnectionSettings(settings)
-            _bridgeTestResult.value = null
-            _meTubeTestResult.value = null
-            _slskdTestResult.value = null
+            settingsRepository.saveNasConnectionSettings(normalizeSettings(settings))
+            clearTestResults()
+        }
+        return true
+    }
+
+    fun resetToLocalDefaults() {
+        _urlValidationError.value = null
+        viewModelScope.launch {
+            settingsRepository.saveNasConnectionSettings(LocalServiceDefaults.asSettings())
+            clearTestResults()
         }
     }
 
@@ -93,11 +120,13 @@ class SettingsViewModel(
         current: NasConnectionSettings,
         meTubeUrl: String? = null,
         slskdUrl: String? = null,
-    ) {
-        saveNasConnectionSettings(
+        nasUiUrl: String? = null,
+    ): Boolean {
+        return saveNasConnectionSettings(
             current.copy(
                 meTubeUrl = meTubeUrl ?: current.meTubeUrl,
                 slskdUrl = slskdUrl ?: current.slskdUrl,
+                nasUiUrl = nasUiUrl ?: current.nasUiUrl,
             ),
         )
     }
@@ -116,39 +145,50 @@ class SettingsViewModel(
     }
 
     fun testMeTubeConnection() {
-        val url = nasConnectionSettings.value.meTubeUrl
-        if (url.isBlank()) return
-        viewModelScope.launch {
-            _meTubeChecking.value = true
-            _meTubeTestResult.value = ServiceUrlTester.testGet(url)
-            _meTubeChecking.value = false
-        }
+        testServiceUrl(nasConnectionSettings.value.meTubeUrl, _meTubeChecking, _meTubeTestResult)
     }
 
     fun testSlskdConnection() {
-        val url = nasConnectionSettings.value.slskdUrl
-        if (url.isBlank()) return
-        viewModelScope.launch {
-            _slskdChecking.value = true
-            _slskdTestResult.value = ServiceUrlTester.testGet(url)
-            _slskdChecking.value = false
-        }
+        testServiceUrl(nasConnectionSettings.value.slskdUrl, _slskdChecking, _slskdTestResult)
+    }
+
+    fun testNasUiConnection() {
+        testServiceUrl(nasConnectionSettings.value.nasUiUrl, _nasUiChecking, _nasUiTestResult)
     }
 
     fun testAllConnections() {
-        testBridgeConnection()
         testMeTubeConnection()
         testSlskdConnection()
+        testNasUiConnection()
+    }
+
+    private fun testServiceUrl(
+        url: String,
+        checkingFlow: MutableStateFlow<Boolean>,
+        resultFlow: MutableStateFlow<Result<Int>?>,
+    ) {
+        if (url.isBlank()) return
+        viewModelScope.launch {
+            checkingFlow.value = true
+            resultFlow.value = ServiceUrlTester.testGet(url)
+            checkingFlow.value = false
+        }
+    }
+
+    private fun clearTestResults() {
+        _bridgeTestResult.value = null
+        _meTubeTestResult.value = null
+        _slskdTestResult.value = null
+        _nasUiTestResult.value = null
     }
 
     private fun combineTestStatus(
-        urlFlow: StateFlow<NasConnectionSettings>,
         urlSelector: (NasConnectionSettings) -> String,
         resultFlow: MutableStateFlow<Result<Int>?>,
         checkingFlow: MutableStateFlow<Boolean>,
     ): StateFlow<ConnectionTestStatus> {
-        return kotlinx.coroutines.flow.combine(
-            urlFlow,
+        return combine(
+            nasConnectionSettings,
             resultFlow,
             checkingFlow,
         ) { settings, result, checking ->
@@ -162,6 +202,40 @@ class SettingsViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = ConnectionTestStatus.NOT_CONFIGURED,
         )
+    }
+
+    private fun normalizeSettings(settings: NasConnectionSettings): NasConnectionSettings {
+        return settings.copy(
+            nasDisplayName = settings.nasDisplayName.trim(),
+            bridgeUrl = normalizeOptionalUrl(settings.bridgeUrl),
+            bridgeToken = settings.bridgeToken.trim(),
+            meTubeUrl = normalizeOptionalUrl(settings.meTubeUrl),
+            slskdUrl = normalizeOptionalUrl(settings.slskdUrl),
+            nasUiUrl = normalizeOptionalUrl(settings.nasUiUrl),
+        )
+    }
+
+    private fun normalizeOptionalUrl(url: String): String {
+        val trimmed = url.trim()
+        if (trimmed.isBlank()) return ""
+        return ServiceUrlValidator.normalize(trimmed)
+    }
+
+    private fun validateSettings(settings: NasConnectionSettings): String? {
+        val urls = listOf(
+            "MeTube URL" to settings.meTubeUrl,
+            "slskd URL" to settings.slskdUrl,
+            "NAS UI URL" to settings.nasUiUrl,
+            "Bridge URL" to settings.bridgeUrl,
+        )
+        urls.forEach { (label, url) ->
+            if (url.isNotBlank()) {
+                ServiceUrlValidator.validate(url).onFailure { error ->
+                    return "$label: ${error.message}"
+                }
+            }
+        }
+        return null
     }
 
     class Factory(

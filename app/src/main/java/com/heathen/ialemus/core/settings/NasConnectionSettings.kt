@@ -8,7 +8,7 @@ data class NasConnectionSettings(
     val bridgeToken: String = "",
     val meTubeUrl: String = "",
     val slskdUrl: String = "",
-    val jellyfinUrl: String = "",
+    val nasUiUrl: String = "",
     val connectionMode: ConnectionMode = ConnectionMode.LOCAL_LAN,
 ) {
     val bridgeConfigured: Boolean
@@ -19,4 +19,7 @@ data class NasConnectionSettings(
 
     val slskdConfigured: Boolean
         get() = slskdUrl.isNotBlank()
+
+    val nasUiConfigured: Boolean
+        get() = nasUiUrl.isNotBlank()
 }

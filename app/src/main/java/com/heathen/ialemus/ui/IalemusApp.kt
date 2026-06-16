@@ -37,6 +37,7 @@ fun IalemusApp(
     onRequestNotificationPermission: () -> Unit = {},
 ) {
     var destination by rememberSaveable { mutableStateOf(AppDestination.NOW_PLAYING) }
+    var hideMiniPlayer by rememberSaveable { mutableStateOf(false) }
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
@@ -56,26 +57,34 @@ fun IalemusApp(
         playerViewModel.clearPlaybackError()
     }
 
+    LaunchedEffect(destination) {
+        if (destination != AppDestination.ACQUIRE) {
+            hideMiniPlayer = false
+        }
+    }
+
     IalemusTheme(themeId = selectedTheme, dapMode = dapMode) {
         HudScaffold(
             snackbarHostState = snackbarHostState,
             bottomBar = {
                 Column {
-                    MiniPlayerBar(
-                        track = playbackState.currentTrack,
-                        isPlaying = playbackState.isPlaying,
-                        shuffleEnabled = playbackState.shuffleEnabled,
-                        repeatMode = playbackState.repeatMode,
-                        canSkipPrevious = playbackState.canSkipPrevious,
-                        canSkipNext = playbackState.canSkipNext,
-                        onPlayPause = playerViewModel::playPause,
-                        onPrevious = playerViewModel::skipToPrevious,
-                        onNext = playerViewModel::skipToNext,
-                        onToggleShuffle = playerViewModel::toggleShuffle,
-                        onCycleRepeat = playerViewModel::cycleRepeat,
-                        onOpenNowPlaying = { destination = AppDestination.NOW_PLAYING },
-                        modifier = Modifier.padding(horizontal = horizontalPad, vertical = 4.dp),
-                    )
+                    if (!hideMiniPlayer) {
+                        MiniPlayerBar(
+                            track = playbackState.currentTrack,
+                            isPlaying = playbackState.isPlaying,
+                            shuffleEnabled = playbackState.shuffleEnabled,
+                            repeatMode = playbackState.repeatMode,
+                            canSkipPrevious = playbackState.canSkipPrevious,
+                            canSkipNext = playbackState.canSkipNext,
+                            onPlayPause = playerViewModel::playPause,
+                            onPrevious = playerViewModel::skipToPrevious,
+                            onNext = playerViewModel::skipToNext,
+                            onToggleShuffle = playerViewModel::toggleShuffle,
+                            onCycleRepeat = playerViewModel::cycleRepeat,
+                            onOpenNowPlaying = { destination = AppDestination.NOW_PLAYING },
+                            modifier = Modifier.padding(horizontal = horizontalPad, vertical = 4.dp),
+                        )
+                    }
                     HudBottomNavigation(
                         selected = destination,
                         onSelect = { destination = it },
@@ -96,6 +105,7 @@ fun IalemusApp(
                 )
                 AppDestination.ACQUIRE -> AcquireScreen(
                     settingsViewModel = settingsViewModel,
+                    onWebViewActive = { hideMiniPlayer = it },
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.DOWNLOADS -> DownloadsScreen(

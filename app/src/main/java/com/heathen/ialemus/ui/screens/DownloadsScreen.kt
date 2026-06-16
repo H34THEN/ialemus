@@ -74,17 +74,17 @@ fun DownloadsScreen(
         }
 
         HudCollapsiblePanel(
-            title = "MeTube imports",
+            title = "MeTube web downloads",
             sectionTag = "MODULE 02",
-            subtitle = "MeTube download jobs via Bridge.",
+            subtitle = "Downloads started in MeTube web UI (informational only).",
             expanded = meTubeExpanded,
             onToggle = { meTubeExpanded = !meTubeExpanded },
             statusLabel = meTubeStatus.label.uppercase(),
         ) {
             ConnectionStatusRow("MeTube", meTubeStatus, nasSettings.meTubeConfigured)
             PlaceholderCard(
-                title = "No MeTube imports",
-                body = "Configure MeTube URL in Acquire or Settings.",
+                title = "No tracked MeTube downloads",
+                body = "Use Acquire → MeTube → Open in Ialemus. Job scraping arrives with Bridge MVP 2.",
                 sectionTag = "METUBE",
             )
         }
@@ -92,15 +92,15 @@ fun DownloadsScreen(
         HudCollapsiblePanel(
             title = "slskd downloads",
             sectionTag = "MODULE 03",
-            subtitle = "Soulseek downloads via Bridge.",
+            subtitle = "Downloads started in slskd web UI (informational only).",
             expanded = slskdExpanded,
             onToggle = { slskdExpanded = !slskdExpanded },
             statusLabel = slskdStatus.label.uppercase(),
         ) {
             ConnectionStatusRow("slskd", slskdStatus, nasSettings.slskdConfigured)
             PlaceholderCard(
-                title = "No slskd downloads",
-                body = "Configure slskd URL in Acquire or Settings.",
+                title = "No tracked slskd downloads",
+                body = "Use Acquire → slskd → Open in Ialemus. Bridge job sync arrives in MVP 2.",
                 sectionTag = "SLSKD",
             )
         }

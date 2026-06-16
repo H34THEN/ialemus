@@ -37,6 +37,7 @@ import com.heathen.ialemus.core.library.MediaPermissionState
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.model.ConnectionMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
+import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasConnectionSettings
 import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
@@ -62,6 +63,8 @@ fun SettingsScreen(
     val bridgeStatus by settingsViewModel.bridgeTestStatus.collectAsStateWithLifecycle()
     val meTubeStatus by settingsViewModel.meTubeTestStatus.collectAsStateWithLifecycle()
     val slskdStatus by settingsViewModel.slskdTestStatus.collectAsStateWithLifecycle()
+    val nasUiStatus by settingsViewModel.nasUiTestStatus.collectAsStateWithLifecycle()
+    val validationError by settingsViewModel.urlValidationError.collectAsStateWithLifecycle()
     val permissionState by libraryViewModel.permissionState.collectAsStateWithLifecycle()
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
@@ -73,11 +76,19 @@ fun SettingsScreen(
     var pendingFullDeviceScan by rememberSaveable { mutableStateOf(false) }
 
     var nasDisplayName by rememberSaveable(nasSettings.nasDisplayName) { mutableStateOf(nasSettings.nasDisplayName) }
-    var bridgeUrl by rememberSaveable(nasSettings.bridgeUrl) { mutableStateOf(nasSettings.bridgeUrl) }
     var bridgeToken by rememberSaveable(nasSettings.bridgeToken) { mutableStateOf(nasSettings.bridgeToken) }
-    var meTubeUrl by rememberSaveable(nasSettings.meTubeUrl) { mutableStateOf(nasSettings.meTubeUrl) }
-    var slskdUrl by rememberSaveable(nasSettings.slskdUrl) { mutableStateOf(nasSettings.slskdUrl) }
-    var jellyfinUrl by rememberSaveable(nasSettings.jellyfinUrl) { mutableStateOf(nasSettings.jellyfinUrl) }
+    var meTubeUrl by rememberSaveable(nasSettings.meTubeUrl) {
+        mutableStateOf(nasSettings.meTubeUrl.ifBlank { LocalServiceDefaults.METUBE })
+    }
+    var slskdUrl by rememberSaveable(nasSettings.slskdUrl) {
+        mutableStateOf(nasSettings.slskdUrl.ifBlank { LocalServiceDefaults.SLSKD })
+    }
+    var nasUiUrl by rememberSaveable(nasSettings.nasUiUrl) {
+        mutableStateOf(nasSettings.nasUiUrl.ifBlank { LocalServiceDefaults.NAS_UI })
+    }
+    var bridgeUrl by rememberSaveable(nasSettings.bridgeUrl) {
+        mutableStateOf(nasSettings.bridgeUrl.ifBlank { LocalServiceDefaults.BRIDGE_FUTURE })
+    }
     var connectionMode by rememberSaveable(nasSettings.connectionMode.name) {
         mutableStateOf(nasSettings.connectionMode)
     }
@@ -107,6 +118,20 @@ fun SettingsScreen(
     val isScanning = scanState is LibraryScanState.ScanningFolders ||
         scanState is LibraryScanState.ScanningFullDevice
 
+    val saveDockerUrls: () -> Unit = {
+        settingsViewModel.saveNasConnectionSettings(
+            nasSettings.copy(
+                nasDisplayName = nasDisplayName,
+                bridgeUrl = bridgeUrl,
+                bridgeToken = bridgeToken,
+                meTubeUrl = meTubeUrl,
+                slskdUrl = slskdUrl,
+                nasUiUrl = nasUiUrl,
+                connectionMode = connectionMode,
+            ),
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -117,7 +142,7 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.1 · NAS connectors + dock polish",
+            subtitle = "Ialemus MVP 1B.2 · Docker Web UI wrappers",
         )
 
         HudCollapsiblePanel(
@@ -204,123 +229,132 @@ fun SettingsScreen(
         }
 
         HudCollapsiblePanel(
-            title = "NAS / Bridge Connections",
-            sectionTag = "NAS CONNECT",
-            subtitle = "Configure LAN service URLs. Android connects via HTTP only — no shell/SSH/Docker.",
+            title = "NAS / Docker Web UIs",
+            sectionTag = "DOCKER WEB",
+            subtitle = "Wrap running MeTube, slskd, and NAS web UIs. No shell/SSH/Docker from Android.",
             expanded = nasExpanded,
             onToggle = { nasExpanded = !nasExpanded },
-            statusLabel = if (nasSettings.bridgeConfigured) "CONFIGURED" else "SETUP",
+            statusLabel = if (nasSettings.meTubeConfigured || nasSettings.slskdConfigured) "READY" else "SETUP",
         ) {
             OutlinedTextField(
-                value = nasDisplayName,
-                onValueChange = { nasDisplayName = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("NAS display name") },
-                placeholder = { Text("Ugreen NAS") },
-                singleLine = true,
-            )
-            ConnectionModeSelector(
-                selected = connectionMode,
-                onSelect = { connectionMode = it },
-            )
-            OutlinedTextField(
-                value = bridgeUrl,
-                onValueChange = { bridgeUrl = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                label = { Text("Ialemus Bridge URL") },
-                placeholder = { Text(NasUrlPlaceholders.BRIDGE) },
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = bridgeToken,
-                onValueChange = { bridgeToken = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                label = { Text("Bridge API token") },
-                placeholder = { Text("Paste bridge token") },
-                singleLine = true,
-            )
-            OutlinedTextField(
                 value = meTubeUrl,
-                onValueChange = { meTubeUrl = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
+                onValueChange = {
+                    meTubeUrl = it
+                    settingsViewModel.clearValidationError()
+                },
+                modifier = Modifier.fillMaxWidth(),
                 label = { Text("MeTube URL") },
                 placeholder = { Text(NasUrlPlaceholders.METUBE) },
                 singleLine = true,
+                isError = validationError?.contains("MeTube") == true,
             )
             OutlinedTextField(
                 value = slskdUrl,
-                onValueChange = { slskdUrl = it },
+                onValueChange = {
+                    slskdUrl = it
+                    settingsViewModel.clearValidationError()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
                 label = { Text("slskd URL") },
                 placeholder = { Text(NasUrlPlaceholders.SLSKD) },
                 singleLine = true,
+                isError = validationError?.contains("slskd") == true,
             )
             OutlinedTextField(
-                value = jellyfinUrl,
-                onValueChange = { jellyfinUrl = it },
+                value = nasUiUrl,
+                onValueChange = {
+                    nasUiUrl = it
+                    settingsViewModel.clearValidationError()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                label = { Text("Jellyfin URL (optional)") },
-                placeholder = { Text(NasUrlPlaceholders.JELLYFIN) },
+                label = { Text("Ugreen NAS UI URL") },
+                placeholder = { Text(NasUrlPlaceholders.NAS_UI) },
                 singleLine = true,
+                isError = validationError?.contains("NAS UI") == true,
             )
-            Row(
+            OutlinedTextField(
+                value = bridgeUrl,
+                onValueChange = {
+                    bridgeUrl = it
+                    settingsViewModel.clearValidationError()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                label = { Text("Ialemus Bridge URL (future — not required)") },
+                placeholder = { Text(NasUrlPlaceholders.BRIDGE) },
+                singleLine = true,
+                isError = validationError?.contains("Bridge") == true,
+            )
+            if (validationError != null) {
+                Text(
+                    text = validationError.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tokens.warningColor,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                HudStatusChip(label = "Bridge · ${bridgeStatus.label}", highlighted = bridgeStatus == ConnectionTestStatus.REACHABLE)
                 HudStatusChip(label = "MeTube · ${meTubeStatus.label}", highlighted = meTubeStatus == ConnectionTestStatus.REACHABLE)
                 HudStatusChip(label = "slskd · ${slskdStatus.label}", highlighted = slskdStatus == ConnectionTestStatus.REACHABLE)
+                HudStatusChip(label = "NAS UI · ${nasUiStatus.label}", highlighted = nasUiStatus == ConnectionTestStatus.REACHABLE)
             }
             HudButton(
-                label = "Save connections",
-                onClick = {
-                    settingsViewModel.saveNasConnectionSettings(
-                        NasConnectionSettings(
-                            nasDisplayName = nasDisplayName,
-                            bridgeUrl = bridgeUrl,
-                            bridgeToken = bridgeToken,
-                            meTubeUrl = meTubeUrl,
-                            slskdUrl = slskdUrl,
-                            jellyfinUrl = jellyfinUrl,
-                            connectionMode = connectionMode,
-                        ),
-                    )
-                },
+                label = "Save",
+                onClick = saveDockerUrls,
                 modifier = Modifier.padding(top = 8.dp),
             )
             HudButton(
-                label = "Test connections",
+                label = "Reset to local defaults",
                 onClick = {
-                    settingsViewModel.saveNasConnectionSettings(
-                        NasConnectionSettings(
-                            nasDisplayName = nasDisplayName,
-                            bridgeUrl = bridgeUrl,
-                            bridgeToken = bridgeToken,
-                            meTubeUrl = meTubeUrl,
-                            slskdUrl = slskdUrl,
-                            jellyfinUrl = jellyfinUrl,
-                            connectionMode = connectionMode,
-                        ),
-                    )
-                    settingsViewModel.testAllConnections()
+                    settingsViewModel.resetToLocalDefaults()
+                    val defaults = LocalServiceDefaults.asSettings()
+                    meTubeUrl = defaults.meTubeUrl
+                    slskdUrl = defaults.slskdUrl
+                    nasUiUrl = defaults.nasUiUrl
+                    bridgeUrl = defaults.bridgeUrl
+                },
+                modifier = Modifier.padding(top = 8.dp),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+            )
+            HudButton(
+                label = "Test MeTube",
+                onClick = {
+                    saveDockerUrls()
+                    settingsViewModel.testMeTubeConnection()
+                },
+                modifier = Modifier.padding(top = 8.dp),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+            )
+            HudButton(
+                label = "Test slskd",
+                onClick = {
+                    saveDockerUrls()
+                    settingsViewModel.testSlskdConnection()
+                },
+                modifier = Modifier.padding(top = 8.dp),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+            )
+            HudButton(
+                label = "Test NAS UI",
+                onClick = {
+                    saveDockerUrls()
+                    settingsViewModel.testNasUiConnection()
                 },
                 modifier = Modifier.padding(top = 8.dp),
                 accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
             )
             Text(
-                text = "LAN HTTP is fine for local testing. Production bridge should use TLS where possible. Token storage is device-local DataStore (encrypted storage TODO).",
+                text = "Open services from Acquire → Open in Ialemus. WebView sessions are not stored by Ialemus.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 6.dp),
@@ -333,10 +367,10 @@ fun SettingsScreen(
             subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B.1",
+            statusLabel = "MVP 1B.2",
         ) {
             Text(
-                text = "Spotify-style dock polish, NAS connection settings, MeTube/slskd URL connectors, spotDL Bridge job scaffold.",
+                text = "Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS. spotDL remains Bridge-only.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
             )

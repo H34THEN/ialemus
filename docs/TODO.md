@@ -146,7 +146,25 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] `POST /jobs/spotdl/playlist` draft in `NAS_BRIDGE_SPEC.md`
 - [ ] Encrypted token storage (TODO)
 - [ ] In-app WebView for LAN services (future — external browser for now)
-- [ ] Bridge job submission endpoints (MVP 2)
+
+## MVP 1B.2 — Docker Web UI wrappers (completed)
+
+- [x] In-app WebView for MeTube, slskd, Ugreen NAS UI
+- [x] `ServiceWebViewScreen` with EVA HUD header, back/refresh/external browser
+- [x] Settings NAS / Docker Web UIs with local defaults and Reset
+- [x] URL validation (`ServiceUrlValidator`) — http/https only
+- [x] Acquire service cards: Open in Ialemus + external browser
+- [x] Mini player hidden during WebView for full height
+- [x] spotDL remains Bridge-only scaffold
+- [ ] Bridge job submission (MVP 2)
+
+### Known limitations (MVP 1B.2)
+
+- WebView does not inject JS interfaces or store credentials/cookies manually
+- slskd/MeTube login handled by normal web session in WebView
+- No job scraping from web UIs into Downloads yet
+- Bridge URL field is future/optional — not required for Docker wrappers
+- `baphomet.local` hostname requires LAN DNS/mDNS on device
 
 ### Known limitations (MVP 1B.1)
 

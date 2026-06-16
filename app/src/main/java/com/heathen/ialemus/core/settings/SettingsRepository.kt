@@ -36,7 +36,9 @@ class SettingsRepository(context: Context) {
             bridgeToken = prefs[KEY_BRIDGE_TOKEN].orEmpty(),
             meTubeUrl = prefs[KEY_METUBE_URL].orEmpty(),
             slskdUrl = prefs[KEY_SLSKD_URL].orEmpty(),
-            jellyfinUrl = prefs[KEY_JELLYFIN_URL].orEmpty(),
+            nasUiUrl = prefs[KEY_NAS_UI_URL].orEmpty().ifBlank {
+                prefs[KEY_JELLYFIN_URL].orEmpty()
+            },
             connectionMode = ConnectionMode.entries.find {
                 it.name == prefs[KEY_CONNECTION_MODE]
             } ?: ConnectionMode.LOCAL_LAN,
@@ -62,7 +64,7 @@ class SettingsRepository(context: Context) {
             prefs[KEY_BRIDGE_TOKEN] = settings.bridgeToken.trim()
             prefs[KEY_METUBE_URL] = settings.meTubeUrl.trim()
             prefs[KEY_SLSKD_URL] = settings.slskdUrl.trim()
-            prefs[KEY_JELLYFIN_URL] = settings.jellyfinUrl.trim()
+            prefs[KEY_NAS_UI_URL] = settings.nasUiUrl.trim()
             prefs[KEY_CONNECTION_MODE] = settings.connectionMode.name
         }
     }
@@ -76,6 +78,7 @@ class SettingsRepository(context: Context) {
         private val KEY_BRIDGE_TOKEN = stringPreferencesKey("bridge_token")
         private val KEY_METUBE_URL = stringPreferencesKey("metube_url")
         private val KEY_SLSKD_URL = stringPreferencesKey("slskd_url")
+        private val KEY_NAS_UI_URL = stringPreferencesKey("nas_ui_url")
         private val KEY_JELLYFIN_URL = stringPreferencesKey("jellyfin_url")
         private val KEY_CONNECTION_MODE = stringPreferencesKey("connection_mode")
     }

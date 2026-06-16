@@ -6,9 +6,17 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.1 — Spotify-style dock polish, NAS connection settings, MeTube/slskd URL connectors, spotDL Bridge job scaffold. Debug APK buildable (`0.3.2-mvp1b1`).
+**Status:** MVP 1B.2 — in-app Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS. Debug APK buildable (`0.3.3-mvp1b2`).
 
-### MVP 1B.1 (current — `0.3.2-mvp1b1`)
+### MVP 1B.2 (current — `0.3.3-mvp1b2`)
+
+- **In-app WebView wrappers** — MeTube, slskd, and Ugreen NAS UI open inside Ialemus with EVA HUD chrome (back, refresh, external browser)
+- **Settings: NAS / Docker Web UIs** — configurable URLs with local defaults, Save, Reset to Local Defaults, per-service connection tests
+- **Acquire service cards** — Open in Ialemus, external browser, Test, Edit URL; spotDL remains Bridge-only/future
+- **No Bridge required** — wraps existing Docker container web UIs; no shell/SSH/Docker from Android
+- **Preserved:** local playback, folder-first scan, HiBy dock polish, mini player (hidden during WebView)
+
+### MVP 1B.1 (`0.3.2-mvp1b1`)
 
 - **Spotify-style bottom dock** — single semi-transparent HUD bar; active pill indicator; roomy 48dp touch targets; icon-only on HiBy R4 compact width
 - **NAS / Bridge Connections** — DataStore settings for Bridge URL/token, MeTube URL, slskd URL, Jellyfin placeholder, connection mode

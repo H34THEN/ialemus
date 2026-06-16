@@ -442,6 +442,18 @@ docker compose -f /volume1/docker/gluetun-stack.yml exec spotdl spotdl download 
 - App stores bridge token only.
 - Optional fallback: deep link to slskd web UI for advanced users.
 
+### 6.4 Android WebView wrappers (MVP 1B.2)
+
+Before Ialemus Bridge is deployed, the Android app can **wrap** existing Docker container web UIs (MeTube, slskd, Ugreen NAS management) using an in-app WebView or external browser `Intent`.
+
+**Rules:**
+
+- Android loads only user-configured `http://` or `https://` URLs from DataStore settings.
+- No JavaScript interfaces, credential scraping, or cookie manual storage.
+- No shell, SSH, Docker, or spotDL execution from Android.
+- spotDL playlist jobs still require Bridge `POST /jobs/spotdl/playlist` (section 6.1.1).
+- WebView sessions are ephemeral; login forms are handled by the service web UI itself.
+
 ---
 
 ## 7. Folder watcher

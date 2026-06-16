@@ -13,7 +13,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,7 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.network.BridgePlaceholder
-import com.heathen.ialemus.core.network.ConnectionTestStatus
+import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
 import com.heathen.ialemus.ui.components.HudButton
@@ -33,7 +32,10 @@ import com.heathen.ialemus.ui.components.HudCollapsiblePanel
 import com.heathen.ialemus.ui.components.HudHeader
 import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
-import com.heathen.ialemus.ui.components.ServiceConnectionCard
+import com.heathen.ialemus.ui.components.ServiceWebCard
+import com.heathen.ialemus.ui.screens.web.DockerWebService
+import com.heathen.ialemus.ui.screens.web.ServiceWebViewState
+import com.heathen.ialemus.ui.screens.web.ServiceWebViewScreen
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.theme.screenHorizontalPadding
 import com.heathen.ialemus.ui.util.openUrlInBrowser
@@ -41,6 +43,7 @@ import com.heathen.ialemus.ui.util.openUrlInBrowser
 @Composable
 fun AcquireScreen(
     settingsViewModel: SettingsViewModel,
+    onWebViewActive: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tokens = LocalIalemusTokens.current
@@ -49,11 +52,17 @@ fun AcquireScreen(
     val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
     val meTubeStatus by settingsViewModel.meTubeTestStatus.collectAsStateWithLifecycle()
     val slskdStatus by settingsViewModel.slskdTestStatus.collectAsStateWithLifecycle()
-    val bridgeStatus by settingsViewModel.bridgeTestStatus.collectAsStateWithLifecycle()
+    val nasUiStatus by settingsViewModel.nasUiTestStatus.collectAsStateWithLifecycle()
+    val validationError by settingsViewModel.urlValidationError.collectAsStateWithLifecycle()
 
     var archNoteExpanded by rememberSaveable { mutableStateOf(false) }
-    var meTubeUrl by rememberSaveable(nasSettings.meTubeUrl) { mutableStateOf(nasSettings.meTubeUrl) }
-    var slskdUrl by rememberSaveable(nasSettings.slskdUrl) { mutableStateOf(nasSettings.slskdUrl) }
+    var activeServiceName by rememberSaveable { mutableStateOf<String?>(null) }
+    var activeServiceUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    val activeWebView = if (activeServiceName != null && activeServiceUrl != null) {
+        ServiceWebViewState(activeServiceName!!, activeServiceUrl!!)
+    } else {
+        null
+    }
 
     var spotifyUrl by rememberSaveable { mutableStateOf("") }
     var playlistName by rememberSaveable { mutableStateOf("") }
@@ -62,15 +71,20 @@ fun AcquireScreen(
     var generateM3u by rememberSaveable { mutableStateOf(true) }
     var skipExisting by rememberSaveable { mutableStateOf(true) }
 
-    LaunchedEffect(nasSettings.meTubeUrl) { meTubeUrl = nasSettings.meTubeUrl }
-    LaunchedEffect(nasSettings.slskdUrl) { slskdUrl = nasSettings.slskdUrl }
+    androidx.compose.runtime.LaunchedEffect(activeWebView) {
+        onWebViewActive(activeWebView != null)
+    }
 
-    val bridgeReady = nasSettings.bridgeConfigured
-    val spotDlStatus = when {
-        !bridgeReady -> "Bridge required"
-        bridgeStatus == ConnectionTestStatus.REACHABLE -> "Ready"
-        bridgeStatus == ConnectionTestStatus.READY -> "Ready"
-        else -> "Not connected"
+    if (activeWebView != null) {
+        ServiceWebViewScreen(
+            state = activeWebView!!,
+            onClose = {
+                activeServiceName = null
+                activeServiceUrl = null
+            },
+            modifier = modifier,
+        )
+        return
     }
 
     Column(
@@ -82,67 +96,92 @@ fun AcquireScreen(
     ) {
         HudHeader(
             title = "Acquire",
-            statusLabel = "NAS CONNECTORS",
-            subtitle = "Configure LAN services · submit jobs via Bridge only",
+            statusLabel = "DOCKER WEB UI",
+            subtitle = "Wrap running NAS containers · no Bridge required yet",
         )
 
         HudCollapsiblePanel(
-            title = "Bridge architecture",
-            sectionTag = "NAS BRIDGE",
-            subtitle = BridgePlaceholder.ARCHITECTURE_NOTE,
+            title = "Bridge note",
+            sectionTag = "FUTURE",
+            subtitle = "spotDL jobs will use Ialemus Bridge later. MeTube/slskd open via web UI now.",
             expanded = archNoteExpanded,
             onToggle = { archNoteExpanded = !archNoteExpanded },
-            statusLabel = if (bridgeReady) "CONFIGURED" else "REQUIRED",
+            statusLabel = "OPTIONAL",
         ) {
             Text(
                 text = BridgePlaceholder.ARCHITECTURE_NOTE,
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
             )
-            Text(
-                text = "Android never runs shell, SSH, or Docker. spotDL, MeTube, and slskd jobs go through Ialemus Bridge on the NAS.",
-                style = MaterialTheme.typography.bodySmall,
-                color = tokens.textMuted,
-                modifier = Modifier.padding(top = 6.dp),
-            )
         }
 
-        ServiceConnectionCard(
-            title = "MeTube",
+        ServiceWebCard(
+            title = DockerWebService.METUBE.displayName,
             sectionTag = "MODULE 02",
-            subtitle = "Connect to MeTube LAN web UI (e.g. port 38245 → 8081).",
-            url = meTubeUrl,
-            onUrlChange = { meTubeUrl = it },
+            subtitle = "Download videos/audio via the running MeTube Docker web UI.",
+            savedUrl = nasSettings.meTubeUrl,
             urlPlaceholder = NasUrlPlaceholders.METUBE,
             status = meTubeStatus,
-            onOpenWebUi = { openUrlInBrowser(context, meTubeUrl) },
-            onTestConnection = settingsViewModel::testMeTubeConnection,
-            onSaveUrl = {
-                settingsViewModel.saveServiceUrl(nasSettings, meTubeUrl = meTubeUrl.trim())
+            onOpenInApp = {
+                openServiceInApp(DockerWebService.METUBE, nasSettings.meTubeUrl) { name, url ->
+                    activeServiceName = name
+                    activeServiceUrl = url
+                }
             },
-            futureActionLabel = "Submit URL via Bridge (TODO)",
+            onOpenExternal = { openUrlInBrowser(context, nasSettings.meTubeUrl) },
+            onTestConnection = settingsViewModel::testMeTubeConnection,
+            onSaveUrl = { url ->
+                settingsViewModel.saveServiceUrl(nasSettings, meTubeUrl = url)
+            },
+            validationError = validationError,
         )
 
-        ServiceConnectionCard(
-            title = "Soulseek / slskd",
+        ServiceWebCard(
+            title = DockerWebService.SLSKD.displayName,
             sectionTag = "MODULE 03",
-            subtitle = "Connect to slskd LAN web UI (e.g. port 5031 → 5030).",
-            url = slskdUrl,
-            onUrlChange = { slskdUrl = it },
+            subtitle = "Search and download via the running slskd Docker web UI.",
+            savedUrl = nasSettings.slskdUrl,
             urlPlaceholder = NasUrlPlaceholders.SLSKD,
             status = slskdStatus,
-            onOpenWebUi = { openUrlInBrowser(context, slskdUrl) },
-            onTestConnection = settingsViewModel::testSlskdConnection,
-            onSaveUrl = {
-                settingsViewModel.saveServiceUrl(nasSettings, slskdUrl = slskdUrl.trim())
+            onOpenInApp = {
+                openServiceInApp(DockerWebService.SLSKD, nasSettings.slskdUrl) { name, url ->
+                    activeServiceName = name
+                    activeServiceUrl = url
+                }
             },
-            futureActionLabel = "Search via Bridge (TODO)",
+            onOpenExternal = { openUrlInBrowser(context, nasSettings.slskdUrl) },
+            onTestConnection = settingsViewModel::testSlskdConnection,
+            onSaveUrl = { url ->
+                settingsViewModel.saveServiceUrl(nasSettings, slskdUrl = url)
+            },
+            validationError = validationError,
+        )
+
+        ServiceWebCard(
+            title = DockerWebService.NAS_UI.displayName,
+            sectionTag = "NAS UI",
+            subtitle = "Open the Ugreen NAS management web UI when needed.",
+            savedUrl = nasSettings.nasUiUrl,
+            urlPlaceholder = NasUrlPlaceholders.NAS_UI,
+            status = nasUiStatus,
+            onOpenInApp = {
+                openServiceInApp(DockerWebService.NAS_UI, nasSettings.nasUiUrl) { name, url ->
+                    activeServiceName = name
+                    activeServiceUrl = url
+                }
+            },
+            onOpenExternal = { openUrlInBrowser(context, nasSettings.nasUiUrl) },
+            onTestConnection = settingsViewModel::testNasUiConnection,
+            onSaveUrl = { url ->
+                settingsViewModel.saveServiceUrl(nasSettings, nasUiUrl = url)
+            },
+            validationError = validationError,
         )
 
         HudPanel(
             title = "spotDL",
             sectionTag = "MODULE 01",
-            subtitle = "Playlist jobs via Ialemus Bridge — not executed on Android.",
+            subtitle = "Future playlist jobs — Bridge or NAS job runner required.",
         ) {
             OutlinedTextField(
                 value = spotifyUrl,
@@ -151,6 +190,7 @@ fun AcquireScreen(
                 label = { Text("Spotify playlist/album/track URL") },
                 placeholder = { Text("https://open.spotify.com/playlist/...") },
                 singleLine = true,
+                enabled = false,
             )
             OutlinedTextField(
                 value = playlistName,
@@ -161,36 +201,22 @@ fun AcquireScreen(
                 label = { Text("Playlist name") },
                 placeholder = { Text("My Playlist") },
                 singleLine = true,
-            )
-            FormatSelector(
-                selected = spotDlFormat,
-                onSelect = { spotDlFormat = it },
-                options = listOf("m4a", "mp3", "opus", "flac", "nas_default"),
-            )
-            OutputTargetSelector(
-                selected = outputTarget,
-                onSelect = { outputTarget = it },
+                enabled = false,
             )
             RowSwitch(
                 label = "Generate M3U/M3U8",
                 checked = generateM3u,
-                onCheckedChange = { generateM3u = it },
-            )
-            RowSwitch(
-                label = "Skip existing",
-                checked = skipExisting,
-                onCheckedChange = { skipExisting = it },
+                onCheckedChange = { },
+                enabled = false,
             )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 HudStatusChip(
-                    label = spotDlStatus.uppercase(),
-                    highlighted = bridgeReady,
-                    disabled = !bridgeReady,
+                    label = "BRIDGE REQUIRED FOR COMMAND EXECUTION",
+                    disabled = true,
                 )
             }
             HudButton(
@@ -200,7 +226,7 @@ fun AcquireScreen(
                 modifier = Modifier.padding(top = 8.dp),
             )
             Text(
-                text = "POST /jobs/spotdl/playlist on Ialemus Bridge (MVP 2+). Bridge runs allowlisted spotDL profiles on the NAS, likely inside the Gluetun-protected stack.",
+                text = "spotDL needs Ialemus Bridge or a NAS-side job runner. Android will not execute terminal/Docker commands.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 6.dp),
@@ -209,89 +235,20 @@ fun AcquireScreen(
     }
 }
 
-@Composable
-private fun FormatSelector(
-    selected: String,
-    onSelect: (String) -> Unit,
-    options: List<String>,
+private fun openServiceInApp(
+    service: DockerWebService,
+    savedUrl: String,
+    onOpen: (String, String) -> Unit,
 ) {
-    Column(modifier = Modifier.padding(top = 8.dp)) {
-        Text(
-            text = "FORMAT",
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalIalemusTokens.current.accentActive,
-        )
-        Column(
-            modifier = Modifier.padding(top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            options.chunked(3).forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    row.forEach { option ->
-                        SelectChip(
-                            label = option,
-                            selected = selected == option,
-                            onClick = { onSelect(option) },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    repeat(3 - row.size) {
-                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-    }
+    val url = savedUrl.ifBlank { defaultUrlFor(service) }
+    if (url.isBlank()) return
+    onOpen(service.displayName, url)
 }
 
-@Composable
-private fun OutputTargetSelector(
-    selected: String,
-    onSelect: (String) -> Unit,
-) {
-    val options = listOf(
-        "nas_music" to "NAS Music",
-        "nas_music_playlists" to "NAS Playlists",
-        "spotdl_staging" to "spotDL Staging",
-    )
-    Column(modifier = Modifier.padding(top = 8.dp)) {
-        Text(
-            text = "OUTPUT TARGET",
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalIalemusTokens.current.accentActive,
-        )
-        Column(
-            modifier = Modifier.padding(top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            options.forEach { (value, label) ->
-                SelectChip(
-                    label = label,
-                    selected = selected == value,
-                    onClick = { onSelect(value) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SelectChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    HudButton(
-        label = label,
-        onClick = onClick,
-        enabled = true,
-        modifier = modifier,
-        accent = if (selected) HudButtonAccent.Primary else HudButtonAccent.Neutral,
-    )
+private fun defaultUrlFor(service: DockerWebService): String = when (service) {
+    DockerWebService.METUBE -> LocalServiceDefaults.METUBE
+    DockerWebService.SLSKD -> LocalServiceDefaults.SLSKD
+    DockerWebService.NAS_UI -> LocalServiceDefaults.NAS_UI
 }
 
 @Composable
@@ -299,6 +256,7 @@ private fun RowSwitch(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
@@ -308,6 +266,10 @@ private fun RowSwitch(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+        )
     }
 }
