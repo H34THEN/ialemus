@@ -26,4 +26,12 @@ class ServiceUrlValidatorTest {
     fun normalize_addsTrailingSlash() {
         assertEquals("http://192.168.1.213:5031/", ServiceUrlValidator.normalize("http://192.168.1.213:5031"))
     }
+
+    @Test
+    fun normalizeForLoad_prependsHttpWhenMissing() {
+        assertEquals(
+            "http://192.168.1.213:38245/",
+            ServiceUrlValidator.normalizeForLoad("192.168.1.213:38245"),
+        )
+    }
 }

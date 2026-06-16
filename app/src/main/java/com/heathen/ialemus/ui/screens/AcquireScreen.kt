@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.network.BridgePlaceholder
+import com.heathen.ialemus.core.network.ServiceUrlValidator
 import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
@@ -240,7 +241,8 @@ private fun openServiceInApp(
     savedUrl: String,
     onOpen: (String, String) -> Unit,
 ) {
-    val url = savedUrl.ifBlank { defaultUrlFor(service) }
+    val raw = savedUrl.ifBlank { defaultUrlFor(service) }
+    val url = ServiceUrlValidator.normalizeForLoad(raw)
     if (url.isBlank()) return
     onOpen(service.displayName, url)
 }

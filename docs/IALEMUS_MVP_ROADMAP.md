@@ -70,6 +70,12 @@ Deliverables:
 - Acquire Open in Ialemus + external browser; spotDL still Bridge-only
 - No shell/SSH/Docker from Android
 
+### WebView Hotfix (shipped — `0.3.4-webview-hotfix`)
+
+- Fixed Compose layout collapse that showed purple HUD box without webpage
+- WebView fills remaining screen height; cleartext LAN HTTP enabled
+- External browser fallback on load failure
+
 ### MVP 1C / remaining polish (next)
 
 Deliverables (full MVP 1):

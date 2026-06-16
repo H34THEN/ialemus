@@ -6,7 +6,7 @@
 **Minimum SDK:** API 26 (`minSdk`), target API 35  
 **Distribution:** Sideload/APK friendly; no Google Play Services required for core playback
 
-**Implementation status (MVP 1B.2):** In-app WebView wrappers for MeTube, slskd, Ugreen NAS UI; Docker Web UI settings. Version `0.3.3-mvp1b2`.
+**Implementation status (WebView hotfix):** Fixed in-app WebView rendering for Docker LAN services. Version `0.3.4-webview-hotfix`.
 
 See also: `DECISIONS.md`, `IALEMUS_PROJECT_SPEC.md`, `NAS_BRIDGE_SPEC.md`.
 

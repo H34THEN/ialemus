@@ -158,7 +158,16 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
-### Known limitations (MVP 1B.2)
+## WebView Hotfix — Docker service rendering (completed)
+
+- [x] Fix WebView zero-height layout (`Modifier.weight(1f)` in Column)
+- [x] White WebView background; remove purple-only empty panel
+- [x] `usesCleartextTraffic=true` + LAN domain network security config
+- [x] WebViewClient error/HTTP error handling with Retry + external browser
+- [x] `normalizeForLoad()` for host:port URLs without scheme
+- [x] Load status line in HUD header
+
+### Known limitations (WebView hotfix)
 
 - WebView does not inject JS interfaces or store credentials/cookies manually
 - slskd/MeTube login handled by normal web session in WebView

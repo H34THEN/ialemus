@@ -31,5 +31,15 @@ object ServiceUrlValidator {
         return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
     }
 
+    /**
+     * Prepare a URL for WebView loading — prepends http:// when scheme is missing.
+     */
+    fun normalizeForLoad(url: String): String {
+        val trimmed = url.trim()
+        if (trimmed.isEmpty()) return trimmed
+        val withScheme = if ("://" !in trimmed) "http://$trimmed" else trimmed
+        return normalize(withScheme)
+    }
+
     class ValidationException(message: String) : Exception(message)
 }

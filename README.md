@@ -6,9 +6,17 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.2 — in-app Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS. Debug APK buildable (`0.3.3-mvp1b2`).
+**Status:** WebView rendering hotfix — Docker service UIs now fill screen in-app. Debug APK buildable (`0.3.4-webview-hotfix`).
 
-### MVP 1B.2 (current — `0.3.3-mvp1b2`)
+### WebView Hotfix (`0.3.4-webview-hotfix`)
+
+- **Fixed purple empty box** — WebView container now uses `Modifier.weight(1f)` so it receives real height inside Compose Column
+- **Real AndroidView WebView** — white background, JS/DOM storage, wide viewport, mixed content compatibility
+- **Cleartext LAN HTTP** — `usesCleartextTraffic=true` + targeted network security config for `192.168.1.213`, `baphomet.local`
+- **Error UX** — visible load status, HTTP errors, Retry + Open External Browser fallback
+- **URL normalization** — `normalizeForLoad()` prepends `http://` when scheme missing
+
+### MVP 1B.2 (`0.3.3-mvp1b2`)
 
 - **In-app WebView wrappers** — MeTube, slskd, and Ugreen NAS UI open inside Ialemus with EVA HUD chrome (back, refresh, external browser)
 - **Settings: NAS / Docker Web UIs** — configurable URLs with local defaults, Save, Reset to Local Defaults, per-service connection tests
