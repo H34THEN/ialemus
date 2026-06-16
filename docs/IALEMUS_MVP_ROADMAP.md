@@ -92,6 +92,13 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.7 — Spotify hidden, themes, MeTube WebView (shipped — `0.3.9-mvp1b7`)
+
+- Spotify visually deprecated (hidden dock tab; Settings experimental section)
+- Distinct Ialemus Original theme palettes + preview dots
+- EVA hex HUD accents
+- MeTube WebView diagnostics and fallback UX
+
 ### MVP 1B.6 — Spotify App Remote (shipped — `0.3.8-mvp1b6`)
 
 - Spotify app detection + Open Spotify App / Web

@@ -17,10 +17,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 enum class AppDestination(
     val label: String,
     val icon: ImageVector,
+    /** When false, tab is omitted from the bottom dock but may still be navigated to programmatically. */
+    val visibleInDock: Boolean = true,
 ) {
     NOW_PLAYING("Now Playing", Icons.Filled.PlayCircle),
     LIBRARY("Library", Icons.Filled.LibraryMusic),
-    STREAMING("Streaming", Icons.Filled.GraphicEq),
+    STREAMING("Streaming", Icons.Filled.GraphicEq, visibleInDock = false),
     DOWNLOADS("Downloads", Icons.Filled.CloudDownload),
     SETTINGS("Settings", Icons.Filled.Settings),
+    ;
+
+    companion object {
+        val dockDestinations: List<AppDestination> = entries.filter { it.visibleInDock }
+    }
 }

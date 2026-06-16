@@ -6,7 +6,15 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.6 — Spotify App Remote device activation on HiBy R4.
+**Status:** MVP 1B.7 — Spotify hidden from dock; distinct original themes; MeTube WebView diagnostics.
+
+### MVP 1B.7 (`0.3.9-mvp1b7`)
+
+- **Spotify visually deprecated** — removed from bottom dock; code intact under Settings → Experimental / Deprecated
+- **Original theme palettes** — eight Ialemus themes each have distinct surface/border/glow/chip identity
+- **EVA hex accents** — subtle hex clusters on EVA headers/panels and Cyber Shrine
+- **MeTube WebView** — mobile UA default, desktop toggle, blank-content detection, Web Diagnostics panel, cache clear
+- **Preserved:** LOCAL CORE playback, folder-first scan, slskd WebView, Downloads Docker modules
 
 ### MVP 1B.6 (`0.3.8-mvp1b6`)
 

@@ -31,6 +31,7 @@ fun ServiceWebCard(
     onTestConnection: () -> Unit,
     onSaveUrl: (String) -> Unit,
     validationError: String? = null,
+    statusNote: String? = null,
     modifier: Modifier = Modifier,
     futureActionLabel: String? = null,
 ) {
@@ -77,6 +78,14 @@ fun ServiceWebCard(
                 label = status.label.uppercase(),
                 highlighted = statusHighlighted,
                 disabled = status == ConnectionTestStatus.NOT_CONFIGURED,
+            )
+        }
+        statusNote?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.warningColor,
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
 

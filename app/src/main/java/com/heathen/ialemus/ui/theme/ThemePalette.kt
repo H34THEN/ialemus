@@ -18,6 +18,25 @@ fun shapesFor(themeId: ThemeId): Shapes = when (themeId.group) {
     else -> Shapes()
 }
 
+/** Primary / secondary / tertiary swatches for theme selector preview dots. */
+fun previewColorsFor(themeId: ThemeId): List<Color> = when (themeId) {
+    ThemeId.EVA_01_BERSERK -> listOf(Eva01Primary, Eva01Secondary, Eva01Tertiary)
+    ThemeId.EVA_00_PROTOTYPE -> listOf(Eva00Primary, Eva00Secondary, Eva00OnBackground)
+    ThemeId.EVA_02_ASUKA_RED -> listOf(Eva02Primary, Eva02Secondary, Eva02OnBackground)
+    ThemeId.EVA_03_SHADOW -> listOf(Eva03Primary, Eva03Secondary, Eva03OnBackground)
+    ThemeId.EVA_05_MASS_PRODUCTION -> listOf(Eva05Primary, Eva05Secondary, Eva05Tertiary)
+    ThemeId.TERMINAL_DOGMA -> listOf(DogmaPrimary, DogmaSecondary, DogmaOnBackground)
+    ThemeId.TACTICAL_COMMAND -> listOf(TacticalPrimary, TacticalSecondary, TacticalOnBackground)
+    ThemeId.GHOST_IN_THE_CODE -> listOf(GhostPrimary, GhostSecondary, GhostTertiary)
+    ThemeId.TERMINAL_KITTIE -> listOf(KittiePrimary, KittieSecondary, KittieTertiary)
+    ThemeId.CHTHONIC_SIGNAL -> listOf(ChthonicPrimary, ChthonicSecondary, ChthonicTertiary)
+    ThemeId.NEON_OSSUARY -> listOf(OssuaryPrimary, OssuarySecondary, OssuaryTertiary)
+    ThemeId.ARCHIVE_BLACK -> listOf(ArchiveBlackPrimary, ArchiveBlackSecondary, ArchiveBlackTertiary)
+    ThemeId.FALLOUT_CRT -> listOf(FalloutPrimary, FalloutSecondary, FalloutTertiary)
+    ThemeId.CYBER_SHRINE -> listOf(ShrinePrimary, ShrineSecondary, ShrineTertiary)
+    ThemeId.CANDY_MALWARE -> listOf(CandyPrimary, CandySecondary, CandyTertiary)
+}
+
 fun colorSchemeFor(themeId: ThemeId): ColorScheme = when (themeId) {
     ThemeId.EVA_01_BERSERK -> hudDarkColorScheme(
         primary = Eva01Primary,
@@ -74,62 +93,76 @@ fun colorSchemeFor(themeId: ThemeId): ColorScheme = when (themeId) {
         onContent = TacticalOnBackground,
         error = Color(0xFFD50000),
     )
+    ThemeId.GHOST_IN_THE_CODE -> hudDarkColorScheme(
+        primary = GhostPrimary,
+        secondary = GhostSecondary,
+        tertiary = GhostTertiary,
+        background = GhostBackground,
+        surface = GhostSurface,
+        onContent = GhostOnBackground,
+        error = GhostError,
+    )
+    ThemeId.TERMINAL_KITTIE -> hudDarkColorScheme(
+        primary = KittiePrimary,
+        secondary = KittieSecondary,
+        tertiary = KittieTertiary,
+        background = KittieBackground,
+        surface = KittieSurface,
+        onContent = KittieOnBackground,
+        error = KittieError,
+    )
+    ThemeId.CHTHONIC_SIGNAL -> hudDarkColorScheme(
+        primary = ChthonicPrimary,
+        secondary = ChthonicSecondary,
+        tertiary = ChthonicTertiary,
+        background = ChthonicBackground,
+        surface = ChthonicSurface,
+        onContent = ChthonicOnBackground,
+        error = ChthonicError,
+    )
+    ThemeId.NEON_OSSUARY -> hudDarkColorScheme(
+        primary = OssuaryPrimary,
+        secondary = OssuarySecondary,
+        tertiary = OssuaryTertiary,
+        background = OssuaryBackground,
+        surface = OssuarySurface,
+        onContent = OssuaryOnBackground,
+        error = OssuaryError,
+    )
     ThemeId.ARCHIVE_BLACK -> hudDarkColorScheme(
         primary = ArchiveBlackPrimary,
         secondary = ArchiveBlackSecondary,
+        tertiary = ArchiveBlackTertiary,
         background = ArchiveBlackBackground,
         surface = ArchiveBlackSurface,
         onContent = ArchiveBlackOnBackground,
-    )
-    ThemeId.GHOST_IN_THE_CODE -> hudDarkColorScheme(
-        primary = GhostGlowPrimary,
-        secondary = GhostGlowSecondary,
-        background = GhostGlowBackground,
-        surface = GhostGlowBackground.copy(alpha = 0.9f),
-        onContent = Color.White,
-    )
-    ThemeId.TERMINAL_KITTIE -> hudDarkColorScheme(
-        primary = TerminalGreen,
-        secondary = TerminalGreen.copy(alpha = 0.7f),
-        background = TerminalBackground,
-        surface = TerminalBackground.copy(alpha = 0.95f),
-        onContent = TerminalGreen,
-    )
-    ThemeId.CHTHONIC_SIGNAL -> hudDarkColorScheme(
-        primary = ChthonicCrimson,
-        secondary = ChthonicEmber,
-        background = ChthonicBackground,
-        surface = ChthonicBackground.copy(alpha = 0.92f),
-        onContent = Color(0xFFF5F5DC),
-    )
-    ThemeId.NEON_OSSUARY -> hudDarkColorScheme(
-        primary = NeonViolet,
-        secondary = NeonCyan,
-        tertiary = NeonMagenta,
-        background = NeonOssuaryBackground,
-        surface = NeonOssuaryBackground.copy(alpha = 0.9f),
-        onContent = Color(0xFFF8FAFC),
+        error = ArchiveBlackError,
     )
     ThemeId.FALLOUT_CRT -> hudDarkColorScheme(
-        primary = FalloutAmber,
-        secondary = FalloutGreen,
+        primary = FalloutPrimary,
+        secondary = FalloutSecondary,
+        tertiary = FalloutTertiary,
         background = FalloutBackground,
-        surface = FalloutBackground.copy(alpha = 0.95f),
-        onContent = FalloutAmber,
+        surface = FalloutSurface,
+        onContent = FalloutOnBackground,
+        error = FalloutError,
     )
     ThemeId.CYBER_SHRINE -> hudDarkColorScheme(
-        primary = ShrineGold,
-        secondary = ShrineRed,
+        primary = ShrinePrimary,
+        secondary = ShrineSecondary,
+        tertiary = ShrineTertiary,
         background = ShrineBackground,
-        surface = ShrineBackground.copy(alpha = 0.93f),
-        onContent = Color(0xFFFAFAF9),
+        surface = ShrineSurface,
+        onContent = ShrineOnBackground,
+        error = ShrineError,
     )
     ThemeId.CANDY_MALWARE -> hudDarkColorScheme(
-        primary = CandyPink,
-        secondary = CandyBlue,
-        tertiary = CandyAcid,
+        primary = CandyPrimary,
+        secondary = CandySecondary,
+        tertiary = CandyTertiary,
         background = CandyBackground,
-        surface = CandyBackground.copy(alpha = 0.9f),
-        onContent = Color.White,
+        surface = CandySurface,
+        onContent = CandyOnBackground,
+        error = CandyError,
     )
 }

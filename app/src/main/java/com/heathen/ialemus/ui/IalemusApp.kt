@@ -38,7 +38,9 @@ fun IalemusApp(
     spotifyViewModel: SpotifyViewModel,
     onRequestNotificationPermission: () -> Unit = {},
 ) {
-    var destination by rememberSaveable { mutableStateOf(AppDestination.NOW_PLAYING) }
+    var destination by rememberSaveable {
+        mutableStateOf(AppDestination.NOW_PLAYING)
+    }
     var hideMiniPlayerForWebView by rememberSaveable { mutableStateOf(false) }
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
@@ -127,6 +129,7 @@ fun IalemusApp(
                     settingsViewModel = settingsViewModel,
                     spotifyViewModel = spotifyViewModel,
                     libraryViewModel = libraryViewModel,
+                    onOpenSpotifyExperimental = { destination = AppDestination.STREAMING },
                     modifier = Modifier.padding(innerPadding),
                 )
             }

@@ -82,10 +82,19 @@ fun StreamingScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         HudHeader(
-            title = "Streaming",
-            statusLabel = "SPOTIFY REMOTE",
-            subtitle = "Spotify plays in the Spotify app — Ialemus controls it remotely",
+            title = "Spotify Remote",
+            statusLabel = "PAUSED / EXPERIMENTAL",
+            subtitle = "Spotify Remote is paused. Local Core and NAS tools are the current focus.",
         )
+
+        HudPanel(title = "Feature paused", sectionTag = "DEPRECATED") {
+            Text(
+                text = "Spotify integration is hidden from the main dock while core app features are strengthened. " +
+                    "All Spotify code remains buildable for future work.",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+            )
+        }
 
         Text(
             text = "LOCAL CORE: local files loaded by Ialemus · SPOTIFY REMOTE: Spotify app / Connect playback",

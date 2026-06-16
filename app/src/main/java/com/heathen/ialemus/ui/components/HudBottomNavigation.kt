@@ -47,7 +47,7 @@ fun HudBottomNavigation(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppDestination.entries.forEach { destination ->
+        AppDestination.dockDestinations.forEach { destination ->
             HudNavItem(
                 destination = destination,
                 selected = selected == destination,

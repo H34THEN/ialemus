@@ -1,6 +1,8 @@
 # Spotify Integration Plan (Ialemus)
 
-MVP 1B.6 adds **Spotify App Remote** and **Web API Connect device helpers** on top of MVP 1B.5 PKCE login. Spotify playback remains **SPOTIFY REMOTE** — never raw audio through Ialemus ExoPlayer.
+**Status (MVP 1B.7):** Spotify Remote is **visually paused** — hidden from the bottom dock and collapsed under Settings → Experimental / Deprecated. All PKCE, App Remote, and Web API code remains buildable for future work.
+
+MVP 1B.6 implemented App Remote + device activation. MVP 1B.7 deprioritizes Spotify UX while strengthening Local Core, themes, and NAS Docker tools.
 
 ## Architecture
 

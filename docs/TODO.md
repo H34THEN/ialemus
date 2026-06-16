@@ -158,6 +158,23 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## MVP 1B.7 — Spotify hidden, theme expansion, MeTube WebView (completed)
+
+- [x] Spotify tab hidden from bottom dock (`visibleInDock = false`)
+- [x] Spotify under Settings → Experimental / Deprecated (collapsed by default)
+- [x] Eight distinct Ialemus Original theme token palettes
+- [x] Theme preview color dots in Settings
+- [x] EVA hex accents (`HexClusterAccent`, `HudHexDivider`)
+- [x] MeTube WebView diagnostics, desktop mode toggle, blank-content detection
+- [x] MeTube card status note on Downloads
+- [ ] Manual HiBy R4 theme + MeTube acceptance on device
+
+### Known limitations (MVP 1B.7)
+
+- Spotify code remains but is paused — not primary UX
+- MeTube may still fail to render in WebView on some devices — external browser fallback provided
+- slskd WebView behavior unchanged (mobile UA default)
+
 ## MVP 1B.6 — Spotify App Remote device activation (completed)
 
 - [x] `SpotifyAppDetector` — detect `com.spotify.music` installed

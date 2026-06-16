@@ -65,8 +65,10 @@ fun DownloadsScreen(
 
     var activeServiceName by rememberSaveable { mutableStateOf<String?>(null) }
     var activeServiceUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var activeServiceKind by rememberSaveable { mutableStateOf<String?>(null) }
     val activeWebView = if (activeServiceName != null && activeServiceUrl != null) {
-        ServiceWebViewState(activeServiceName!!, activeServiceUrl!!)
+        val kind = activeServiceKind?.let { runCatching { DockerWebService.valueOf(it) }.getOrNull() }
+        ServiceWebViewState(activeServiceName!!, activeServiceUrl!!, kind)
     } else {
         null
     }
@@ -81,10 +83,11 @@ fun DownloadsScreen(
 
     if (activeWebView != null) {
         ServiceWebViewScreen(
-            state = activeWebView,
+            state = activeWebView!!,
             onClose = {
                 activeServiceName = null
                 activeServiceUrl = null
+                activeServiceKind = null
             },
             modifier = modifier,
         )
@@ -130,10 +133,16 @@ fun DownloadsScreen(
             savedUrl = nasSettings.meTubeUrl,
             urlPlaceholder = NasUrlPlaceholders.METUBE,
             status = meTubeStatus,
+            statusNote = if (meTubeStatus == ConnectionTestStatus.REACHABLE) {
+                "Reachable · WebView may need external browser on some devices"
+            } else {
+                null
+            },
             onOpenInApp = {
                 openDockerServiceInApp(DockerWebService.METUBE, nasSettings.meTubeUrl) { name, url ->
                     activeServiceName = name
                     activeServiceUrl = url
+                    activeServiceKind = DockerWebService.METUBE.name
                 }
             },
             onOpenExternal = { openUrlInBrowser(context, nasSettings.meTubeUrl) },
@@ -156,6 +165,7 @@ fun DownloadsScreen(
                 openDockerServiceInApp(DockerWebService.SLSKD, nasSettings.slskdUrl) { name, url ->
                     activeServiceName = name
                     activeServiceUrl = url
+                    activeServiceKind = DockerWebService.SLSKD.name
                 }
             },
             onOpenExternal = { openUrlInBrowser(context, nasSettings.slskdUrl) },
@@ -178,6 +188,7 @@ fun DownloadsScreen(
                 openDockerServiceInApp(DockerWebService.NAS_UI, nasSettings.nasUiUrl) { name, url ->
                     activeServiceName = name
                     activeServiceUrl = url
+                    activeServiceKind = DockerWebService.NAS_UI.name
                 }
             },
             onOpenExternal = { openUrlInBrowser(context, nasSettings.nasUiUrl) },

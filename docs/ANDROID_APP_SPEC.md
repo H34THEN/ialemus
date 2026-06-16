@@ -308,7 +308,13 @@ Now Playing may be default landing or merge with mini-player bar on Library — 
 
 **Navigation (MVP 1B.4):** Now Playing | Library | **Streaming** | Downloads | Settings
 
-**Streaming tab (MVP 1B.6):** “Spotify on this HiBy R4” activation card, Spotify account link, SPOTIFY REMOTE playback + controls, Connect device list. Docker download tools (MeTube, slskd, NAS UI, spotDL) live on **Downloads**.
+**Navigation (MVP 1B.7):** Now Playing | Library | Downloads | Settings — **Streaming/Spotify hidden** from dock.
+
+**Spotify:** Paused visually. Code intact under Settings → Experimental / Deprecated → Open Spotify Remote screen.
+
+**Streaming tab (legacy):** Accessible only from Settings experimental area; not in bottom dock.
+
+**MeTube WebView:** Mobile UA default, desktop mode toggle, Web Diagnostics panel, external browser fallback when render fails.
 
 **Playback sources:**
 - **LOCAL CORE** — Ialemus ExoPlayer for device/SAF files
