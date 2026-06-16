@@ -9,13 +9,6 @@ import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.network.ServiceUrlTester
 import com.heathen.ialemus.core.network.ServiceUrlValidator
-import com.heathen.ialemus.core.settings.SpotifyConnectionStatus
-import com.heathen.ialemus.core.settings.SpotifyDefaults
-import com.heathen.ialemus.core.settings.SpotifySettings
-import android.content.Context
-import android.net.Uri
-import com.heathen.ialemus.ui.util.openUrlInBrowser
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -53,24 +46,6 @@ class SettingsViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = NowPlayingLayoutMode.BALANCED,
         )
-
-    val spotifySettings: StateFlow<SpotifySettings> = settingsRepository.spotifySettings.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SpotifySettings(),
-    )
-
-    val spotifyConnectionStatus: StateFlow<SpotifyConnectionStatus> = spotifySettings.map { settings ->
-        when {
-            !settings.configured -> SpotifyConnectionStatus.NOT_CONFIGURED
-            settings.connected -> SpotifyConnectionStatus.CONNECTED
-            else -> SpotifyConnectionStatus.READY_TO_LOGIN
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SpotifyConnectionStatus.NOT_CONFIGURED,
-    )
 
     val trackCount: StateFlow<Int> = container.libraryRepository.trackCount.stateIn(
         scope = viewModelScope,
@@ -135,49 +110,6 @@ class SettingsViewModel(
 
     fun setNowPlayingLayoutMode(mode: NowPlayingLayoutMode) {
         viewModelScope.launch { settingsRepository.setNowPlayingLayoutMode(mode) }
-    }
-
-    fun saveSpotifySettings(settings: SpotifySettings) {
-        viewModelScope.launch {
-            settingsRepository.saveSpotifySettings(
-                settings.copy(
-                    clientId = settings.clientId.trim(),
-                    redirectUri = settings.redirectUri.trim().ifBlank { SpotifyDefaults.REDIRECT_URI },
-                    displayName = settings.displayName.trim(),
-                ),
-            )
-        }
-    }
-
-    fun logoutSpotify() {
-        viewModelScope.launch {
-            val current = spotifySettings.value
-            settingsRepository.saveSpotifySettings(
-                current.copy(connected = false, displayName = ""),
-            )
-        }
-    }
-
-    fun loginWithSpotifyScaffold(context: Context) {
-        val settings = spotifySettings.value
-        if (!settings.configured) return
-        val scopes = "user-read-private user-read-email playlist-read-private user-read-playback-state"
-        val authUrl = buildString {
-            append(SpotifyDefaults.AUTH_BASE)
-            append("?client_id=").append(Uri.encode(settings.clientId))
-            append("&response_type=code")
-            append("&redirect_uri=").append(Uri.encode(settings.redirectUri))
-            append("&scope=").append(Uri.encode(scopes))
-        }
-        openUrlInBrowser(context, authUrl)
-        viewModelScope.launch {
-            settingsRepository.setSpotifyConnected(false)
-        }
-    }
-
-    fun spotifyRemoteAction(action: String) {
-        if (!spotifySettings.value.connected) return
-        // App Remote scaffold — wire to Spotify Android SDK in a future pass.
     }
 
     fun clearValidationError() {

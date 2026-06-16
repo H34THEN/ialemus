@@ -92,6 +92,11 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.5 — Spotify PKCE login (shipped — `0.3.7-mvp1b5`)
+
+- PKCE auth, deep link callback, token refresh, profile/playback Web API
+- Prefilled personal Client ID; no Client Secret in Android
+
 ### MVP 1C / remaining polish (next)
 
 Deliverables (full MVP 1):

@@ -36,6 +36,9 @@ class AppContainer(context: Context) {
     val widgetStateStore = WidgetStateStore(appContext)
     val trackOverrideRepository = com.heathen.ialemus.core.library.TrackOverrideRepository(trackOverrideDao)
 
+    val spotifyAuthRepository = com.heathen.ialemus.core.spotify.SpotifyAuthRepository(appContext)
+    val spotifyApiClient = com.heathen.ialemus.core.spotify.SpotifyApiClient()
+
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)
     val libraryRepository = LibraryRepository(

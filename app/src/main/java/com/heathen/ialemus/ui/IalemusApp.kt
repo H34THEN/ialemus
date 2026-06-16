@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.core.spotify.SpotifyViewModel
 import com.heathen.ialemus.ui.components.HudBottomNavigation
 import com.heathen.ialemus.ui.components.HudScaffold
 import com.heathen.ialemus.ui.components.MiniPlayerBar
@@ -34,6 +35,7 @@ fun IalemusApp(
     libraryViewModel: LibraryViewModel,
     playerViewModel: PlayerViewModel,
     settingsViewModel: SettingsViewModel,
+    spotifyViewModel: SpotifyViewModel,
     onRequestNotificationPermission: () -> Unit = {},
 ) {
     var destination by rememberSaveable { mutableStateOf(AppDestination.NOW_PLAYING) }
@@ -113,7 +115,7 @@ fun IalemusApp(
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.STREAMING -> StreamingScreen(
-                    settingsViewModel = settingsViewModel,
+                    spotifyViewModel = spotifyViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.DOWNLOADS -> DownloadsScreen(
@@ -123,6 +125,7 @@ fun IalemusApp(
                 )
                 AppDestination.SETTINGS -> SettingsScreen(
                     settingsViewModel = settingsViewModel,
+                    spotifyViewModel = spotifyViewModel,
                     libraryViewModel = libraryViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )

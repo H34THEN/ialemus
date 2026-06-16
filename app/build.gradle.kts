@@ -13,8 +13,8 @@ android {
         applicationId = "com.heathen.ialemus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.3.4-webview-hotfix"
+        versionCode = 10
+        versionName = "0.3.7-mvp1b5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -80,6 +80,8 @@ dependencies {
     implementation("androidx.documentfile:documentfile:1.0.1")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("androidx.browser:browser:1.8.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.9.0")

@@ -14,7 +14,9 @@ import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.player.IalemusPlaybackService
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.core.spotify.SpotifyViewModel
 import com.heathen.ialemus.ui.IalemusApp
+import com.heathen.ialemus.ui.util.isSpotifyAuthCallback
 
 class MainActivity : ComponentActivity() {
     private val container by lazy { (application as IalemusApplication).container }
@@ -28,6 +30,9 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels {
         SettingsViewModel.Factory(container)
     }
+    private val spotifyViewModel: SpotifyViewModel by viewModels {
+        SpotifyViewModel.Factory(container)
+    }
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -39,15 +44,23 @@ class MainActivity : ComponentActivity() {
 
         startPlaybackService()
         playerViewModel.connect()
+        handleSpotifyCallback(intent)
 
         setContent {
             IalemusApp(
                 libraryViewModel = libraryViewModel,
                 playerViewModel = playerViewModel,
                 settingsViewModel = settingsViewModel,
+                spotifyViewModel = spotifyViewModel,
                 onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
             )
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleSpotifyCallback(intent)
     }
 
     override fun onDestroy() {
@@ -55,6 +68,14 @@ class MainActivity : ComponentActivity() {
             playerViewModel.disconnect()
         }
         super.onDestroy()
+    }
+
+    private fun handleSpotifyCallback(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (isSpotifyAuthCallback(uri)) {
+            spotifyViewModel.handleAuthCallback(uri)
+            intent.data = null
+        }
     }
 
     private fun startPlaybackService() {

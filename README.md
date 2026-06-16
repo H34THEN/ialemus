@@ -6,7 +6,15 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.4 — EVA contrast fix, icon Now Playing controls, Spotify scaffold, Docker modules in Downloads.
+**Status:** MVP 1B.5 — Spotify PKCE login with prefilled personal-app defaults.
+
+### MVP 1B.5 (`0.3.7-mvp1b5`)
+
+- **Spotify PKCE login** — Authorization Code + S256 challenge; deep link `ialemus://spotify-auth-callback`
+- **Prefilled defaults** — Client ID + Redirect URI ready on first run (personal app; no Client Secret)
+- **Token exchange + refresh** — profile fetch; currently-playing / player Web API; remote play/pause/next/previous
+- **Streaming tab** — Connect Spotify, profile, remote playback card, SPOTIFY REMOTE controls
+- **Preserved:** LOCAL CORE playback, folder-first scan, Downloads Docker modules, HiBy stability
 
 ### MVP 1B.4 (`0.3.6-mvp1b4`)
 

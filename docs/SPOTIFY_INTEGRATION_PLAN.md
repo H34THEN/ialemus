@@ -1,61 +1,51 @@
 # Spotify Integration Plan (Ialemus)
 
-MVP 1B.4 adds a **scaffold only** — no raw Spotify streaming through Ialemus ExoPlayer.
+MVP 1B.5 implements **Authorization Code + PKCE** login. Spotify playback remains **SPOTIFY REMOTE** — never raw audio through Ialemus ExoPlayer.
 
 ## Architecture
 
 | Layer | Role |
 |-------|------|
 | **LOCAL CORE** | Ialemus ExoPlayer / Media3 — SAF & MediaStore files only |
-| **SPOTIFY REMOTE** | External Spotify app / Spotify Connect / App Remote — separate playback |
+| **SPOTIFY REMOTE** | Spotify Web API + Spotify app / Connect — separate playback |
 
-**Do not:**
-- Stream Spotify URLs through ExoPlayer
-- Download Spotify audio
-- Merge Spotify tracks into the local Ialemus queue as playable audio items
+**Do not:** stream Spotify through ExoPlayer, download Spotify audio, use Client Secret in Android.
 
-**Do:**
-- Spotify Web API (Authorization Code + **PKCE**) for account, playlists, search metadata
-- Spotify Android SDK **App Remote** (future) for play/pause/next/previous on the installed Spotify app
-- Open Spotify app / `spotify:` URI fallback
+## Personal-app defaults (MVP 1B.5)
 
-## Developer setup
+| Setting | Value |
+|---------|--------|
+| Client ID | `9c6067114c44430fba5b6a627a907e61` (prefilled; override in Settings advanced) |
+| Redirect URI | `ialemus://spotify-auth-callback` |
+| Package | `com.heathen.ialemus` |
+| SHA-1 | Required in Spotify Developer Dashboard (debug/release as needed) |
 
-1. Create an app at [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Note **Client ID** (not a secret — user configures in Ialemus Settings)
-3. Add **Redirect URI**: `com.heathen.ialemus://spotify-callback` (or custom, must match Settings)
-4. Android package name: `com.heathen.ialemus`
-5. **Do not** embed Client Secret in the Android app
+No Client Secret in the app. PKCE only.
 
-## Auth (Web API)
+## Auth flow
 
-- Flow: Authorization Code with PKCE
-- Scopes (initial): `user-read-private`, `user-read-email`, `playlist-read-private`, `user-read-playback-state`
-- Token storage: **TODO** — EncryptedSharedPreferences or Android Keystore before production
-- Token refresh: implement only when secure storage is in place
+1. User taps **Connect Spotify** → PKCE verifier/challenge + state stored
+2. Custom Tab opens Spotify authorize URL (`code_challenge_method=S256`)
+3. Spotify redirects to `ialemus://spotify-auth-callback?code=...&state=...`
+4. MainActivity validates state, exchanges code for tokens (no secret)
+5. Profile + playback fetched via Web API
 
-## Playback (App Remote)
+## Token storage (MVP)
 
-- Dependency: Spotify Android SDK (App Remote module) — not added in MVP 1B.4 scaffold
-- Requires Spotify app installed on device
-- Controls map to Spotify app state, not `PlayerViewModel` local queue
+- Tokens in separate DataStore (`ialemus_spotify_auth`)
+- **TODO:** migrate to EncryptedSharedPreferences / Keystore
+- Refresh token support implemented; session expiry shows relogin prompt
 
-## UI surfaces
+## Web API playback controls
 
-- **Streaming tab** — account, remote now playing scaffold, icon controls, Open Spotify
-- **Settings → Spotify Integration** — Client ID, Redirect URI, login/logout scaffold
-- **Downloads → spotDL Module** — future Bridge handoff from Spotify playlist URLs
+- Play / pause / next / previous / shuffle via Spotify Web API
+- Requires an **active Spotify device** (Spotify app open or Connect target)
+- 204 = no active playback; 404 = no device — show “Open Spotify App”
+
+## App Remote (next phase)
+
+Spotify Android SDK App Remote not added in 1B.5. Web API controls need an active device; App Remote can provide richer in-app control when the Spotify app is installed.
 
 ## Premium / policy
 
-- Respect Spotify Terms of Service and Premium requirements for playback features
-- spotDL execution remains **Bridge-only** on NAS — never from Android
-
-## Next implementation steps
-
-1. Add PKCE code verifier/challenge generation + custom tab / WebView auth callback handler
-2. Register intent filter for redirect URI in `AndroidManifest.xml`
-3. Store access/refresh tokens securely
-4. Add Spotify App Remote dependency + connection lifecycle
-5. Display Spotify now playing metadata from Web API / App Remote
-6. Optional: “Send playlist to Bridge” when Bridge MVP 2 ships
+Respect Spotify Terms of Service and Premium requirements. spotDL remains Bridge-only on NAS.

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.heathen.ialemus.core.model.ConnectionMode
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.model.ThemeId
+import com.heathen.ialemus.core.spotify.SpotifyDefaults
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -42,7 +43,6 @@ class SettingsRepository(context: Context) {
     val spotifySettings: Flow<SpotifySettings> = dataStore.data.map { prefs ->
         SpotifySettings(
             clientId = prefs[KEY_SPOTIFY_CLIENT_ID].orEmpty(),
-            redirectUri = prefs[KEY_SPOTIFY_REDIRECT_URI].orEmpty().ifBlank { SpotifyDefaults.REDIRECT_URI },
             displayName = prefs[KEY_SPOTIFY_DISPLAY_NAME].orEmpty(),
             connected = prefs[KEY_SPOTIFY_CONNECTED] ?: false,
         )
@@ -86,8 +86,11 @@ class SettingsRepository(context: Context) {
 
     suspend fun saveSpotifySettings(settings: SpotifySettings) {
         dataStore.edit { prefs ->
-            prefs[KEY_SPOTIFY_CLIENT_ID] = settings.clientId.trim()
-            prefs[KEY_SPOTIFY_REDIRECT_URI] = settings.redirectUri.trim()
+            if (settings.clientId.isBlank()) {
+                prefs.remove(KEY_SPOTIFY_CLIENT_ID)
+            } else {
+                prefs[KEY_SPOTIFY_CLIENT_ID] = settings.clientId.trim()
+            }
             prefs[KEY_SPOTIFY_DISPLAY_NAME] = settings.displayName.trim()
             prefs[KEY_SPOTIFY_CONNECTED] = settings.connected
         }
@@ -116,7 +119,6 @@ class SettingsRepository(context: Context) {
         private val KEY_SHOW_MINI_PLAYER = booleanPreferencesKey("show_mini_player_bar")
         private val KEY_NOW_PLAYING_LAYOUT = stringPreferencesKey("now_playing_layout_mode")
         private val KEY_SPOTIFY_CLIENT_ID = stringPreferencesKey("spotify_client_id")
-        private val KEY_SPOTIFY_REDIRECT_URI = stringPreferencesKey("spotify_redirect_uri")
         private val KEY_SPOTIFY_DISPLAY_NAME = stringPreferencesKey("spotify_display_name")
         private val KEY_SPOTIFY_CONNECTED = booleanPreferencesKey("spotify_connected")
         private val KEY_NAS_DISPLAY_NAME = stringPreferencesKey("nas_display_name")

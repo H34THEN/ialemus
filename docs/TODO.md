@@ -158,6 +158,25 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## MVP 1B.5 — Spotify PKCE login (completed)
+
+- [x] Prefilled Client ID + Redirect URI defaults
+- [x] Android deep link `ialemus://spotify-auth-callback`
+- [x] PKCE generation + token exchange + refresh
+- [x] Profile + playback Web API
+- [x] SPOTIFY REMOTE controls (Web API; active device required)
+- [x] `SpotifyPkceTest` unit tests
+- [ ] Manual HiBy R4 Spotify login test on device
+- [ ] Migrate Spotify tokens to encrypted storage
+
+### Known limitations (MVP 1B.5)
+
+- Tokens in DataStore (not encrypted yet)
+- Web API controls require active Spotify device — use Open Spotify App first
+- App Remote SDK not integrated yet
+- Repeat toggle not implemented on Web API controls
+- No Spotify audio through ExoPlayer (by design)
+
 ## MVP 1B.4 — EVA contrast + Spotify scaffold (completed)
 
 - [x] EVA-01 / EVA theme contrast — explicit Material on-* colors via `hudDarkColorScheme`
