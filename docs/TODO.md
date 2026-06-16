@@ -158,6 +158,30 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## MVP 1B.3 — Now Playing layouts + metadata (completed)
+
+- [x] Remove redundant Now Playing top banner
+- [x] Hide mini player on Now Playing screen by default
+- [x] Settings toggle: Show bottom mini player (`showMiniPlayerBar`)
+- [x] Five Now Playing layout modes (Balanced, Image Heavy, Text + Metadata, Playlist / Radio, Cyberpunk HUD)
+- [x] Collapsible panels: Local Signal, Queue, Track Cleanup, Lyrics placeholder, future tools
+- [x] Local Signal metadata panel upgrade (source, dates, IDs, favorite, play count)
+- [x] Display title override + prefix cleanup (`TrackOverrideEntity` in Room v3)
+- [x] Reset display override; physical file rename deferred (disabled future options)
+- [x] MeTube/NAS default IP URLs (`192.168.1.213`); avoid `baphomet.local` as default
+- [x] WebView desktop user-agent + error code display
+- [ ] Manual HiBy R4 acceptance on device
+
+### Known limitations (MVP 1B.3)
+
+- Display title override is Room-only — does not rename files or rewrite embedded tags
+- Physical rename / tag edit shown as future disabled options
+- Codec, bitrate, sample rate, ReplayGain shown as TODO placeholders
+- Radio mode is UI placeholder only (no smart queue algorithm yet)
+- Room v3 uses destructive migration — overrides/stats reset on upgrade until proper migration added
+- MeTube/NAS WebView load depends on LAN reachability and service WebView compatibility
+- `baphomet.local` requires LAN DNS/mDNS if user enters it manually
+
 ## WebView Hotfix — Docker service rendering (completed)
 
 - [x] Fix WebView zero-height layout (`Modifier.weight(1f)` in Column)

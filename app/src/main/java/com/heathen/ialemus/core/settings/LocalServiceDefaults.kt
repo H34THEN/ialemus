@@ -7,7 +7,9 @@ package com.heathen.ialemus.core.settings
 object LocalServiceDefaults {
     const val METUBE = "http://192.168.1.213:38245/"
     const val SLSKD = "http://192.168.1.213:5031/"
-    const val NAS_UI = "http://baphomet.local:9999/"
+    const val NAS_UI = "http://192.168.1.213:9999/"
+    /** Optional user-entered alternate — not used as Android default. */
+    const val NAS_UI_DOMAIN_ALT = "http://baphomet.local:9999/"
     const val BRIDGE_FUTURE = "http://192.168.1.213:8787"
 
     fun asSettings(): NasConnectionSettings = NasConnectionSettings(

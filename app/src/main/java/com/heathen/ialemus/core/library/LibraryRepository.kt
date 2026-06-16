@@ -16,6 +16,7 @@ import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.core.settings.SettingsRepository
 import com.heathen.ialemus.data.local.dao.LibrarySourceDao
 import com.heathen.ialemus.data.local.dao.TrackDao
+import com.heathen.ialemus.data.local.dao.TrackOverrideDao
 import com.heathen.ialemus.data.local.dao.TrackStatsDao
 import com.heathen.ialemus.data.local.defaultStatsEntity
 import com.heathen.ialemus.data.local.toEntity
@@ -25,7 +26,9 @@ import com.heathen.ialemus.data.local.model.AlbumBrowseRow
 import com.heathen.ialemus.data.local.model.ArtistBrowseRow
 import com.heathen.ialemus.data.local.model.FolderBrowseRow
 import com.heathen.ialemus.data.local.entity.LibrarySourceEntity
+import com.heathen.ialemus.data.local.entity.TrackEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
@@ -35,12 +38,17 @@ class LibraryRepository(
     private val safFolderScanner: SafFolderScanner,
     private val trackDao: TrackDao,
     private val trackStatsDao: TrackStatsDao,
+    private val trackOverrideDao: TrackOverrideDao,
     private val librarySourceDao: LibrarySourceDao,
     private val settingsRepository: SettingsRepository,
 ) {
-    val tracks: Flow<List<Track>> = trackDao.observeAllTracks().map { entities ->
-        entities.map { it.toTrack() }
-    }
+    private fun Flow<List<TrackEntity>>.mapWithOverrides(): Flow<List<Track>> =
+        combine(this, trackOverrideDao.observeAll()) { entities, overrides ->
+            val map = overrides.associateBy { it.trackId }
+            entities.map { it.toTrack().withOverrides(map[it.id]) }
+        }
+
+    val tracks: Flow<List<Track>> = trackDao.observeAllTracks().mapWithOverrides()
 
     val trackCount: Flow<Int> = trackDao.countTracks()
 
@@ -62,28 +70,28 @@ class LibraryRepository(
         trackDao.observeFolderSummaries().map { rows -> rows.map { it.toFolderSummary() } }
 
     val audiobookTracks: Flow<List<Track>> =
-        trackDao.observeAudiobookTracks().map { entities -> entities.map { it.toTrack() } }
+        trackDao.observeAudiobookTracks().mapWithOverrides()
 
     val favoriteTracks: Flow<List<Track>> =
-        trackStatsDao.observeFavoriteTracks().map { entities -> entities.map { it.toTrack() } }
+        trackStatsDao.observeFavoriteTracks().mapWithOverrides()
 
     val recentlyAddedTracks: Flow<List<Track>> =
-        trackDao.observeRecentlyAddedTracks().map { entities -> entities.map { it.toTrack() } }
+        trackDao.observeRecentlyAddedTracks().mapWithOverrides()
 
     val recentlyPlayedTracks: Flow<List<Track>> =
-        trackStatsDao.observeRecentlyPlayedTracks().map { entities -> entities.map { it.toTrack() } }
+        trackStatsDao.observeRecentlyPlayedTracks().mapWithOverrides()
 
     val mostPlayedTracks: Flow<List<Track>> =
-        trackStatsDao.observeMostPlayedTracks().map { entities -> entities.map { it.toTrack() } }
+        trackStatsDao.observeMostPlayedTracks().mapWithOverrides()
 
     fun tracksForArtist(artist: String): Flow<List<Track>> =
-        trackDao.observeTracksForArtist(artist).map { entities -> entities.map { it.toTrack() } }
+        trackDao.observeTracksForArtist(artist).mapWithOverrides()
 
     fun tracksForAlbum(album: String, artist: String): Flow<List<Track>> =
-        trackDao.observeTracksForAlbum(album, artist).map { entities -> entities.map { it.toTrack() } }
+        trackDao.observeTracksForAlbum(album, artist).mapWithOverrides()
 
     fun tracksForFolder(librarySourceId: String, folderPath: String): Flow<List<Track>> =
-        trackDao.observeTracksForFolder(librarySourceId, folderPath).map { entities -> entities.map { it.toTrack() } }
+        trackDao.observeTracksForFolder(librarySourceId, folderPath).mapWithOverrides()
 
     fun resolvePermissionState(): MediaPermissionState {
         val permission = requiredPermission()
@@ -171,7 +179,11 @@ class LibraryRepository(
         }
     }
 
-    suspend fun getTrackById(id: String): Track? = trackDao.getTrackById(id)?.toTrack()
+    suspend fun getTrackById(id: String): Track? {
+        val entity = trackDao.getTrackById(id) ?: return null
+        val override = trackOverrideDao.getForTrack(id)
+        return entity.toTrack().withOverrides(override)
+    }
 
     suspend fun refreshScanStateHint(): LibraryScanState {
         val folderCount = librarySourceDao.countSafFolders()

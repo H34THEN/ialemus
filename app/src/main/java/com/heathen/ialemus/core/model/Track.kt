@@ -20,12 +20,22 @@ data class Track(
     val librarySourceId: String? = null,
     val sourceLabel: String? = null,
     val lastScannedAt: Long = 0L,
+    val displayTitleOverride: String? = null,
+    val displayArtistOverride: String? = null,
+    val displayAlbumOverride: String? = null,
 ) {
+    val displayTitle: String
+        get() = displayTitleOverride?.takeIf { it.isNotBlank() } ?: title
+
     val displayArtist: String
-        get() = artist?.takeIf { it.isNotBlank() } ?: "Unknown Artist"
+        get() = displayArtistOverride?.takeIf { it.isNotBlank() }
+            ?: artist?.takeIf { it.isNotBlank() }
+            ?: "Unknown Artist"
 
     val displayAlbum: String
-        get() = album?.takeIf { it.isNotBlank() } ?: "Unknown Album"
+        get() = displayAlbumOverride?.takeIf { it.isNotBlank() }
+            ?: album?.takeIf { it.isNotBlank() }
+            ?: "Unknown Album"
 
     val sourceChipLabel: String
         get() = when (sourceType) {

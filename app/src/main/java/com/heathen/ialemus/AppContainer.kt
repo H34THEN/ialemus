@@ -29,10 +29,12 @@ class AppContainer(context: Context) {
 
     val trackDao = database.trackDao()
     val trackStatsDao = database.trackStatsDao()
+    val trackOverrideDao = database.trackOverrideDao()
     val librarySourceDao = database.librarySourceDao()
 
     val settingsRepository = SettingsRepository(appContext)
     val widgetStateStore = WidgetStateStore(appContext)
+    val trackOverrideRepository = com.heathen.ialemus.core.library.TrackOverrideRepository(trackOverrideDao)
 
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)
@@ -42,6 +44,7 @@ class AppContainer(context: Context) {
         safFolderScanner = safFolderScanner,
         trackDao = trackDao,
         trackStatsDao = trackStatsDao,
+        trackOverrideDao = trackOverrideDao,
         librarySourceDao = librarySourceDao,
         settingsRepository = settingsRepository,
     )

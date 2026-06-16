@@ -292,6 +292,8 @@ private fun HudServiceWebView(
                 settings.allowFileAccess = false
                 settings.allowContentAccess = true
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                settings.userAgentString =
+                    "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(
                         view: WebView?,
@@ -336,7 +338,7 @@ private fun HudServiceWebView(
                     ) {
                         if (request?.isForMainFrame == true) {
                             onError(
-                                error?.description?.toString() ?: "Could not load page.",
+                                "Error ${error?.errorCode ?: "?"}: ${error?.description?.toString() ?: "Could not load page."}",
                                 error?.errorCode,
                             )
                         }

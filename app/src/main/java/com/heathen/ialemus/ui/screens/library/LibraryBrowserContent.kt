@@ -148,7 +148,7 @@ private fun TracksBrowsePane(
         } else {
             val q = searchQuery.trim().lowercase()
             tracks.filter { track ->
-                track.title.lowercase().contains(q) ||
+                track.displayTitle.lowercase().contains(q) ||
                     track.displayArtist.lowercase().contains(q) ||
                     track.displayAlbum.lowercase().contains(q)
             }

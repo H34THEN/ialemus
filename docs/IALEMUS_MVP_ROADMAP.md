@@ -76,6 +76,14 @@ Deliverables:
 - WebView fills remaining screen height; cleartext LAN HTTP enabled
 - External browser fallback on load failure
 
+### MVP 1B.3 — Now Playing layouts + metadata (shipped — `0.3.5-mvp1b3`)
+
+- Removed redundant Now Playing header; mini player hidden on Now Playing by default
+- Settings: show bottom mini player toggle; five Now Playing layout modes
+- Local Signal metadata panel; Track Cleanup display title override (Room-only)
+- Default service URLs use LAN IP (`192.168.1.213`) not `baphomet.local`
+- WebView desktop user-agent for MeTube; error codes + external browser fallback
+
 ### MVP 1C / remaining polish (next)
 
 Deliverables (full MVP 1):

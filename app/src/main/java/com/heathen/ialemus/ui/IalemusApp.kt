@@ -37,12 +37,20 @@ fun IalemusApp(
     onRequestNotificationPermission: () -> Unit = {},
 ) {
     var destination by rememberSaveable { mutableStateOf(AppDestination.NOW_PLAYING) }
-    var hideMiniPlayer by rememberSaveable { mutableStateOf(false) }
+    var hideMiniPlayerForWebView by rememberSaveable { mutableStateOf(false) }
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
+    val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
+    val nowPlayingLayoutMode by settingsViewModel.nowPlayingLayoutMode.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val horizontalPad = screenHorizontalPadding()
+
+    val onNowPlayingScreen = destination == AppDestination.NOW_PLAYING
+    val shouldShowMiniPlayer = showMiniPlayerBar &&
+        !hideMiniPlayerForWebView &&
+        !onNowPlayingScreen &&
+        playbackState.currentTrack != null
 
     LaunchedEffect(Unit) {
         libraryViewModel.refreshPermissionState()
@@ -59,7 +67,7 @@ fun IalemusApp(
 
     LaunchedEffect(destination) {
         if (destination != AppDestination.ACQUIRE) {
-            hideMiniPlayer = false
+            hideMiniPlayerForWebView = false
         }
     }
 
@@ -68,7 +76,7 @@ fun IalemusApp(
             snackbarHostState = snackbarHostState,
             bottomBar = {
                 Column {
-                    if (!hideMiniPlayer) {
+                    if (shouldShowMiniPlayer) {
                         MiniPlayerBar(
                             track = playbackState.currentTrack,
                             isPlaying = playbackState.isPlaying,
@@ -95,6 +103,7 @@ fun IalemusApp(
             when (destination) {
                 AppDestination.NOW_PLAYING -> NowPlayingScreen(
                     playerViewModel = playerViewModel,
+                    layoutMode = nowPlayingLayoutMode,
                     onOpenLibrary = { destination = AppDestination.LIBRARY },
                     modifier = Modifier.padding(innerPadding),
                 )
@@ -105,7 +114,7 @@ fun IalemusApp(
                 )
                 AppDestination.ACQUIRE -> AcquireScreen(
                     settingsViewModel = settingsViewModel,
-                    onWebViewActive = { hideMiniPlayer = it },
+                    onWebViewActive = { hideMiniPlayerForWebView = it },
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.DOWNLOADS -> DownloadsScreen(

@@ -36,6 +36,7 @@ import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.library.MediaPermissionState
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.model.ConnectionMode
+import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasConnectionSettings
@@ -58,6 +59,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
+    val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
+    val nowPlayingLayoutMode by settingsViewModel.nowPlayingLayoutMode.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
     val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
     val bridgeStatus by settingsViewModel.bridgeTestStatus.collectAsStateWithLifecycle()
@@ -69,6 +72,7 @@ fun SettingsScreen(
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
     var themeExpanded by rememberSaveable { mutableStateOf(false) }
+    var playbackExpanded by rememberSaveable { mutableStateOf(true) }
     var sourceExpanded by rememberSaveable { mutableStateOf(false) }
     var nasExpanded by rememberSaveable { mutableStateOf(false) }
     var libraryExpanded by rememberSaveable { mutableStateOf(true) }
@@ -142,8 +146,39 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.2 · Docker Web UI wrappers",
+            subtitle = "Ialemus MVP 1B.3 · Now Playing layouts & service URLs",
         )
+
+        HudCollapsiblePanel(
+            title = "Playback",
+            sectionTag = "NOW PLAYING",
+            subtitle = "Mini player visibility and Now Playing layout modes.",
+            expanded = playbackExpanded,
+            onToggle = { playbackExpanded = !playbackExpanded },
+            statusLabel = nowPlayingLayoutMode.displayName.uppercase(),
+        ) {
+            RowSwitch(
+                label = "Show bottom mini player",
+                checked = showMiniPlayerBar,
+                onCheckedChange = settingsViewModel::setShowMiniPlayerBar,
+            )
+            Text(
+                text = "Show Spotify-style playback controls above the command dock outside Now Playing.",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
+            Text(
+                text = "NOW PLAYING LAYOUT",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.accentActive,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+            NowPlayingLayoutSelector(
+                selected = nowPlayingLayoutMode,
+                onSelect = settingsViewModel::setNowPlayingLayoutMode,
+            )
+        }
 
         HudCollapsiblePanel(
             title = "Local Library",
@@ -367,10 +402,10 @@ fun SettingsScreen(
             subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B.2",
+            statusLabel = "MVP 1B.3",
         ) {
             Text(
-                text = "Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS. spotDL remains Bridge-only.",
+                text = "Now Playing layout modes, display title overrides, and Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
             )
@@ -380,6 +415,57 @@ fun SettingsScreen(
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun NowPlayingLayoutSelector(
+    selected: NowPlayingLayoutMode,
+    onSelect: (NowPlayingLayoutMode) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        NowPlayingLayoutMode.entries.forEach { mode ->
+            val isSelected = mode == selected
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(mode) }
+                    .border(
+                        width = if (isSelected) 1.5.dp else 1.dp,
+                        color = if (isSelected) {
+                            LocalIalemusTokens.current.accentActive
+                        } else {
+                            LocalIalemusTokens.current.hudBorderColor.copy(alpha = 0.35f)
+                        },
+                        shape = MaterialTheme.shapes.small,
+                    )
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                    Text(
+                        text = mode.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) {
+                            LocalIalemusTokens.current.glowColor
+                        } else {
+                            LocalIalemusTokens.current.textMuted
+                        },
+                    )
+                    Text(
+                        text = mode.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LocalIalemusTokens.current.textMuted,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                HudStatusChip(
+                    label = if (isSelected) "ACTIVE" else "SELECT",
+                    highlighted = isSelected,
+                )
+            }
         }
     }
 }

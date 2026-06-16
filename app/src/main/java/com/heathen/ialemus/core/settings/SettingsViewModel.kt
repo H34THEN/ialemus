@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.heathen.ialemus.AppContainer
 import com.heathen.ialemus.core.model.ThemeId
+import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.network.ServiceUrlTester
 import com.heathen.ialemus.core.network.ServiceUrlValidator
@@ -32,6 +33,19 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false,
     )
+
+    val showMiniPlayerBar: StateFlow<Boolean> = settingsRepository.showMiniPlayerBar.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = true,
+    )
+
+    val nowPlayingLayoutMode: StateFlow<NowPlayingLayoutMode> =
+        settingsRepository.nowPlayingLayoutMode.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = NowPlayingLayoutMode.BALANCED,
+        )
 
     val trackCount: StateFlow<Int> = container.libraryRepository.trackCount.stateIn(
         scope = viewModelScope,
@@ -88,6 +102,14 @@ class SettingsViewModel(
 
     fun setDapMode(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.setDapMode(enabled) }
+    }
+
+    fun setShowMiniPlayerBar(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setShowMiniPlayerBar(enabled) }
+    }
+
+    fun setNowPlayingLayoutMode(mode: NowPlayingLayoutMode) {
+        viewModelScope.launch { settingsRepository.setNowPlayingLayoutMode(mode) }
     }
 
     fun clearValidationError() {

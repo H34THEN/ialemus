@@ -89,7 +89,7 @@ fun MiniPlayerBar(
                         maxLines = 1,
                     )
                     Text(
-                        text = track.title,
+                        text = track.displayTitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = tokens.textPrimary,
                         maxLines = 1,

@@ -91,9 +91,25 @@ Background rescans via WorkManager.
 
 ### 3.3 Now Playing screen
 
-**Responsibility:** Primary playback HUD.
+**Responsibility:** Primary playback HUD (MVP 1B.3).
 
-**Portrait:**
+**Layout modes** (Settings → Playback → Now Playing Layout):
+
+| Mode | Description |
+|------|-------------|
+| Balanced | Spotify-like: art, title, controls, collapsible metadata |
+| Image Heavy | Large cover-forward; minimal metadata above fold |
+| Text + Metadata | Smaller art; expanded track/source details |
+| Playlist / Radio | Queue-heavy Up Next preview; shuffle/repeat controls |
+| Cyberpunk HUD | Dense EVA command panels, signal chips, tactical labels |
+
+**Collapsible panels:** Local Signal / Metadata, Queue / Up Next, Track Cleanup, Lyrics (placeholder), future audio tools.
+
+**Mini player:** Hidden on Now Playing by default. Global toggle `showMiniPlayerBar` in Settings shows/hides bar on Library, Acquire, Downloads, Settings.
+
+**Track Cleanup (MVP 1B.3):** Display title override stored in Room (`TrackOverrideEntity` keyed by `trackId`). Quick “Remove track number prefix” for patterns like `01 - `. Reset restores scanned title. Physical file rename and embedded tag edit are future/disabled — requires SAF write + tag writer.
+
+**Portrait (all modes):**
 
 - Album art (center “artifact”)
 - Title, artist, album
@@ -290,7 +306,7 @@ Now Playing | Library | Acquire | Downloads | Settings
 
 Now Playing may be default landing or merge with mini-player bar on Library — decide at UI scaffold.
 
-**Mini player (`0.3.1-hiby-hotfix`):** Persistent EVA HUD bar above the icon-only command dock whenever a track is loaded. Tap the track info area to open Now Playing; transport buttons (shuffle, previous, play/pause, next, repeat) use separate click targets. Repeat cycles OFF → QUEUE → ONE. Disabled when queue empty or at bounds (unless repeat wraps).
+**Mini player (`0.3.5-mvp1b3`):** Persistent EVA HUD bar above the icon-only command dock when a track is loaded and `showMiniPlayerBar` is enabled — except on Now Playing (redundant) and during in-app WebView (full height). Tap track info to open Now Playing; transport buttons use separate click targets. Repeat cycles OFF → QUEUE → ONE.
 
 ---
 

@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.heathen.ialemus.core.model.ConnectionMode
+import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.model.ThemeId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -27,6 +28,15 @@ class SettingsRepository(context: Context) {
 
     val fullDeviceScanEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[KEY_FULL_DEVICE_SCAN] ?: false
+    }
+
+    val showMiniPlayerBar: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[KEY_SHOW_MINI_PLAYER] ?: true
+    }
+
+    val nowPlayingLayoutMode: Flow<NowPlayingLayoutMode> = dataStore.data.map { prefs ->
+        NowPlayingLayoutMode.entries.find { it.name == prefs[KEY_NOW_PLAYING_LAYOUT] }
+            ?: NowPlayingLayoutMode.BALANCED
     }
 
     val nasConnectionSettings: Flow<NasConnectionSettings> = dataStore.data.map { prefs ->
@@ -57,6 +67,14 @@ class SettingsRepository(context: Context) {
         dataStore.edit { prefs -> prefs[KEY_FULL_DEVICE_SCAN] = enabled }
     }
 
+    suspend fun setShowMiniPlayerBar(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[KEY_SHOW_MINI_PLAYER] = enabled }
+    }
+
+    suspend fun setNowPlayingLayoutMode(mode: NowPlayingLayoutMode) {
+        dataStore.edit { prefs -> prefs[KEY_NOW_PLAYING_LAYOUT] = mode.name }
+    }
+
     suspend fun saveNasConnectionSettings(settings: NasConnectionSettings) {
         dataStore.edit { prefs ->
             prefs[KEY_NAS_DISPLAY_NAME] = settings.nasDisplayName.trim()
@@ -73,6 +91,8 @@ class SettingsRepository(context: Context) {
         private val KEY_THEME = stringPreferencesKey("theme_id")
         private val KEY_DAP_MODE = booleanPreferencesKey("dap_mode")
         private val KEY_FULL_DEVICE_SCAN = booleanPreferencesKey("full_device_scan_enabled")
+        private val KEY_SHOW_MINI_PLAYER = booleanPreferencesKey("show_mini_player_bar")
+        private val KEY_NOW_PLAYING_LAYOUT = stringPreferencesKey("now_playing_layout_mode")
         private val KEY_NAS_DISPLAY_NAME = stringPreferencesKey("nas_display_name")
         private val KEY_BRIDGE_URL = stringPreferencesKey("bridge_url")
         private val KEY_BRIDGE_TOKEN = stringPreferencesKey("bridge_token")

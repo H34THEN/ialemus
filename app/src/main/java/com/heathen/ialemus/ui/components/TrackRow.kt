@@ -78,7 +78,7 @@ fun TrackRow(
                     )
                 }
                 Text(
-                    text = track.title,
+                        text = track.displayTitle,
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (isPlaying) tokens.glowColor else tokens.textPrimary,
                     fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Normal,

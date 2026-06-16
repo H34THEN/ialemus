@@ -8,6 +8,7 @@ import com.heathen.ialemus.core.model.QueueItem
 import com.heathen.ialemus.core.model.RepeatMode
 import com.heathen.ialemus.core.model.ShuffleMode
 import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.core.library.withOverrides
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +23,14 @@ class PlayerViewModel(
     private val playerConnection = container.playerConnection
     private val queueRepository = container.queueRepository
     private val trackStatsDao = container.trackStatsDao
+    private val trackOverrideRepository = container.trackOverrideRepository
 
-    val playbackState: StateFlow<PlaybackState> = playerConnection.playbackState.stateIn(
+    val playbackState: StateFlow<PlaybackState> = combine(
+        playerConnection.playbackState,
+        trackOverrideRepository.overrides,
+    ) { state, overrides ->
+        state.withTrackOverrides(overrides)
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = PlaybackState(),
@@ -32,10 +39,11 @@ class PlayerViewModel(
     val queueItems: StateFlow<List<QueueItem>> = combine(
         queueRepository.activeQueue,
         queueRepository.currentIndex,
-    ) { queue, index ->
+        trackOverrideRepository.overrides,
+    ) { queue, index, overrides ->
         queue.mapIndexed { itemIndex, track ->
             QueueItem(
-                track = track,
+                track = track.withOverrides(overrides[track.id]),
                 queueIndex = itemIndex,
                 isCurrent = itemIndex == index,
             )
@@ -121,6 +129,20 @@ class PlayerViewModel(
 
     fun observeFavorite(trackId: String): Flow<Boolean> =
         trackStatsDao.observeStatsForTrack(trackId).map { stats -> stats?.favorite == true }
+
+    fun saveDisplayTitleOverride(trackId: String, displayTitle: String) {
+        viewModelScope.launch {
+            trackOverrideRepository.saveTitleOverride(trackId, displayTitle)
+        }
+    }
+
+    fun clearDisplayTitleOverride(trackId: String) {
+        viewModelScope.launch {
+            trackOverrideRepository.clearOverride(trackId)
+        }
+    }
+
+    fun observeTrackOverride(trackId: String) = trackOverrideRepository.observeForTrack(trackId)
 
     class Factory(
         private val container: AppContainer,

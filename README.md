@@ -6,13 +6,24 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** WebView rendering hotfix — Docker service UIs now fill screen in-app. Debug APK buildable (`0.3.4-webview-hotfix`).
+**Status:** MVP 1B.3 — Now Playing layout overhaul, metadata panel, mini-player toggle, display title overrides. Debug APK buildable.
+
+### MVP 1B.3 (`0.3.5-mvp1b3`)
+
+- **Now Playing overhaul** — removed redundant top “Now Playing” banner; content-first Spotify-like layout
+- **Mini player visibility** — Settings toggle “Show bottom mini player” (DataStore `showMiniPlayerBar`, default on); hidden on Now Playing screen by default
+- **Five layout modes** — Balanced, Image Heavy, Text + Metadata, Playlist / Radio, Cyberpunk HUD (Settings → Playback)
+- **Local Signal metadata panel** — title, artist, album, source, duration, dates, IDs, favorite/play count; technical URI behind collapsible section
+- **Track Cleanup** — display title override in Room (`TrackOverrideEntity`); strip `01 - ` style prefixes; reset override; no physical file rename
+- **Service URL defaults** — MeTube `http://192.168.1.213:38245/`, slskd `http://192.168.1.213:5031`, NAS UI `http://192.168.1.213:9999/` (IP preferred over `baphomet.local`)
+- **WebView** — desktop Chrome user-agent for MeTube compatibility; visible error codes + Open External Browser fallback
+- **Preserved:** local playback, folder-first scan, slskd WebView, HiBy dock polish
 
 ### WebView Hotfix (`0.3.4-webview-hotfix`)
 
 - **Fixed purple empty box** — WebView container now uses `Modifier.weight(1f)` so it receives real height inside Compose Column
 - **Real AndroidView WebView** — white background, JS/DOM storage, wide viewport, mixed content compatibility
-- **Cleartext LAN HTTP** — `usesCleartextTraffic=true` + targeted network security config for `192.168.1.213`, `baphomet.local`
+- **Cleartext LAN HTTP** — `usesCleartextTraffic=true` + targeted network security config for `192.168.1.213` (IP defaults); `baphomet.local` optional user override only
 - **Error UX** — visible load status, HTTP errors, Retry + Open External Browser fallback
 - **URL normalization** — `normalizeForLoad()` prepends `http://` when scheme missing
 
