@@ -1,16 +1,14 @@
 package com.heathen.ialemus.ui
 
 import android.os.Build
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -19,6 +17,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.ui.components.HudBottomNavigation
+import com.heathen.ialemus.ui.components.HudScaffold
 import com.heathen.ialemus.ui.components.MiniPlayerBar
 import com.heathen.ialemus.ui.navigation.AppDestination
 import com.heathen.ialemus.ui.screens.AcquireScreen
@@ -45,6 +45,7 @@ fun IalemusApp(
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         libraryViewModel.refreshPermissionState()
@@ -53,10 +54,17 @@ fun IalemusApp(
         }
     }
 
+    LaunchedEffect(playbackState.playbackError) {
+        val message = playbackState.playbackError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        playerViewModel.clearPlaybackError()
+    }
+
     IalemusTheme(themeId = selectedTheme, dapMode = dapMode) {
-        Scaffold(
+        HudScaffold(
+            snackbarHostState = snackbarHostState,
             bottomBar = {
-                androidx.compose.foundation.layout.Column {
+                Column {
                     MiniPlayerBar(
                         track = playbackState.currentTrack,
                         isPlaying = playbackState.isPlaying,
@@ -64,27 +72,17 @@ fun IalemusApp(
                         onOpenNowPlaying = { destination = AppDestination.NOW_PLAYING },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     )
-                    NavigationBar {
-                        AppDestination.entries.forEach { item ->
-                            NavigationBarItem(
-                                selected = destination == item,
-                                onClick = { destination = item },
-                                icon = {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = item.label,
-                                    )
-                                },
-                                label = { Text(item.label) },
-                            )
-                        }
-                    }
+                    HudBottomNavigation(
+                        selected = destination,
+                        onSelect = { destination = it },
+                    )
                 }
             },
         ) { innerPadding ->
             when (destination) {
                 AppDestination.NOW_PLAYING -> NowPlayingScreen(
                     playerViewModel = playerViewModel,
+                    onOpenLibrary = { destination = AppDestination.LIBRARY },
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.LIBRARY -> LibraryScreen(

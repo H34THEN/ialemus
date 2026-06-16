@@ -29,11 +29,13 @@ Deliverables:
 ### MVP 1A (shipped)
 
 - MediaStore scanner with Room persistence
+- SAF folder-first scan; full-device scan explicit opt-in
 - Permission flow for local audio access
-- Library track list with tap-to-play
+- Library track list with tap-to-play (stable track ID → queue index)
 - Media3 / `IalemusPlaybackService` playback
 - Now Playing, mini player, queue sheet
 - Favorites (Room), DataStore settings
+- **EVA HUD Pass:** Custom HUD design system, EVA-01 Berserk default theme, command-dock navigation, playback error snackbar guard
 
 ### MVP 1B (next)
 

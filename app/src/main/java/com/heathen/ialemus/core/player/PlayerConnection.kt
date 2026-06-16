@@ -2,6 +2,8 @@ package com.heathen.ialemus.core.player
 
 import android.content.ComponentName
 import android.content.Context
+import android.util.Log
+import com.heathen.ialemus.BuildConfig
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -18,6 +20,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+
+private const val TAG = "PlayerConnection"
+private const val PLAYBACK_ERROR_MESSAGE = "Playback link failed. Try rescanning this source."
 
 class PlayerConnection(
     private val context: Context,
@@ -75,31 +80,57 @@ class PlayerConnection(
         _playbackState.update { it.copy(isConnected = false) }
     }
 
+    fun clearPlaybackError() {
+        _playbackState.update { it.copy(playbackError = null) }
+    }
+
     fun playTracks(tracks: List<Track>, startIndex: Int, mode: ShuffleMode = queueRepository.shuffleMode.value) {
-        if (tracks.isEmpty()) return
+        if (tracks.isEmpty()) {
+            setPlaybackError(PLAYBACK_ERROR_MESSAGE)
+            return
+        }
         val safeStart = startIndex.coerceIn(0, tracks.lastIndex)
         val selectedTrack = tracks[safeStart]
         val playerStartIndex = queueRepository.setQueue(tracks, safeStart, mode)
         val queue = queueRepository.activeQueue.value
-        val mediaController = controller ?: return
+        val mediaController = controller
+        if (mediaController == null) {
+            setPlaybackError(PLAYBACK_ERROR_MESSAGE)
+            return
+        }
 
-        PlaybackIndexMapper.logSelection(
-            selectedTrack = selectedTrack,
-            listIndex = safeStart,
-            playerStartIndex = playerStartIndex,
-            queueSize = queue.size,
-        )
+        try {
+            PlaybackIndexMapper.logSelection(
+                selectedTrack = selectedTrack,
+                listIndex = safeStart,
+                playerStartIndex = playerStartIndex,
+                queueSize = queue.size,
+            )
 
-        mediaController.shuffleModeEnabled = false
-        mediaController.repeatMode = shuffleEngine.playerRepeatMode(mode)
-        mediaController.setMediaItems(queue.toMediaItems(), playerStartIndex, 0L)
-        mediaController.prepare()
-        mediaController.play()
-        updateFromPlayer()
+            mediaController.shuffleModeEnabled = false
+            mediaController.repeatMode = shuffleEngine.playerRepeatMode(mode)
+            mediaController.setMediaItems(queue.toMediaItems(), playerStartIndex, 0L)
+            mediaController.prepare()
+            mediaController.play()
+            clearPlaybackError()
+            updateFromPlayer()
+        } catch (error: Exception) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "playTracks failed for trackId=${selectedTrack.id}", error)
+            }
+            setPlaybackError(PLAYBACK_ERROR_MESSAGE)
+        }
     }
 
     fun playTrackById(tracks: List<Track>, trackId: String, mode: ShuffleMode = queueRepository.shuffleMode.value) {
-        val startIndex = PlaybackIndexMapper.resolveStartIndex(tracks, trackId) ?: return
+        val startIndex = PlaybackIndexMapper.resolveStartIndex(tracks, trackId)
+        if (startIndex == null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "playTrackById could not resolve trackId=$trackId")
+            }
+            setPlaybackError(PLAYBACK_ERROR_MESSAGE)
+            return
+        }
         playTracks(tracks, startIndex, mode)
     }
 
@@ -168,8 +199,8 @@ class PlayerConnection(
             ?: mediaController?.currentMediaItem?.mediaId?.let { mediaId ->
                 queue.find { it.id == mediaId }
             }
-        _playbackState.update {
-            PlaybackState(
+        _playbackState.update { previous ->
+            previous.copy(
                 currentTrack = currentTrack,
                 isPlaying = mediaController?.isPlaying == true,
                 isBuffering = mediaController?.playbackState == Player.STATE_BUFFERING,
@@ -182,5 +213,9 @@ class PlayerConnection(
                 isConnected = mediaController != null,
             )
         }
+    }
+
+    private fun setPlaybackError(message: String) {
+        _playbackState.update { it.copy(playbackError = message) }
     }
 }

@@ -82,6 +82,27 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] HUD panels, status chips, themed Library/Now Playing/Mini Player
 - [x] `PlaybackIndexMapper` unit test
 
+## MVP 1A EVA HUD Pass — Interface overhaul (completed)
+
+- [x] Reusable HUD design layer (`IalemusThemeTokens`, `HudShapes`, `HudTypography`)
+- [x] HUD components: `HudScaffold`, `HudPanel`, `HudHeader`, `HudSectionLabel`, `HudButton`, `HudIconButton`, `HudStatusChip`, `HudBottomNavigation`, `HudDivider`, `HudBackground`
+- [x] Custom command-dock bottom navigation (replaces Material `NavigationBar`)
+- [x] Now Playing flagship screen — loaded + rich empty state (inactive audio core panel)
+- [x] Library / `MusicSourcePanel` command-console styling; tactical `TrackRow` index
+- [x] Mini player always visible module (standby when no track)
+- [x] Settings HUD pass — EVA themes first, DAP mode explanation, MVP 1A EVA HUD label
+- [x] Acquire / Downloads placeholder restyle with future-module status chips
+- [x] Playback stability guard — snackbar on tap-to-play failure; no silent swallow
+- [x] DAP mode disables grid/scanlines for battery-friendly visuals
+- [x] No official/copyrighted Evangelion assets used
+
+### Known limitations (EVA HUD pass)
+
+- Album / artist / folder depth still MVP 1B
+- NAS Bridge, spot-dl, MeTube, slskd remain disabled placeholders
+- Heavy blur / infinite animations intentionally omitted for battery
+- Navigation still state-based tabs (not Navigation Compose deep links)
+
 ### MVP 1B — Next tasks (blocked until hotfix verified on device)
 
 - [ ] Album detail view

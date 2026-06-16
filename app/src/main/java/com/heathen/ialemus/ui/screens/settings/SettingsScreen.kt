@@ -1,13 +1,15 @@
 package com.heathen.ialemus.ui.screens.settings
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,7 +32,12 @@ import com.heathen.ialemus.BuildConfig
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.settings.SettingsPlaceholder
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.ui.components.HudButton
+import com.heathen.ialemus.ui.components.HudHeader
 import com.heathen.ialemus.ui.components.HudPanel
+import com.heathen.ialemus.ui.components.HudSectionLabel
+import com.heathen.ialemus.ui.components.HudStatusChip
+import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +45,7 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val tokens = LocalIalemusTokens.current
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
@@ -49,17 +58,49 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(text = "Settings", style = MaterialTheme.typography.headlineMedium)
-
-        HudPanel(title = "Local Library", subtitle = "$trackCount tracks indexed on device.") {}
-
-        RowSwitch(
-            label = "DAP low-power mode (reduced motion / battery-friendly visuals)",
-            checked = dapMode,
-            onCheckedChange = settingsViewModel::setDapMode,
+        HudHeader(
+            title = "Settings",
+            statusLabel = "DAP MODE",
+            subtitle = "Ialemus MVP 1A EVA HUD Pass",
         )
 
-        Text("EVA THEMES", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        HudPanel(
+            title = "Local Library",
+            sectionTag = "LOCAL SIGNAL",
+            subtitle = "$trackCount tracks indexed on device.",
+        ) {
+            HudStatusChip(label = "$trackCount tracks", highlighted = trackCount > 0)
+        }
+
+        HudPanel(
+            title = "DAP Low-Power Mode",
+            sectionTag = "DAP MODE",
+            subtitle = "Reduces grid/scanline overlays and motion for battery-friendly visuals on HiBy R4 and phones.",
+        ) {
+            RowSwitch(
+                label = "Enable reduced-motion HUD",
+                checked = dapMode,
+                onCheckedChange = settingsViewModel::setDapMode,
+            )
+        }
+
+        HudSectionLabel(label = "Theme Select", trailing = selectedTheme.displayName.uppercase())
+
+        HudPanel(title = "EVA Themes", sectionTag = "COMMAND DOCK") {
+            ThemeChipRow(
+                themes = ThemeId.evaThemes,
+                selectedTheme = selectedTheme,
+                onSelect = settingsViewModel::setTheme,
+            )
+        }
+
+        HudPanel(title = "Ialemus Original", sectionTag = "LEGACY PALETTE") {
+            ThemeChipRow(
+                themes = ThemeId.ialemusThemes,
+                selectedTheme = selectedTheme,
+                onSelect = settingsViewModel::setTheme,
+            )
+        }
 
         ExposedDropdownMenuBox(
             expanded = themeMenuExpanded,
@@ -70,7 +111,7 @@ fun SettingsScreen(
                 value = selectedTheme.displayName,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Theme") },
+                label = { Text("Theme (dropdown)") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = themeMenuExpanded) },
                 modifier = Modifier
                     .menuAnchor()
@@ -108,8 +149,11 @@ fun SettingsScreen(
 
         HudPanel(
             title = "NAS Bridge",
+            sectionTag = "FUTURE MODULE",
             subtitle = "Future integration (MVP 2). No shell/SSH/Docker from Android.",
-        ) {}
+        ) {
+            HudStatusChip(label = "NAS Bridge required", disabled = true)
+        }
 
         OutlinedTextField(
             value = "http://nas.local:8787/api",
@@ -129,18 +173,67 @@ fun SettingsScreen(
             enabled = false,
         )
 
-        Button(
-            onClick = { /* MVP 2 */ },
-            modifier = Modifier.fillMaxWidth(),
+        HudButton(
+            label = "Test connection (MVP 2)",
+            onClick = { },
             enabled = false,
-        ) {
-            Text("Test connection (MVP 2)")
-        }
+        )
 
         HudPanel(
             title = "About",
-            subtitle = "Ialemus MVP 1A Hotfix / EVA UI Pass\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-        ) {}
+            sectionTag = "PLAYBACK CORE",
+            subtitle = "Ialemus MVP 1A EVA HUD Pass\nVersion ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nOriginal EVA-inspired styling — no official/copyrighted assets.",
+        ) {
+            Text(
+                text = "Default theme: EVA-01 Berserk",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeChipRow(
+    themes: List<ThemeId>,
+    selectedTheme: ThemeId,
+    onSelect: (ThemeId) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        themes.forEach { theme ->
+            val selected = theme == selectedTheme
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(theme) }
+                    .border(
+                        width = if (selected) 1.5.dp else 1.dp,
+                        color = if (selected) {
+                            LocalIalemusTokens.current.accentActive
+                        } else {
+                            LocalIalemusTokens.current.hudBorderColor.copy(alpha = 0.35f)
+                        },
+                        shape = MaterialTheme.shapes.small,
+                    )
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = theme.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (selected) {
+                        LocalIalemusTokens.current.glowColor
+                    } else {
+                        LocalIalemusTokens.current.textMuted
+                    },
+                )
+                HudStatusChip(
+                    label = if (selected) "ACTIVE" else "SELECT",
+                    highlighted = selected,
+                )
+            }
+        }
     }
 }
 
@@ -150,12 +243,12 @@ private fun RowSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label)
+        Text(label, style = MaterialTheme.typography.bodySmall)
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

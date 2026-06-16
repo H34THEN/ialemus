@@ -6,7 +6,7 @@
 **Minimum SDK:** API 26 (`minSdk`), target API 35  
 **Distribution:** Sideload/APK friendly; no Google Play Services required for core playback
 
-**Implementation status (MVP 1A):** Local MediaStore scan, Room library, Media3 playback service, Library/Now Playing/Mini Player wired. NAS/Bridge/Acquire remain placeholders.
+**Implementation status (MVP 1A EVA HUD Pass):** Local SAF folder scan + opt-in MediaStore scan, Room library, Media3 playback, full EVA-inspired HUD UI layer. NAS/Bridge/Acquire remain placeholders. Version `0.2.2-mvp1a-eva-hud`.
 
 See also: `DECISIONS.md`, `IALEMUS_PROJECT_SPEC.md`, `NAS_BRIDGE_SPEC.md`.
 

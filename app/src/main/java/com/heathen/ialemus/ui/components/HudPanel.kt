@@ -2,11 +2,12 @@ package com.heathen.ialemus.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,17 +20,26 @@ fun HudPanel(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    sectionTag: String? = null,
     content: @Composable () -> Unit,
 ) {
     val tokens = LocalIalemusTokens.current
-    Card(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .border(1.dp, tokens.hudBorderColor, MaterialTheme.shapes.medium),
-        colors = CardDefaults.cardColors(containerColor = tokens.panelOverlay),
+        color = tokens.panelOverlay,
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            if (sectionTag != null) {
+                Text(
+                    text = sectionTag,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = tokens.accentActive,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Text(
                 text = title.uppercase(),
                 style = MaterialTheme.typography.labelLarge,
@@ -40,9 +50,11 @@ fun HudPanel(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    color = tokens.textMuted,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
                 )
+            } else {
+                Spacer(modifier = Modifier.height(6.dp))
             }
             content()
         }

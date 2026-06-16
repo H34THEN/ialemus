@@ -6,11 +6,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,25 +32,23 @@ fun MusicSourcePanel(
 ) {
     HudPanel(
         title = "Music Source",
+        sectionTag = "SOURCE SELECT",
         subtitle = scanStateMessage(scanState),
         modifier = modifier,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
+            HudButton(
+                label = "Choose Music Folder",
                 onClick = onChooseFolder,
-                modifier = Modifier.fillMaxWidth(),
                 enabled = !isScanning,
-            ) {
-                Text("Choose Music Folder")
-            }
-            Button(
+            )
+            HudButton(
+                label = "Scan Selected Folders",
                 onClick = onScanSelectedFolders,
-                modifier = Modifier.fillMaxWidth(),
                 enabled = sources.any { it.type == LibrarySourceType.SAF_FOLDER } && !isScanning,
-            ) {
-                Text("Scan Selected Folders")
-            }
-            OutlinedButton(
+            )
+            HudButton(
+                label = "Full Device Music Scan",
                 onClick = {
                     if (permissionState != MediaPermissionState.Granted) {
                         onRequestPermission()
@@ -61,34 +56,64 @@ fun MusicSourcePanel(
                         onFullDeviceScan()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
                 enabled = !isScanning,
-            ) {
-                Text("Full Device Music Scan")
-            }
+                accent = HudButtonAccent.Warning,
+            )
             Text(
                 text = "Full device scan uses Android MediaStore and requires broader music access. It never runs automatically.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             )
 
-            if (sources.isNotEmpty()) {
-                Text(
-                    text = "MANAGE FOLDERS",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HudSectionLabel(label = "Manage Sources")
+
+            if (sources.isEmpty()) {
+                HudStatusChip(label = "No folders approved", disabled = true)
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     sources.filter { it.type == LibrarySourceType.SAF_FOLDER }.forEach { source ->
-                        StatusChip(label = source.displayName)
-                        TextButton(onClick = { onRemoveSource(source.id) }) {
-                            Text("Remove")
-                        }
+                        HudStatusChip(label = source.displayName, highlighted = true)
+                        HudButton(
+                            label = "Remove ${source.displayName}",
+                            onClick = { onRemoveSource(source.id) },
+                            accent = HudButtonAccent.Danger,
+                            modifier = Modifier.fillMaxWidth(0.48f),
+                        )
                     }
                 }
             }
+
+            ScanStatusPanel(scanState = scanState, isScanning = isScanning)
         }
+    }
+}
+
+@Composable
+private fun ScanStatusPanel(
+    scanState: LibraryScanState,
+    isScanning: Boolean,
+) {
+    val statusLabel = when {
+        isScanning -> "SCANNING"
+        scanState is LibraryScanState.Failed -> "SCAN ERROR"
+        scanState is LibraryScanState.FolderScanComplete ||
+            scanState is LibraryScanState.FullDeviceComplete -> "INDEX READY"
+        else -> "SCAN STANDBY"
+    }
+    HudPanel(
+        title = "Scan Status",
+        sectionTag = "QUEUE SYNC",
+        subtitle = scanStateMessage(scanState),
+    ) {
+        HudStatusChip(
+            label = statusLabel,
+            highlighted = !isScanning && scanState !is LibraryScanState.Failed,
+            warning = isScanning,
+            disabled = scanState is LibraryScanState.NoSources,
+        )
     }
 }
 

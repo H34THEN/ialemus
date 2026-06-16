@@ -6,15 +6,24 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1A Hotfix — tap-to-play fixed, folder-first SAF scan, EVA-01 default theme. Debug APK buildable.
+**Status:** MVP 1A EVA HUD Pass — tap-to-play fixed, folder-first SAF scan, EVA-01 default theme, full HUD interface overhaul. Debug APK buildable (`0.2.2-mvp1a-eva-hud`).
 
-### MVP 1A Hotfix (current)
+### MVP 1A EVA HUD Pass (current)
+
+- **EVA HUD interface:** Custom command-console styling — angular panels, neon outlines, grid/scanline motif (DAP mode disables overlays)
+- **Default theme:** EVA-01 Berserk (violet / acid green / orange accents)
+- **HUD design layer:** `HudScaffold`, `HudPanel`, `HudBottomNavigation`, `HudButton`, `TrackRow`, `MiniPlayerBar`, `MusicSourcePanel`, theme tokens
+- **Screens restyled:** Now Playing (rich empty state), Library, Settings, Acquire, Downloads, mini player, bottom nav
+- **Playback stability guard:** Tap-to-play errors surface snackbar — *"Playback link failed. Try rescanning this source."* (debug logs only in `BuildConfig.DEBUG`)
+- **Legal/style:** Original EVA-inspired colors and HUD shapes only — no official Evangelion/NERV logos, marks, or copyrighted assets
+- **Preserved:** Folder-first SAF scan, full-device opt-in only, tap-to-play queue index logic unchanged
+
+### MVP 1A Hotfix (base)
 
 - **Fixed:** Tapping any library track now starts that exact track (not always the first file)
 - **Folder-first scan:** Choose Music Folder via SAF before scanning; no auto full-device scan
 - **Full Device Music Scan:** Explicit opt-in only; requires `READ_MEDIA_AUDIO` permission
-- **EVA UI pass:** EVA-01 Berserk default theme + 6 more EVA-inspired themes; original 8 Ialemus themes preserved
-- Playback, Room, Media3, mini player, queue sheet unchanged in scope
+- **Themes:** 7 EVA-inspired + 8 original Ialemus themes preserved
 
 **Not yet:** MVP 1B album/artist views, NAS Bridge, acquisition tools.
 
@@ -124,4 +133,8 @@ Android App  ──HTTPS/LAN + Bearer token──►  Ialemus Bridge  ──allo
 
 ## Themes
 
-Ghost in the Code · Terminal Kittie · Chthonic Signal · Neon Ossuary · Archive Black · Fallout CRT · Cyber Shrine · Candy Malware
+**Default:** EVA-01 Berserk (EVA-inspired HUD palette)
+
+EVA-inspired: EVA-01 Berserk · EVA-00 Prototype · EVA-02 Asuka Red · EVA-03 Shadow · EVA-05 Mass Production · Terminal Dogma · Tactical Command
+
+Original Ialemus: Ghost in the Code · Terminal Kittie · Chthonic Signal · Neon Ossuary · Archive Black · Fallout CRT · Cyber Shrine · Candy Malware

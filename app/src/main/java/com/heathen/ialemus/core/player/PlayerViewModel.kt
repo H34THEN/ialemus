@@ -81,6 +81,8 @@ class PlayerViewModel(
 
     fun setShuffleMode(mode: ShuffleMode) = playerConnection.setShuffleMode(mode)
 
+    fun clearPlaybackError() = playerConnection.clearPlaybackError()
+
     fun toggleFavorite(trackId: String, favorite: Boolean) {
         viewModelScope.launch {
             trackStatsDao.setFavorite(trackId, favorite)

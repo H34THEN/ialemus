@@ -1,5 +1,6 @@
 package com.heathen.ialemus.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -9,10 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,52 +30,50 @@ fun MiniPlayerBar(
     onOpenNowPlaying: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (track == null) return
     val tokens = LocalIalemusTokens.current
+    val borderColor = if (track != null && isPlaying) {
+        tokens.accentActive
+    } else {
+        tokens.hudBorderColor.copy(alpha = 0.5f)
+    }
 
-    Card(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, tokens.glowColor.copy(alpha = 0.6f), MaterialTheme.shapes.medium)
-            .clickable(onClick = onOpenNowPlaying),
-        colors = CardDefaults.cardColors(containerColor = tokens.panelOverlay),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            .background(tokens.panelOverlay.copy(alpha = 0.92f), MaterialTheme.shapes.medium)
+            .border(1.5.dp, borderColor, MaterialTheme.shapes.medium)
+            .clickable(onClick = onOpenNowPlaying)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "SYNC",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = tokens.successAccent,
-                )
-                Text(
-                    text = track.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = track.displayArtist,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            IconButton(onClick = onPlayPause) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = tokens.glowColor,
-                )
-            }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = if (track != null) "PLAYBACK CORE" else "AUDIO LINK",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (track != null) tokens.accentActive else tokens.textMuted,
+            )
+            Text(
+                text = track?.title ?: "NO TRACK LOADED",
+                style = MaterialTheme.typography.bodyMedium,
+                color = tokens.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = track?.displayArtist ?: "Standby — open Library to select signal",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
+        HudIconButton(
+            icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = if (isPlaying) "Pause" else "Play",
+            onClick = onPlayPause,
+            enabled = track != null,
+            highlighted = isPlaying,
+        )
     }
 }

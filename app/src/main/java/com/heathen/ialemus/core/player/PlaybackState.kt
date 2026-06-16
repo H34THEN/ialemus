@@ -11,4 +11,5 @@ data class PlaybackState(
     val queueIndex: Int = -1,
     val queueSize: Int = 0,
     val isConnected: Boolean = false,
+    val playbackError: String? = null,
 )
