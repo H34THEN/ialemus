@@ -38,6 +38,7 @@ class AppContainer(context: Context) {
 
     val spotifyAuthRepository = com.heathen.ialemus.core.spotify.SpotifyAuthRepository(appContext)
     val spotifyApiClient = com.heathen.ialemus.core.spotify.SpotifyApiClient()
+    val spotifyRemoteRepository = com.heathen.ialemus.core.spotify.SpotifyRemoteRepository(appContext)
 
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)

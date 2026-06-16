@@ -308,11 +308,13 @@ Now Playing may be default landing or merge with mini-player bar on Library — 
 
 **Navigation (MVP 1B.4):** Now Playing | Library | **Streaming** | Downloads | Settings
 
-**Streaming tab:** Spotify account/remote playback scaffold. Docker download tools (MeTube, slskd, NAS UI, spotDL) live on **Downloads**.
+**Streaming tab (MVP 1B.6):** “Spotify on this HiBy R4” activation card, Spotify account link, SPOTIFY REMOTE playback + controls, Connect device list. Docker download tools (MeTube, slskd, NAS UI, spotDL) live on **Downloads**.
 
 **Playback sources:**
 - **LOCAL CORE** — Ialemus ExoPlayer for device/SAF files
-- **SPOTIFY REMOTE** — external Spotify app / Connect / App Remote (scaffold); never raw Spotify in ExoPlayer queue
+- **SPOTIFY REMOTE** — Spotify app on device via App Remote + Spotify Connect Web API; never raw Spotify in ExoPlayer queue
+
+**HiBy R4 Spotify setup:** Install/sideload Spotify → sign in → start playback in Spotify app → return to Ialemus → Connect Spotify Remote / Refresh Devices.
 
 See `docs/SPOTIFY_INTEGRATION_PLAN.md`.
 

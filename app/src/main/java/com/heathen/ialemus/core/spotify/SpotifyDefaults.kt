@@ -7,6 +7,7 @@ object SpotifyDefaults {
     const val REDIRECT_SCHEME = "ialemus"
     const val REDIRECT_HOST = "spotify-auth-callback"
     const val PACKAGE_NAME = "com.heathen.ialemus"
+    const val SPOTIFY_PACKAGE = "com.spotify.music"
     const val AUTH_BASE = "https://accounts.spotify.com/authorize"
     const val TOKEN_URL = "https://accounts.spotify.com/api/token"
     const val API_BASE = "https://api.spotify.com/v1"

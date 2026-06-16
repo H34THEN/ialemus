@@ -123,6 +123,39 @@ class SpotifyApiClient {
         )
     }
 
+    suspend fun fetchDevices(accessToken: String): Result<List<SpotifyDevice>> = withContext(Dispatchers.IO) {
+        getJson("${SpotifyDefaults.API_BASE}/me/player/devices", accessToken).mapCatching { json ->
+            val devices = json.optJSONArray("devices") ?: JSONArray()
+            buildList {
+                for (i in 0 until devices.length()) {
+                    val device = devices.getJSONObject(i)
+                    add(
+                        SpotifyDevice(
+                            id = device.optString("id", ""),
+                            name = device.optString("name", "Unknown device"),
+                            type = device.optString("type", "Unknown"),
+                            isActive = device.optBoolean("is_active", false),
+                            volumePercent = device.optInt("volume_percent", -1).takeIf { it >= 0 },
+                            isRestricted = device.optBoolean("is_restricted", false),
+                        ),
+                    )
+                }
+            }.filter { it.id.isNotBlank() }
+        }
+    }
+
+    suspend fun transferPlayback(
+        accessToken: String,
+        deviceId: String,
+        play: Boolean = false,
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val body = JSONObject().apply {
+            put("device_ids", JSONArray().put(deviceId))
+            put("play", play)
+        }
+        putJson("${SpotifyDefaults.API_BASE}/me/player", accessToken, body.toString())
+    }
+
     private suspend fun playerCommand(
         accessToken: String,
         method: String,

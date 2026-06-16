@@ -20,6 +20,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,8 +43,10 @@ import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasConnectionSettings
 import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
+import com.heathen.ialemus.core.spotify.SpotifyAppStatus
 import com.heathen.ialemus.core.spotify.SpotifyConnectionStatus
 import com.heathen.ialemus.core.spotify.SpotifyDefaults
+import com.heathen.ialemus.core.spotify.SpotifyRemoteConnectionState
 import com.heathen.ialemus.core.spotify.SpotifyViewModel
 import com.heathen.ialemus.ui.components.HudButton
 import com.heathen.ialemus.ui.components.HudButtonAccent
@@ -53,6 +56,7 @@ import com.heathen.ialemus.ui.components.HudOutlinedTextField
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.components.MusicSourceControls
 import com.heathen.ialemus.ui.util.openSpotifyApp
+import com.heathen.ialemus.ui.util.openSpotifyWeb
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 
 @Composable
@@ -129,6 +133,11 @@ fun SettingsScreen(
             libraryViewModel.scanFullDeviceLibrary()
         }
     }
+
+    LaunchedEffect(Unit) {
+        spotifyViewModel.refreshSpotifyAppStatus(context)
+    }
+
     val isScanning = scanState is LibraryScanState.ScanningFolders ||
         scanState is LibraryScanState.ScanningFullDevice
 
@@ -156,7 +165,7 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.5 · Spotify PKCE login",
+            subtitle = "Ialemus MVP 1B.6 · Spotify App Remote",
         )
 
         HudCollapsiblePanel(
@@ -216,7 +225,7 @@ fun SettingsScreen(
         HudCollapsiblePanel(
             title = "Spotify Integration",
             sectionTag = "SPOTIFY REMOTE",
-            subtitle = "PKCE login — playback via Spotify Remote/Web API, not Local Core.",
+            subtitle = "App Remote + PKCE — playback via Spotify app, not Local Core.",
             expanded = spotifyExpanded,
             onToggle = { spotifyExpanded = !spotifyExpanded },
             statusLabel = spotifyUi.connectionStatus.label.uppercase(),
@@ -225,6 +234,18 @@ fun SettingsScreen(
                 label = spotifyUi.connectionStatus.label.uppercase(),
                 highlighted = spotifyUi.connectionStatus == SpotifyConnectionStatus.CONNECTED,
                 warning = spotifyUi.sessionExpired || spotifyUi.connectionStatus == SpotifyConnectionStatus.ERROR,
+            )
+            HudStatusChip(
+                label = spotifyUi.spotifyAppStatus.label.uppercase(),
+                highlighted = spotifyUi.spotifyAppStatus == SpotifyAppStatus.INSTALLED,
+                warning = spotifyUi.spotifyAppStatus == SpotifyAppStatus.NOT_INSTALLED,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            HudStatusChip(
+                label = "REMOTE: ${spotifyUi.remoteConnectionState.label.uppercase()}",
+                highlighted = spotifyUi.remoteConnectionState == SpotifyRemoteConnectionState.CONNECTED,
+                warning = spotifyUi.remoteConnectionState == SpotifyRemoteConnectionState.ERROR,
+                modifier = Modifier.padding(top = 4.dp),
             )
             Text(
                 text = "Client ID: ${spotifyUi.clientId}",
@@ -244,13 +265,20 @@ fun SettingsScreen(
                 modifier = Modifier.padding(top = 6.dp),
             )
             Text(
-                text = "Session: ${if (spotifyUi.hasRefreshToken) "refresh token stored" else "not logged in"} · " +
-                    if (spotifyUi.tokenExpiresAtMs > 0) "expires ${java.text.DateFormat.getDateTimeInstance().format(spotifyUi.tokenExpiresAtMs)}" else "no token",
+                text = "Login: ${if (spotifyUi.hasRefreshToken) "logged in" else "not logged in"} · " +
+                    if (spotifyUi.tokenExpiresAtMs > 0) {
+                        "token expires ${java.text.DateFormat.getDateTimeInstance().format(spotifyUi.tokenExpiresAtMs)}"
+                    } else {
+                        "no token"
+                    },
                 style = MaterialTheme.typography.labelSmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp),
             )
             spotifyUi.errorMessage?.let {
+                Text(text = it, style = MaterialTheme.typography.bodySmall, color = tokens.warningColor, modifier = Modifier.padding(top = 4.dp))
+            }
+            spotifyUi.remoteErrorMessage?.let {
                 Text(text = it, style = MaterialTheme.typography.bodySmall, color = tokens.warningColor, modifier = Modifier.padding(top = 4.dp))
             }
             Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -260,14 +288,40 @@ fun SettingsScreen(
                     modifier = Modifier.weight(1f),
                 )
                 HudButton(
-                    label = "Logout",
+                    label = "Reset auth",
                     onClick = spotifyViewModel::logout,
-                    enabled = spotifyUi.connectionStatus == SpotifyConnectionStatus.CONNECTED,
                     modifier = Modifier.weight(1f),
                     accent = HudButtonAccent.Neutral,
                 )
             }
-            HudButton(label = "Open Spotify App", onClick = { openSpotifyApp(context) }, modifier = Modifier.padding(top = 8.dp), accent = HudButtonAccent.Neutral)
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HudButton(
+                    label = "Open Spotify App",
+                    onClick = { openSpotifyApp(context) },
+                    modifier = Modifier.weight(1f),
+                    accent = HudButtonAccent.Neutral,
+                )
+                HudButton(
+                    label = "Recheck Spotify App",
+                    onClick = { spotifyViewModel.refreshSpotifyAppStatus(context) },
+                    modifier = Modifier.weight(1f),
+                    accent = HudButtonAccent.Neutral,
+                )
+            }
+            HudButton(
+                label = "Connect Spotify Remote",
+                onClick = { spotifyViewModel.connectSpotifyRemote(context) },
+                enabled = spotifyUi.spotifyAppStatus == SpotifyAppStatus.INSTALLED,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            if (spotifyUi.spotifyAppStatus == SpotifyAppStatus.NOT_INSTALLED) {
+                HudButton(
+                    label = "Open Spotify Web",
+                    onClick = { openSpotifyWeb(context) },
+                    modifier = Modifier.padding(top = 8.dp),
+                    accent = HudButtonAccent.Neutral,
+                )
+            }
             HudButton(label = "Reset Spotify defaults", onClick = spotifyViewModel::resetDefaults, modifier = Modifier.padding(top = 8.dp), accent = HudButtonAccent.Neutral)
             HudButton(label = if (showAdvancedSpotify) "Hide advanced" else "Advanced override", onClick = { showAdvancedSpotify = !showAdvancedSpotify }, modifier = Modifier.padding(top = 8.dp), accent = HudButtonAccent.Neutral)
             if (showAdvancedSpotify) {
@@ -285,7 +339,7 @@ fun SettingsScreen(
                 )
             }
             Text(
-                text = "Spotify playback is controlled through Spotify Remote/Web API. Local files still play through Ialemus Local Core.",
+                text = "LOCAL CORE: Ialemus ExoPlayer for local files. SPOTIFY REMOTE: Spotify app on HiBy R4 controlled via App Remote and Web API.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 6.dp),
@@ -483,10 +537,10 @@ fun SettingsScreen(
             subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B.3",
+            statusLabel = "MVP 1B.6",
         ) {
             Text(
-                text = "Now Playing layout modes, display title overrides, and Docker Web UI wrappers for MeTube, slskd, and Ugreen NAS.",
+                text = "Spotify App Remote device activation, Web API Connect device list/transfer, and HiBy R4 Spotify setup flow.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
             )

@@ -92,6 +92,14 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.6 — Spotify App Remote (shipped — `0.3.8-mvp1b6`)
+
+- Spotify app detection + Open Spotify App / Web
+- App Remote SDK integration (`SpotifyRemoteRepository`)
+- HiBy R4 device activation UX on Streaming tab
+- Web API device list + transfer playback helper
+- Dual SPOTIFY REMOTE controls (App Remote + Web API fallback)
+
 ### MVP 1B.5 — Spotify PKCE login (shipped — `0.3.7-mvp1b5`)
 
 - PKCE auth, deep link callback, token refresh, profile/playback Web API

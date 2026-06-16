@@ -26,6 +26,7 @@ data class SpotifyPlaybackState(
     val deviceName: String?,
     val progressMs: Long?,
     val durationMs: Long?,
+    val source: PlaybackSource = PlaybackSource.WEB_API,
 ) {
     companion object {
         val NONE = SpotifyPlaybackState(
@@ -40,6 +41,20 @@ data class SpotifyPlaybackState(
         )
     }
 }
+
+enum class PlaybackSource {
+    WEB_API,
+    APP_REMOTE,
+}
+
+data class SpotifyDevice(
+    val id: String,
+    val name: String,
+    val type: String,
+    val isActive: Boolean,
+    val volumePercent: Int?,
+    val isRestricted: Boolean,
+)
 
 data class SpotifyAuthState(
     val accessToken: String = "",
@@ -75,4 +90,11 @@ data class SpotifyUiState(
     val errorMessage: String? = null,
     val tokenExpiresAtMs: Long = 0L,
     val hasRefreshToken: Boolean = false,
+    val spotifyAppStatus: SpotifyAppStatus = SpotifyAppStatus.UNKNOWN,
+    val remoteConnectionState: SpotifyRemoteConnectionState = SpotifyRemoteConnectionState.DISCONNECTED,
+    val remotePlayerState: SpotifyRemotePlayerState? = null,
+    val remoteErrorMessage: String? = null,
+    val devices: List<SpotifyDevice> = emptyList(),
+    val devicesLoading: Boolean = false,
+    val devicesError: String? = null,
 )

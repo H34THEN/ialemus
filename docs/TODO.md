@@ -158,6 +158,27 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## MVP 1B.6 — Spotify App Remote device activation (completed)
+
+- [x] `SpotifyAppDetector` — detect `com.spotify.music` installed
+- [x] `SpotifyRemoteRepository` — App Remote connect, player state, play/pause/skip/play URI
+- [x] Streaming tab “Spotify on this HiBy R4” activation card (5 UX states)
+- [x] Web API `GET /me/player/devices` + `PUT /me/player` transfer
+- [x] SPOTIFY REMOTE controls — App Remote preferred, Web API fallback
+- [x] Settings — app status, remote status, Recheck, Connect Remote, Reset auth
+- [x] Local AAR `app/libs/spotify-app-remote-release-0.8.0.aar` + Gson
+- [ ] Manual HiBy R4 acceptance: install Spotify → login → play → Connect Remote
+
+### Known limitations (MVP 1B.6)
+
+- Ialemus is **not** a raw Spotify streaming device — playback stays in Spotify app
+- App Remote requires Spotify app installed, logged in, and often active with playback started
+- “No active device” means Spotify Connect has not exposed an active session yet
+- Shuffle/repeat via App Remote not exposed — Web API fallback when Connect device active
+- Repeat toggle on Web API not fully implemented
+- Tokens still in DataStore (not encrypted)
+- No Spotify audio through ExoPlayer (by design)
+
 ## MVP 1B.5 — Spotify PKCE login (completed)
 
 - [x] Prefilled Client ID + Redirect URI defaults

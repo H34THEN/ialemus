@@ -6,7 +6,17 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.5 — Spotify PKCE login with prefilled personal-app defaults.
+**Status:** MVP 1B.6 — Spotify App Remote device activation on HiBy R4.
+
+### MVP 1B.6 (`0.3.8-mvp1b6`)
+
+- **Spotify app detection** — `com.spotify.music` installed / not installed / unknown; Open Spotify App or Web fallback
+- **Spotify App Remote** — local AAR `spotify-app-remote-release-0.8.0.aar`; connect on same device; player state subscription
+- **HiBy R4 activation card** — Streaming tab guides install → open Spotify → Connect Remote → refresh devices
+- **Web API devices** — `GET /me/player/devices` list; `PUT /me/player` transfer playback helper
+- **Dual controls** — App Remote when connected; Web API fallback when active Connect device exists
+- **Clear copy** — LOCAL CORE vs SPOTIFY REMOTE; “No active Spotify device” actionable messaging
+- **Preserved:** LOCAL CORE playback, folder-first scan, Downloads Docker modules, HiBy stability
 
 ### MVP 1B.5 (`0.3.7-mvp1b5`)
 
