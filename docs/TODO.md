@@ -89,7 +89,7 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] Custom command-dock bottom navigation (replaces Material `NavigationBar`)
 - [x] Now Playing flagship screen — loaded + rich empty state (inactive audio core panel)
 - [x] Library / `MusicSourcePanel` command-console styling; tactical `TrackRow` index
-- [x] Mini player always visible module (standby when no track)
+- [x] Mini player bar with transport + shuffle/repeat controls (HiBy hotfix)
 - [x] Settings HUD pass — EVA themes first, DAP mode explanation, MVP 1A EVA HUD label
 - [x] Acquire / Downloads placeholder restyle with future-module status chips
 - [x] Playback stability guard — snackbar on tap-to-play failure; no silent swallow
@@ -118,6 +118,28 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] Android widget scaffold (`IalemusPlaybackWidgetProvider`, RemoteViews HUD layout)
 - [x] Widget state sync from playback (title/artist/playing)
 - [x] Downloads job-queue collapsible panels (style preserved)
+
+## HiBy R4 Hotfix — Stability + mini player + layout (completed)
+
+- [x] Safe next/previous transport (`PlaybackTransport`, bounds checks, try/catch)
+- [x] Separate `RepeatMode` (OFF / QUEUE / ONE) from shuffle toggle
+- [x] Player error snackbar — *"Playback failed. Try rescanning this source."* / *"Track unavailable. Rescan or reselect the source."*
+- [x] Debug logging for queue index, transport, repeat/shuffle (no sensitive paths)
+- [x] `PlaybackTransportTest` unit tests
+- [x] Spotify-style persistent mini player (shuffle, prev, play/pause, next, repeat)
+- [x] Mini player tap body → Now Playing; buttons use separate click targets
+- [x] Library defaults to track list; source panel collapsed when tracks/sources exist
+- [x] `SOURCES` chip, horizontal scrollable browse tabs, search, Play All / Shuffle All
+- [x] Compact layout constants (`CompactLayout.kt`) for HiBy R4 width
+- [x] Bottom dock `weight(1f)` tabs; screen horizontal padding; text ellipsis
+- [ ] Manual HiBy R4 acceptance test on device (see README install command)
+
+### Known limitations (HiBy hotfix)
+
+- Widget transport controls remain open-app only
+- Genres/playlists/audiobooks still scaffolds (no full indexing)
+- Navigation still state-based tabs (not Navigation Compose)
+- SAF tracks may lack artist/album metadata until tag extraction
 
 ### Known limitations (MVP 1B)
 

@@ -3,11 +3,14 @@ package com.heathen.ialemus.core.player
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
-import com.heathen.ialemus.BuildConfig
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.heathen.ialemus.BuildConfig
+import com.heathen.ialemus.core.model.RepeatMode
 import com.heathen.ialemus.core.model.ShuffleMode
 import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.widget.IalemusPlaybackWidgetProvider
@@ -25,6 +28,8 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "PlayerConnection"
 private const val PLAYBACK_ERROR_MESSAGE = "Playback link failed. Try rescanning this source."
+private const val PLAYBACK_FAILED_MESSAGE = "Playback failed. Try rescanning this source."
+private const val TRACK_UNAVAILABLE_MESSAGE = "Track unavailable. Rescan or reselect the source."
 
 class PlayerConnection(
     private val context: Context,
@@ -50,8 +55,10 @@ class PlayerConnection(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            val index = controller?.currentMediaItemIndex ?: -1
-            queueRepository.updateCurrentIndex(index)
+            val index = controller?.currentMediaItemIndex ?: C.INDEX_UNSET
+            if (index != C.INDEX_UNSET) {
+                queueRepository.updateCurrentIndex(index)
+            }
             updateFromPlayer()
         }
 
@@ -61,6 +68,13 @@ class PlayerConnection(
             reason: Int,
         ) {
             updateFromPlayer()
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Player error code=${error.errorCodeName} message=${error.message}", error)
+            }
+            setPlaybackError(PLAYBACK_FAILED_MESSAGE)
         }
     }
 
@@ -89,14 +103,14 @@ class PlayerConnection(
         _playbackState.update { it.copy(playbackError = null) }
     }
 
-    fun playTracks(tracks: List<Track>, startIndex: Int, mode: ShuffleMode = queueRepository.shuffleMode.value) {
+    fun playTracks(tracks: List<Track>, startIndex: Int) {
         if (tracks.isEmpty()) {
             setPlaybackError(PLAYBACK_ERROR_MESSAGE)
             return
         }
         val safeStart = startIndex.coerceIn(0, tracks.lastIndex)
         val selectedTrack = tracks[safeStart]
-        val playerStartIndex = queueRepository.setQueue(tracks, safeStart, mode)
+        val playerStartIndex = queueRepository.setQueue(tracks, safeStart)
         val queue = queueRepository.activeQueue.value
         val mediaController = controller
         if (mediaController == null) {
@@ -111,9 +125,10 @@ class PlayerConnection(
                 playerStartIndex = playerStartIndex,
                 queueSize = queue.size,
             )
+            logTransportState("playTracks")
 
             mediaController.shuffleModeEnabled = false
-            mediaController.repeatMode = shuffleEngine.playerRepeatMode(mode)
+            mediaController.repeatMode = queueRepository.playerRepeatMode()
             mediaController.setMediaItems(queue.toMediaItems(), playerStartIndex, 0L)
             mediaController.prepare()
             mediaController.play()
@@ -127,7 +142,7 @@ class PlayerConnection(
         }
     }
 
-    fun playTrackById(tracks: List<Track>, trackId: String, mode: ShuffleMode = queueRepository.shuffleMode.value) {
+    fun playTrackById(tracks: List<Track>, trackId: String) {
         val startIndex = PlaybackIndexMapper.resolveStartIndex(tracks, trackId)
         if (startIndex == null) {
             if (BuildConfig.DEBUG) {
@@ -136,52 +151,170 @@ class PlayerConnection(
             setPlaybackError(PLAYBACK_ERROR_MESSAGE)
             return
         }
-        playTracks(tracks, startIndex, mode)
+        playTracks(tracks, startIndex)
     }
 
     fun playPause() {
         val mediaController = controller ?: return
-        if (mediaController.isPlaying) {
-            mediaController.pause()
-        } else {
-            mediaController.play()
+        try {
+            if (mediaController.isPlaying) {
+                mediaController.pause()
+            } else {
+                mediaController.play()
+            }
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("playPause", error)
         }
     }
 
     fun seekTo(positionMs: Long) {
-        controller?.seekTo(positionMs)
-        updateFromPlayer()
+        try {
+            controller?.seekTo(positionMs.coerceAtLeast(0L))
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("seekTo", error)
+        }
     }
 
     fun skipToPrevious() {
-        controller?.seekToPreviousMediaItem()
-        updateFromPlayer()
+        val mediaController = controller ?: return
+        val queue = queueRepository.activeQueue.value
+        if (queue.isEmpty()) return
+
+        try {
+            val currentIndex = PlaybackTransport.safeQueueIndex(
+                playerIndex = mediaController.currentMediaItemIndex,
+                queueSize = queue.size,
+                fallbackIndex = queueRepository.currentIndex.value,
+            )
+            if (currentIndex < 0) return
+
+            logTransportState("skipToPrevious")
+            val targetIndex = PlaybackTransport.resolvePreviousIndex(
+                queueSize = queue.size,
+                currentIndex = currentIndex,
+                positionMs = mediaController.currentPosition,
+                repeatMode = queueRepository.repeatMode.value,
+            )
+
+            when {
+                mediaController.currentPosition > 3_000L -> mediaController.seekTo(0)
+                targetIndex != null && targetIndex != currentIndex -> seekToQueueIndex(mediaController, targetIndex)
+                mediaController.hasPreviousMediaItem() -> mediaController.seekToPreviousMediaItem()
+                else -> mediaController.seekTo(0)
+            }
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("skipToPrevious", error)
+        }
     }
 
     fun skipToNext() {
-        controller?.seekToNextMediaItem()
-        updateFromPlayer()
+        val mediaController = controller ?: return
+        val queue = queueRepository.activeQueue.value
+        if (queue.isEmpty()) return
+
+        try {
+            val currentIndex = PlaybackTransport.safeQueueIndex(
+                playerIndex = mediaController.currentMediaItemIndex,
+                queueSize = queue.size,
+                fallbackIndex = queueRepository.currentIndex.value,
+            )
+            if (currentIndex < 0) return
+
+            logTransportState("skipToNext")
+            val canNext = PlaybackTransport.canSkipNext(
+                queueSize = queue.size,
+                currentIndex = currentIndex,
+                hasNextMediaItem = mediaController.hasNextMediaItem(),
+                repeatMode = queueRepository.repeatMode.value,
+            )
+            if (!canNext) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "skipToNext: no-op at end")
+                return
+            }
+
+            when {
+                mediaController.hasNextMediaItem() -> mediaController.seekToNextMediaItem()
+                else -> {
+                    val nextIndex = PlaybackTransport.resolveNextIndex(
+                        queueSize = queue.size,
+                        currentIndex = currentIndex,
+                        repeatMode = queueRepository.repeatMode.value,
+                    ) ?: return
+                    seekToQueueIndex(mediaController, nextIndex)
+                }
+            }
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("skipToNext", error)
+        }
     }
 
     fun playQueueItem(index: Int) {
         val queue = queueRepository.activeQueue.value
         val track = queue.getOrNull(index) ?: return
-        controller?.seekToDefaultPosition(index)
-        controller?.play()
-        queueRepository.updateCurrentIndex(index)
-        PlaybackIndexMapper.logSelection(
-            selectedTrack = track,
-            listIndex = index,
-            playerStartIndex = index,
-            queueSize = queue.size,
-        )
-        updateFromPlayer()
+        val mediaController = controller ?: return
+        try {
+            seekToQueueIndex(mediaController, index)
+            mediaController.play()
+            queueRepository.updateCurrentIndex(index)
+            PlaybackIndexMapper.logSelection(
+                selectedTrack = track,
+                listIndex = index,
+                playerStartIndex = index,
+                queueSize = queue.size,
+            )
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("playQueueItem", error)
+        }
+    }
+
+    fun toggleShuffle(): Boolean = queueRepository.toggleShuffle().also {
+        syncPlayerQueue()
+    }
+
+    fun cycleRepeat(): RepeatMode {
+        val mode = queueRepository.cycleRepeat()
+        try {
+            controller?.repeatMode = queueRepository.playerRepeatMode()
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("cycleRepeat", error)
+        }
+        return mode
     }
 
     fun setShuffleMode(mode: ShuffleMode) {
         queueRepository.setShuffleMode(mode)
-        val current = queueRepository.currentTrack() ?: return
-        playTrackById(queueRepository.activeQueue.value, current.id, mode)
+        syncPlayerQueue()
+    }
+
+    private fun syncPlayerQueue() {
+        val mediaController = controller ?: return
+        val queue = queueRepository.activeQueue.value
+        if (queue.isEmpty()) return
+        val index = queueRepository.currentIndex.value.coerceIn(queue.indices)
+        try {
+            val position = mediaController.currentPosition
+            mediaController.shuffleModeEnabled = false
+            mediaController.repeatMode = queueRepository.playerRepeatMode()
+            mediaController.setMediaItems(queue.toMediaItems(), index, position)
+            if (mediaController.isPlaying) {
+                mediaController.play()
+            }
+            updateFromPlayer()
+        } catch (error: Exception) {
+            handleTransportError("syncPlayerQueue", error)
+        }
+    }
+
+    private fun seekToQueueIndex(mediaController: MediaController, index: Int) {
+        val queue = queueRepository.activeQueue.value
+        if (index !in queue.indices) return
+        mediaController.seekToDefaultPosition(index)
     }
 
     private fun startPositionUpdates() {
@@ -196,26 +329,57 @@ class PlayerConnection(
     private fun updateFromPlayer() {
         val mediaController = controller
         val queue = queueRepository.activeQueue.value
-        val playerIndex = mediaController?.currentMediaItemIndex ?: -1
-        if (playerIndex >= 0) {
-            queueRepository.updateCurrentIndex(playerIndex)
+        val rawPlayerIndex = mediaController?.currentMediaItemIndex ?: C.INDEX_UNSET
+        val fallbackIndex = queueRepository.currentIndex.value
+        val safeIndex = PlaybackTransport.safeQueueIndex(
+            playerIndex = rawPlayerIndex,
+            queueSize = queue.size,
+            fallbackIndex = fallbackIndex,
+        )
+        if (safeIndex >= 0) {
+            queueRepository.updateCurrentIndex(safeIndex)
         }
-        val currentTrack = queue.getOrNull(playerIndex)
+        val currentTrack = queue.getOrNull(safeIndex)
             ?: mediaController?.currentMediaItem?.mediaId?.let { mediaId ->
                 queue.find { it.id == mediaId }
             }
+        val positionMs = mediaController?.currentPosition ?: 0L
+        val repeatMode = queueRepository.repeatMode.value
+        val shuffleEnabled = queueRepository.shuffleEnabled.value
+        val canSkipNext = mediaController?.let { mc ->
+            PlaybackTransport.canSkipNext(
+                queueSize = queue.size,
+                currentIndex = safeIndex,
+                hasNextMediaItem = mc.hasNextMediaItem(),
+                repeatMode = repeatMode,
+            )
+        } ?: false
+        val canSkipPrevious = mediaController?.let { mc ->
+            PlaybackTransport.canSkipPrevious(
+                queueSize = queue.size,
+                currentIndex = safeIndex,
+                positionMs = positionMs,
+                hasPreviousMediaItem = mc.hasPreviousMediaItem(),
+                repeatMode = repeatMode,
+            )
+        } ?: false
+
         _playbackState.update { previous ->
             previous.copy(
                 currentTrack = currentTrack,
                 isPlaying = mediaController?.isPlaying == true,
                 isBuffering = mediaController?.playbackState == Player.STATE_BUFFERING,
-                positionMs = mediaController?.currentPosition ?: 0L,
+                positionMs = positionMs,
                 durationMs = mediaController?.duration?.takeIf { value -> value > 0 }
                     ?: currentTrack?.durationMs
                     ?: 0L,
-                queueIndex = playerIndex,
+                queueIndex = safeIndex,
                 queueSize = queue.size,
                 isConnected = mediaController != null,
+                canSkipNext = canSkipNext && currentTrack != null,
+                canSkipPrevious = canSkipPrevious && currentTrack != null,
+                shuffleEnabled = shuffleEnabled,
+                repeatMode = repeatMode,
             )
         }
         syncWidget(
@@ -232,6 +396,31 @@ class PlayerConnection(
         lastWidgetPlaying = isPlaying
         store.update(title, track?.displayArtist, isPlaying)
         IalemusPlaybackWidgetProvider.refreshAll(context)
+    }
+
+    private fun handleTransportError(action: String, error: Exception) {
+        if (BuildConfig.DEBUG) {
+            Log.e(TAG, "$action failed", error)
+        }
+        val message = if (error is PlaybackException || error.message?.contains("uri", ignoreCase = true) == true) {
+            TRACK_UNAVAILABLE_MESSAGE
+        } else {
+            PLAYBACK_FAILED_MESSAGE
+        }
+        setPlaybackError(message)
+    }
+
+    private fun logTransportState(action: String) {
+        if (!BuildConfig.DEBUG) return
+        val mc = controller
+        Log.d(
+            TAG,
+            "$action queueSize=${queueRepository.activeQueue.value.size} " +
+                "index=${mc?.currentMediaItemIndex} " +
+                "repeat=${queueRepository.repeatMode.value} " +
+                "shuffle=${queueRepository.shuffleEnabled.value} " +
+                "mediaId=${mc?.currentMediaItem?.mediaId}",
+        )
     }
 
     private fun setPlaybackError(message: String) {

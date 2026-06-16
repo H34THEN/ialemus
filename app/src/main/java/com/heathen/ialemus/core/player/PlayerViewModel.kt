@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.heathen.ialemus.AppContainer
 import com.heathen.ialemus.core.model.QueueItem
+import com.heathen.ialemus.core.model.RepeatMode
 import com.heathen.ialemus.core.model.ShuffleMode
 import com.heathen.ialemus.core.model.Track
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +46,24 @@ class PlayerViewModel(
         initialValue = emptyList(),
     )
 
-    val shuffleMode: StateFlow<ShuffleMode> = queueRepository.shuffleMode.stateIn(
+    val shuffleEnabled: StateFlow<Boolean> = queueRepository.shuffleEnabled.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
+    val repeatMode: StateFlow<RepeatMode> = queueRepository.repeatMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = RepeatMode.OFF,
+    )
+
+    val shuffleMode: StateFlow<ShuffleMode> = combine(
+        queueRepository.shuffleEnabled,
+        queueRepository.repeatMode,
+    ) { _, _ ->
+        queueRepository.legacyShuffleMode()
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ShuffleMode.DEFAULT,
@@ -62,17 +80,19 @@ class PlayerViewModel(
     }
 
     fun playTracks(tracks: List<Track>, startIndex: Int) {
-        playerConnection.playTracks(tracks, startIndex, queueRepository.shuffleMode.value)
+        playerConnection.playTracks(tracks, startIndex)
     }
 
     fun playTrack(tracks: List<Track>, track: Track) {
-        playerConnection.playTrackById(tracks, track.id, queueRepository.shuffleMode.value)
+        playerConnection.playTrackById(tracks, track.id)
     }
 
     fun playCollection(tracks: List<Track>, shuffle: Boolean = false) {
         if (tracks.isEmpty()) return
-        val mode = if (shuffle) ShuffleMode.TRUE_RANDOM else queueRepository.shuffleMode.value
-        playerConnection.playTracks(tracks, 0, mode)
+        if (shuffle != queueRepository.shuffleEnabled.value) {
+            queueRepository.toggleShuffle()
+        }
+        playerConnection.playTracks(tracks, 0)
     }
 
     fun playPause() = playerConnection.playPause()
@@ -85,6 +105,10 @@ class PlayerViewModel(
 
     fun playQueueItem(index: Int) = playerConnection.playQueueItem(index)
 
+    fun toggleShuffle() = playerConnection.toggleShuffle()
+
+    fun cycleRepeat() = playerConnection.cycleRepeat()
+
     fun setShuffleMode(mode: ShuffleMode) = playerConnection.setShuffleMode(mode)
 
     fun clearPlaybackError() = playerConnection.clearPlaybackError()
@@ -92,7 +116,6 @@ class PlayerViewModel(
     fun toggleFavorite(trackId: String, favorite: Boolean) {
         viewModelScope.launch {
             trackStatsDao.setFavorite(trackId, favorite)
-            // TODO(MVP 1B): Play-count threshold polish and richer favorite persistence.
         }
     }
 

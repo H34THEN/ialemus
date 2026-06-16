@@ -6,7 +6,7 @@
 **Minimum SDK:** API 26 (`minSdk`), target API 35  
 **Distribution:** Sideload/APK friendly; no Google Play Services required for core playback
 
-**Implementation status (MVP 1B):** Library browse modes (tracks/artists/albums/folders + scaffolds), icons-only command dock, collapsible HUD modules, Settings source management, Android widget scaffold. Version `0.3.0-mvp1b`.
+**Implementation status (HiBy hotfix):** Safe playback transport, Spotify-style mini player, library click-depth reduction, HiBy R4 responsive layout. Version `0.3.1-hiby-hotfix`.
 
 See also: `DECISIONS.md`, `IALEMUS_PROJECT_SPEC.md`, `NAS_BRIDGE_SPEC.md`.
 
@@ -290,6 +290,8 @@ Now Playing | Library | Acquire | Downloads | Settings
 
 Now Playing may be default landing or merge with mini-player bar on Library — decide at UI scaffold.
 
+**Mini player (`0.3.1-hiby-hotfix`):** Persistent EVA HUD bar above the icon-only command dock whenever a track is loaded. Tap the track info area to open Now Playing; transport buttons (shuffle, previous, play/pause, next, repeat) use separate click targets. Repeat cycles OFF → QUEUE → ONE. Disabled when queue empty or at bounds (unless repeat wraps).
+
 ---
 
 ## 5. HiBy R4 and sideload considerations
@@ -318,6 +320,17 @@ Now Playing may be default landing or merge with mini-player bar on Library — 
 | Lyrics | Full-screen overlay | Dedicated center panel |
 
 All layouts must remain readable on HiBy R4 screen size; avoid tiny text and excessive animation in DAP mode.
+
+**HiBy R4 hotfix layout rules (`0.3.1-hiby-hotfix`):**
+
+| Concern | Approach |
+|---------|----------|
+| Compact width | `screenWidthDp < 420` via `isCompactWidth()` |
+| Bottom dock | Equal `weight(1f)` per tab; smaller icons/padding on compact |
+| Mini player | Sits above dock; screens add bottom padding; controls must fit narrow width |
+| Library tabs | Horizontal `LazyRow` — scroll instead of squeeze |
+| Text overflow | `maxLines` + ellipsis; `fillMaxWidth()` / `widthIn()` on panels |
+| Horizontal padding | `screenHorizontalPadding()` — reduced on compact devices |
 
 ---
 

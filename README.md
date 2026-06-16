@@ -6,9 +6,19 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B — library navigation, icons-only command dock, collapsible HUD modules, Android widget scaffold. Debug APK buildable (`0.3.0-mvp1b`).
+**Status:** HiBy R4 hotfix — playback stability, Spotify-style mini player, library click-depth reduction, responsive DAP layout. Debug APK buildable (`0.3.1-hiby-hotfix`).
 
-### MVP 1B (current)
+### HiBy R4 Hotfix (current — `0.3.1-hiby-hotfix`)
+
+- **Next/previous crash fix** — safe queue bounds checks, null-safe track lookup, try/catch on transport; repeat queue wraps; repeat one repeats current track; empty queue no-ops; player errors show snackbar instead of force-close
+- **Spotify-style mini player** — persistent bar above command dock when a track is loaded; tap body opens Now Playing; separate controls for shuffle, previous, play/pause, next, repeat (off → queue → one)
+- **Library click-depth reduction** — track list visible immediately after scan; Music Source panel collapsed by default when sources/tracks exist; compact `SOURCES` chip; horizontal scrollable browse tabs; quick search; Play All / Shuffle All on Tracks
+- **HiBy R4 responsive layout** — compact width detection (`screenWidthDp < 420`), weighted bottom dock tabs, horizontal padding, ellipsis text, scrollable library tabs; content bottom padding for mini player + dock
+- **Debug logging** — queue size, index, transport actions, repeat/shuffle, mediaId, player errors (debug builds only; no full paths)
+- **Unit tests** — `PlaybackTransportTest` for end-of-queue, repeat wrap, empty queue
+- **Preserved:** folder-first SAF scan, full-device opt-in only, EVA HUD themes, local playback
+
+### MVP 1B
 
 - **Icons-only command dock** — bottom nav shows icons only; selected tab label appears above dock
 - **Library browser** — prominent Track Index with tabs: Tracks, Artists, Albums, Genres, Playlists, Folders, Audiobooks, Signal

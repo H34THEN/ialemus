@@ -47,6 +47,8 @@ import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.screens.queue.QueueSheet
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
+import com.heathen.ialemus.ui.theme.isCompactWidth
+import com.heathen.ialemus.ui.theme.screenHorizontalPadding
 import com.heathen.ialemus.ui.util.albumArtUri
 import com.heathen.ialemus.ui.util.formatDuration
 
@@ -58,7 +60,6 @@ fun NowPlayingScreen(
 ) {
     val tokens = LocalIalemusTokens.current
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
-    val shuffleMode by playerViewModel.shuffleMode.collectAsStateWithLifecycle()
     val track = playbackState.currentTrack
     var showQueue by remember { mutableStateOf(false) }
     val isFavorite by playerViewModel
@@ -72,11 +73,15 @@ fun NowPlayingScreen(
         else -> "PAUSED"
     }
 
+    val compact = isCompactWidth()
+    val horizontalPad = screenHorizontalPadding()
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontalPad)
+            .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         HudHeader(
@@ -98,7 +103,7 @@ fun NowPlayingScreen(
         if (track == null) {
             InactiveAudioCorePanel(onOpenLibrary = onOpenLibrary)
         } else {
-            AlbumArtModule(track = track)
+            AlbumArtModule(track = track, compact = compact)
             TrackMetadataPanel(track = track)
 
             HudPanel(title = "Seek Control", sectionTag = "AUDIO LINK") {
@@ -115,22 +120,24 @@ fun NowPlayingScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    HudIconButton(
-                        icon = Icons.Filled.SkipPrevious,
-                        contentDescription = "Previous",
-                        onClick = playerViewModel::skipToPrevious,
-                    )
-                    HudIconButton(
-                        icon = if (playbackState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
-                        onClick = playerViewModel::playPause,
-                        highlighted = true,
-                    )
-                    HudIconButton(
-                        icon = Icons.Filled.SkipNext,
-                        contentDescription = "Next",
-                        onClick = playerViewModel::skipToNext,
-                    )
+                HudIconButton(
+                    icon = Icons.Filled.SkipPrevious,
+                    contentDescription = "Previous",
+                    onClick = playerViewModel::skipToPrevious,
+                    enabled = playbackState.canSkipPrevious,
+                )
+                HudIconButton(
+                    icon = if (playbackState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
+                    onClick = playerViewModel::playPause,
+                    highlighted = true,
+                )
+                HudIconButton(
+                    icon = Icons.Filled.SkipNext,
+                    contentDescription = "Next",
+                    onClick = playerViewModel::skipToNext,
+                    enabled = playbackState.canSkipNext,
+                )
                 }
             }
 
@@ -182,8 +189,22 @@ fun NowPlayingScreen(
             HudPanel(
                 title = "Shuffle / Repeat",
                 sectionTag = "DAP MODE",
-                subtitle = "Mode: ${shuffleMode.displayName}",
-            ) {}
+                subtitle = "Shuffle: ${if (playbackState.shuffleEnabled) "ON" else "OFF"} · Repeat: ${playbackState.repeatMode.displayName}",
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HudButton(
+                        label = if (playbackState.shuffleEnabled) "Shuffle On" else "Shuffle Off",
+                        onClick = playerViewModel::toggleShuffle,
+                        modifier = Modifier.weight(1f),
+                    )
+                    HudButton(
+                        label = playbackState.repeatMode.displayName,
+                        onClick = playerViewModel::cycleRepeat,
+                        modifier = Modifier.weight(1f),
+                        accent = com.heathen.ialemus.ui.components.HudButtonAccent.Warning,
+                    )
+                }
+            }
         }
     }
 
@@ -249,14 +270,15 @@ private fun InactiveAudioCorePanel(onOpenLibrary: () -> Unit) {
 }
 
 @Composable
-private fun AlbumArtModule(track: Track) {
+private fun AlbumArtModule(track: Track, compact: Boolean) {
     val tokens = LocalIalemusTokens.current
     val artUri = track.albumArtUri()
+    val aspect = if (compact) 0.75f else 1f
     HudPanel(title = "Display Module", sectionTag = "TRACK INDEX") {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
+                .fillMaxWidth(if (compact) 0.92f else 1f)
+                .aspectRatio(aspect)
                 .border(2.dp, tokens.accentActive.copy(alpha = 0.6f), MaterialTheme.shapes.medium)
                 .background(tokens.surfaceDeep, MaterialTheme.shapes.medium),
             contentAlignment = Alignment.Center,

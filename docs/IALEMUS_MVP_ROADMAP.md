@@ -47,6 +47,14 @@ Deliverables:
 - Source management in Settings (shared repository)
 - Android home-screen widget scaffold (HUD RemoteViews)
 
+### HiBy R4 Hotfix (shipped — `0.3.1-hiby-hotfix`)
+
+- Safe next/previous transport — no crash at queue bounds; repeat queue wraps; repeat one repeats current track
+- Spotify-style persistent mini player above command dock (shuffle, prev, play/pause, next, repeat)
+- Library click-depth reduction — tracks default tab, collapsed source panel, search, Play All / Shuffle All
+- HiBy R4 responsive layout — compact width detection, scrollable tabs, weighted dock, no side clipping
+- Playback error snackbars; `PlaybackTransport` unit tests; debug-only transport logging
+
 ### MVP 1C / remaining 1B polish (next)
 
 Deliverables (full MVP 1):

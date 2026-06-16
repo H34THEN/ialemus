@@ -18,8 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -139,14 +141,57 @@ private fun TracksBrowsePane(
     modifier: Modifier = Modifier,
 ) {
     val tracks by libraryViewModel.tracks.collectAsStateWithLifecycle()
-    TrackListPane(
-        tracks = tracks,
-        currentTrackId = currentTrackId,
-        onTrackClick = { track -> playerViewModel.playTrack(tracks, track) },
-        emptyTitle = "No local tracks",
-        emptyBody = "Choose a music folder or run an explicit scan. Full-device scan is opt-in only.",
-        modifier = modifier,
-    )
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val filtered = remember(tracks, searchQuery) {
+        if (searchQuery.isBlank()) {
+            tracks
+        } else {
+            val q = searchQuery.trim().lowercase()
+            tracks.filter { track ->
+                track.title.lowercase().contains(q) ||
+                    track.displayArtist.lowercase().contains(q) ||
+                    track.displayAlbum.lowercase().contains(q)
+            }
+        }
+    }
+
+    Column(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        androidx.compose.material3.OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Search tracks") },
+            singleLine = true,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            HudButton(
+                label = "Play All",
+                onClick = { playerViewModel.playCollection(filtered) },
+                enabled = filtered.isNotEmpty(),
+                modifier = Modifier.weight(1f),
+            )
+            HudButton(
+                label = "Shuffle All",
+                onClick = { playerViewModel.playCollection(filtered, shuffle = true) },
+                enabled = filtered.isNotEmpty(),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Warning,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        TrackListPane(
+            tracks = filtered,
+            currentTrackId = currentTrackId,
+            onTrackClick = { track -> playerViewModel.playTrack(filtered, track) },
+            emptyTitle = if (searchQuery.isBlank()) "No local tracks" else "No matching tracks",
+            emptyBody = if (searchQuery.isBlank()) {
+                "Tap SOURCES to add a folder, or scan from Settings."
+            } else {
+                "Try a different search term."
+            },
+            modifier = Modifier.weight(1f),
+            showEmptyPanel = filtered.isEmpty(),
+        )
+    }
 }
 
 @Composable
@@ -393,8 +438,9 @@ private fun TrackListPane(
     emptyTitle: String,
     emptyBody: String,
     modifier: Modifier = Modifier,
+    showEmptyPanel: Boolean = tracks.isEmpty(),
 ) {
-    if (tracks.isEmpty()) {
+    if (showEmptyPanel) {
         EmptyLibraryState(
             title = emptyTitle,
             body = emptyBody,

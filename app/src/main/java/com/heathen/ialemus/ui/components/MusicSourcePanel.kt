@@ -2,11 +2,14 @@ package com.heathen.ialemus.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -96,22 +99,18 @@ private fun scanStateMessage(state: LibraryScanState): String = when (state) {
     LibraryScanState.Idle -> "Ready to scan approved music sources."
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LibraryBrowseTabRow(
     selected: com.heathen.ialemus.core.model.LibraryBrowseMode,
     onSelect: (com.heathen.ialemus.core.model.LibraryBrowseMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FlowRow(
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        com.heathen.ialemus.core.model.LibraryBrowseMode.entries.forEach { mode ->
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.clickable { onSelect(mode) },
-            ) {
+        items(com.heathen.ialemus.core.model.LibraryBrowseMode.entries.toList()) { mode ->
+            Box(modifier = Modifier.clickable { onSelect(mode) }) {
                 HudStatusChip(
                     label = mode.label,
                     highlighted = selected == mode,

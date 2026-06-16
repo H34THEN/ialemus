@@ -27,13 +27,8 @@ import com.heathen.ialemus.ui.screens.library.LibraryScreen
 import com.heathen.ialemus.ui.screens.nowplaying.NowPlayingScreen
 import com.heathen.ialemus.ui.screens.settings.SettingsScreen
 import com.heathen.ialemus.ui.theme.IalemusTheme
+import com.heathen.ialemus.ui.theme.screenHorizontalPadding
 
-/**
- * Root Compose scaffold with state-based bottom navigation (MVP 1A).
- *
- * TODO: Replace with Navigation Compose NavHost for deep links and back stack.
- * TODO: Landscape layouts are first-class — add adaptive navigation rail / multi-pane (MVP 5).
- */
 @Composable
 fun IalemusApp(
     libraryViewModel: LibraryViewModel,
@@ -46,6 +41,7 @@ fun IalemusApp(
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val horizontalPad = screenHorizontalPadding()
 
     LaunchedEffect(Unit) {
         libraryViewModel.refreshPermissionState()
@@ -68,9 +64,17 @@ fun IalemusApp(
                     MiniPlayerBar(
                         track = playbackState.currentTrack,
                         isPlaying = playbackState.isPlaying,
+                        shuffleEnabled = playbackState.shuffleEnabled,
+                        repeatMode = playbackState.repeatMode,
+                        canSkipPrevious = playbackState.canSkipPrevious,
+                        canSkipNext = playbackState.canSkipNext,
                         onPlayPause = playerViewModel::playPause,
+                        onPrevious = playerViewModel::skipToPrevious,
+                        onNext = playerViewModel::skipToNext,
+                        onToggleShuffle = playerViewModel::toggleShuffle,
+                        onCycleRepeat = playerViewModel::cycleRepeat,
                         onOpenNowPlaying = { destination = AppDestination.NOW_PLAYING },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = horizontalPad, vertical = 4.dp),
                     )
                     HudBottomNavigation(
                         selected = destination,
