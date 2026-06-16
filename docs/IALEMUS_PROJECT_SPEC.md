@@ -999,9 +999,15 @@ Avoid unnecessary permissions:
 
 ## 21. MVP Scope
 
-### MVP 0 — Spec + Project Skeleton
+### MVP 0 — Documentation + Scaffold Planning
 
 Deliver:
+- Complete documentation set (see section 22)
+- Theme name registry (eight themes)
+- Architecture validation and open-question review
+- Scaffold *planning* (package name, modules, navigation) — no generated source yet
+
+**After explicit user approval:**
 - Android Kotlin/Compose project
 - App name Ialemus
 - Package name suggestion: `com.heathen.ialemus`
@@ -1064,17 +1070,25 @@ Deliver:
 
 Cursor should begin by creating documentation only, then wait for the user before initializing the Android project.
 
-First task:
-1. Create `/docs/IALEMUS_PROJECT_SPEC.md`.
-2. Copy this full spec into that file.
-3. Create `/docs/IALEMUS_ARCHITECTURE.md` with a concise architecture diagram and decisions.
-4. Create `/docs/IALEMUS_MVP_ROADMAP.md` with the MVP phases.
-5. Do not create the Android project yet unless explicitly instructed.
-6. Do not add secrets, real tokens, or raw NAS passwords.
-7. Mark all NAS URLs and tokens as placeholders.
-8. Add a note that command execution must go through a restricted authenticated NAS-side bridge, not raw app-side shell access.
+### Documentation set (complete)
 
-Second task, only after user approval:
+| File | Purpose |
+|------|---------|
+| `docs/IALEMUS_PROJECT_SPEC.md` | This document — full product spec |
+| `docs/IALEMUS_ARCHITECTURE.md` | System diagram and responsibility split |
+| `docs/DECISIONS.md` | Architecture decision record (bridge rationale, Android stack, sideload) |
+| `docs/NAS_BRIDGE_SPEC.md` | Ialemus Bridge API, safety rules, service integrations |
+| `docs/ANDROID_APP_SPEC.md` | App modules, screens, HiBy R4 layout expectations |
+| `docs/IALEMUS_MVP_ROADMAP.md` | MVP phase summary |
+| `docs/TODO.md` | Actionable checklist by MVP phase |
+| `.env.example` | Placeholder NAS/bridge environment variables |
+
+Rules:
+- Do not create the Android project yet unless explicitly instructed.
+- Do not add secrets, real tokens, or raw NAS passwords.
+- Command execution must go through Ialemus Bridge, not raw app-side shell access.
+
+### Second task, only after user approval:
 1. Initialize Android project.
 2. Use Kotlin + Jetpack Compose.
 3. Add Media3 dependencies.
@@ -1100,7 +1114,7 @@ Second task, only after user approval:
 
 ## 23. Open Questions For Later
 
-Do not block the documentation phase on these.
+Do not block the documentation phase on these. Tracked in `TODO.md`.
 
 1. What exact Ugreen NAS hostname/IP should be the default?
 2. What exact spot-dl container/service name is running?
@@ -1109,7 +1123,9 @@ Do not block the documentation phase on these.
 5. Should the app support video playback for MeTube results or only import audio?
 6. Should Jellyfin be integrated directly, or should Ialemus only read the underlying folders?
 7. Should the app expose Soulseek search directly or only show completed slskd downloads?
-8. Which theme should be the default: Ghost in the Code or Chthonic Signal?
+8. Which theme should be the default: Ghost in the Code, Chthonic Signal, or Archive Black?
+9. Which runtime for ialemus-bridge: Node/Fastify, Python/FastAPI, or Go?
+10. Job status delivery: polling vs WebSocket/SSE from bridge?
 
 ---
 

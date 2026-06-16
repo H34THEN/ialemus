@@ -1,19 +1,102 @@
 # Ialemus MVP Roadmap
 
-## MVP 0
-Documentation, Android project scaffold, navigation shell, theme stubs.
+Phased delivery plan for Ialemus. Actionable checklists live in `TODO.md`.
 
-## MVP 1
-Local music scanner, playback, queue, favorites, play counts, shuffle.
+**Prerequisite:** Documentation and architecture validation (MVP 0) complete before Android project initialization.
 
-## MVP 2
-NAS bridge connection settings, health check, remote library import.
+---
 
-## MVP 3
-spot-dl GUI and job status.
+## MVP 0 — Documentation, scaffold planning, themes, architecture validation
 
-## MVP 4
-MeTube and slskd/Soulseek integrations.
+**Goal:** Documentation-first foundation; no Android source generated until approved.
 
-## MVP 5
-Widget, landscape polish, DAP low-power mode.
+Deliverables:
+
+- Product spec, architecture, decisions, bridge spec, app spec
+- Theme name registry (eight themes)
+- `.env.example` placeholders
+- Scaffold planning: package name, modules, navigation, stack choices
+- Open architecture questions resolved or explicitly deferred
+
+**Not in scope yet:** Gradle project, Kotlin sources, Compose UI code.
+
+---
+
+## MVP 1 — Local library scanning and playback
+
+**Goal:** Fully usable offline/local player.
+
+Deliverables:
+
+- Local library scanner (MediaStore, SAF)
+- Room database and library UI
+- Player core (Media3, MediaSessionService)
+- Now Playing screen (portrait)
+- Queue, shuffle v1, favorites, play counts
+- Notification and lock-screen controls
+
+---
+
+## MVP 2 — NAS Bridge connection and remote library import
+
+**Goal:** Connect to Ialemus Bridge and play/import NAS-indexed media.
+
+Deliverables:
+
+- Bridge connection settings (URL, encrypted token)
+- Health check and diagnostics
+- `GET /library/recent`, browse, rescan
+- Remote library import into Room
+- Stream or play NAS tracks
+- Source filters in library UI
+
+---
+
+## MVP 3 — spot-dl GUI and job history
+
+**Goal:** Acquisition UI for spot-dl through bridge only.
+
+Deliverables:
+
+- Acquire screen: spot-dl job form
+- `POST /jobs`, list/detail/cancel
+- Downloads screen: job history, completed/failed
+- Post-job rescan and “play new tracks”
+
+---
+
+## MVP 4 — MeTube and slskd/Soulseek integrations
+
+**Goal:** Extend acquisition to MeTube and slskd via bridge.
+
+Deliverables:
+
+- MeTube submit, status, import
+- slskd search/download status (or completed-downloads mode)
+- Unified job history across services
+- Fallback links to external web UIs
+
+---
+
+## MVP 5 — Widget, landscape polish, DAP battery mode
+
+**Goal:** Phone widget and HiBy R4 polish.
+
+Deliverables:
+
+- Home-screen widget (small/medium/large)
+- Landscape Now Playing and adaptive library/acquire layouts
+- All eight themes visually complete
+- DAP low-power mode: reduced animation, Wi-Fi-only sync, Archive Black default
+- Lyrics panels in landscape
+
+---
+
+## Document map
+
+| Phase | Primary specs |
+|-------|----------------|
+| All | `DECISIONS.md`, `IALEMUS_ARCHITECTURE.md` |
+| Bridge work | `NAS_BRIDGE_SPEC.md`, `.env.example` |
+| App work | `ANDROID_APP_SPEC.md`, `IALEMUS_PROJECT_SPEC.md` |
+| Tasks | `TODO.md` |

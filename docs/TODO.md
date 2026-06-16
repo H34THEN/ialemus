@@ -1,0 +1,246 @@
+# Ialemus — Task Checklist
+
+Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP_ROADMAP.md` and `DECISIONS.md`.
+
+**Rule:** Android scaffold is initialized. See Development section in `README.md` for build commands.
+
+---
+
+## MVP 0 — Documentation, scaffold planning, themes, architecture validation
+
+### Documentation (current pass)
+
+- [x] `IALEMUS_PROJECT_SPEC.md` — product spec
+- [x] `IALEMUS_ARCHITECTURE.md` — architecture overview
+- [x] `IALEMUS_MVP_ROADMAP.md` — phase summary
+- [x] `DECISIONS.md` — architecture decision record
+- [x] `NAS_BRIDGE_SPEC.md` — bridge API and safety
+- [x] `ANDROID_APP_SPEC.md` — app modules and layouts
+- [x] `TODO.md` — this file
+- [x] `.env.example` — placeholder environment variables
+- [ ] Resolve open architecture questions (see bottom of this file)
+
+### Scaffold planning
+
+- [x] Confirm package name: `com.heathen.ialemus`
+- [ ] Confirm DI choice: Hilt vs Koin
+- [ ] Confirm HTTP client: Retrofit vs Ktor
+- [x] Draft module layout: single `app` module for MVP 0–1 (split later if needed)
+- [x] Document navigation graph: Now Playing, Library, Acquire, Downloads, Settings
+- [x] Register theme enum names (all eight themes from `DECISIONS.md` ADR-005)
+- [x] Define minimum Android SDK: API 26 (`minSdk`), target API 35
+- [ ] Plan signing / APK release workflow for HiBy R4 sideload
+
+### Architecture validation
+
+- [ ] Review bridge safety rules with NAS deployment reality
+- [ ] Confirm Ugreen NAS paths match `.env.example` placeholders
+- [ ] Validate spot-dl / MeTube / slskd service names on NAS
+- [ ] Decide: stream vs copy-to-DAP for NAS playback
+- [x] User approval to initialize Android project
+
+### Android project init
+
+- [x] Create Kotlin + Jetpack Compose project
+- [ ] Add Media3, Room, DataStore, WorkManager, networking, Coil (deps stubbed in `app/build.gradle.kts`)
+- [x] Navigation shell + empty screens (state-based bottom nav; Navigation Compose later)
+- [x] Theme stubs for all eight themes (default: Archive Black)
+- [x] Settings scaffold with masked API token placeholder
+- [ ] Local music permission flow stub
+
+### Next steps (post-scaffold)
+
+- [x] Verify debug APK builds (`./gradlew assembleDebug`)
+- [ ] Install debug APK on Android device / HiBy R4
+- [ ] Add local playback with Media3 / ExoPlayer + MediaSessionService (MVP 1)
+- [ ] Migrate to Navigation Compose for deep links and back stack
+
+---
+
+## MVP 1 — Local library scanning and playback
+
+### Library scanner
+
+- [ ] MediaStore scan
+- [ ] Storage Access Framework folder grants
+- [ ] Metadata extraction (title, artist, album, duration, artwork)
+- [ ] Room schema: `Track`, `TrackStats`, albums/artists views
+- [ ] Background rescan via WorkManager
+- [ ] Library tabs: Tracks, Artists, Albums, Playlists, Folders
+
+### Player core
+
+- [ ] Media3 + `MediaSessionService`
+- [ ] Play / pause / seek / skip
+- [ ] Queue management
+- [ ] Repeat one / repeat all
+- [ ] Notification and lock-screen controls
+- [ ] Bluetooth / media button support
+
+### Now Playing screen
+
+- [ ] Portrait layout: art, metadata, progress, controls
+- [ ] Source chip (Local)
+- [ ] Queue entry point
+
+### Shuffle engine (v1)
+
+- [ ] Pure Chaos mode
+- [ ] Shuffle session seed display
+- [ ] Reshuffle action
+
+### Favorites and play counts
+
+- [ ] Favorite toggle per track
+- [ ] Play count rules (50% or 4 min threshold)
+- [ ] Recently played list
+- [ ] Low play count / never played filters
+
+### Settings (MVP 1 subset)
+
+- [ ] Playback preferences
+- [ ] Library scanner settings
+- [ ] Shuffle mode default
+- [ ] Theme picker (basic)
+
+---
+
+## MVP 2 — NAS Bridge connection and remote library import
+
+### Connection settings
+
+- [ ] Ialemus Bridge URL + token (encrypted storage)
+- [ ] Test connection / health check UI
+- [ ] Ugreen NAS display name and base URL fields
+- [ ] Storage path configuration (read from bridge or local overrides)
+
+### Bridge client
+
+- [ ] `GET /health`
+- [ ] `GET /library/recent`
+- [ ] `GET /library/browse`
+- [ ] `POST /library/rescan`
+- [ ] Bearer token auth on all requests
+
+### Remote library
+
+- [ ] Import NAS-indexed tracks into Room
+- [ ] Source type: `NAS_INDEXED`, `NAS_STREAM`
+- [ ] Stream or play NAS tracks via ExoPlayer
+- [ ] Manual rescan trigger
+- [ ] Recently added from bridge
+
+### Library UI updates
+
+- [ ] Sources filter (local vs NAS)
+- [ ] Origin metadata where available
+
+---
+
+## MVP 3 — spot-dl GUI and job history
+
+### Acquire screen (spot-dl)
+
+- [ ] Paste Spotify URL / search input
+- [ ] Job type: track, album, playlist
+- [ ] Profile selector (allowlisted names from bridge)
+- [ ] Output target and format options
+- [ ] Submit via `POST /jobs`
+
+### Job tracking
+
+- [ ] `GET /jobs` list with status filters
+- [ ] `GET /jobs/{id}` detail
+- [ ] `POST /jobs/{id}/cancel`
+- [ ] Job cards: service, status, progress, timestamps, errors
+
+### Downloads screen
+
+- [ ] Completed imports section
+- [ ] Failed jobs section
+- [ ] Post-complete: rescan, play now, favorite all
+
+### Integration
+
+- [ ] Folder watcher notifications (poll or SSE)
+- [ ] New tracks appear in library after job completion
+
+---
+
+## MVP 4 — MeTube and slskd/Soulseek integrations
+
+### MeTube
+
+- [ ] URL submit (audio / video / profile)
+- [ ] Job status via bridge MeTube profile
+- [ ] Completed MeTube import to music or video library
+- [ ] Optional: open external MeTube web UI
+
+### slskd / Soulseek
+
+- [ ] Search UI (if bridge exposes search proxy)
+- [ ] Download queue status
+- [ ] Completed slskd folder import
+- [ ] Fallback: open external slskd web UI
+- [ ] Respect slskd API auth via bridge only
+
+### Acquire screen updates
+
+- [ ] Tabs or sections: spot-dl, MeTube, slskd
+- [ ] Unified job history across services
+
+---
+
+## MVP 5 — Widget, landscape polish, DAP battery mode
+
+### Widget
+
+- [ ] Small: title, artist, play/pause, next
+- [ ] Medium: art, controls, favorite
+- [ ] Large: queue count, shuffle chip, optional lyrics line
+- [ ] Widget themes: match app, minimal black, Ghost in the Code, Terminal Kittie
+
+### Landscape layouts
+
+- [ ] Now Playing: art + controls | lyrics/waveform | queue context
+- [ ] Library: adaptive master-detail where width allows
+- [ ] Acquire / Downloads: two-pane job list + detail
+
+### Themes and HUD polish
+
+- [ ] All eight themes visually complete
+- [ ] HUD density: clean / normal / overload
+- [ ] Scanline intensity control
+- [ ] Album art blur background toggle
+
+### HiBy R4 / DAP mode
+
+- [ ] DAP low-power mode toggle
+- [ ] Disable animations toggle
+- [ ] Wi-Fi-only bridge sync
+- [ ] Reduced polling interval
+- [ ] Default theme recommendation: Archive Black
+- [ ] OLED-friendly pure dark surfaces
+
+### Lyrics (if not done earlier)
+
+- [ ] Embedded + sidecar `.lrc` / `.txt`
+- [ ] Full-screen and mini overlay on Now Playing
+- [ ] Landscape lyrics panel
+
+---
+
+## Open architecture questions
+
+Answer these before Android project initialization where possible:
+
+1. **Default NAS hostname** — What LAN hostname or IP should docs/examples use? (Currently placeholder only.)
+2. **spot-dl deployment** — Exact container/service name on Ugreen NAS? Bridge-managed or pre-existing?
+3. **Playback strategy** — Stream from NAS vs copy favorites/albums to DAP storage?
+4. **MeTube scope** — Audio-only import vs in-app video playback?
+5. **Jellyfin** — Direct API integration later, or folder-only via bridge?
+6. **Soulseek UX** — Full in-app search via bridge proxy, or completed-downloads-only?
+7. **Default theme** — Ghost in the Code, Chthonic Signal, or Archive Black for first launch?
+8. **Bridge runtime** — Node/Fastify, Python/FastAPI, or Go for `ialemus-bridge`?
+9. **Job notifications** — Polling interval vs WebSocket/SSE from bridge?
+10. **Package / signing** — Confirm `com.heathen.ialemus` and release signing approach for HiBy sideload.
