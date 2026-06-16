@@ -158,6 +158,20 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] spotDL remains Bridge-only scaffold
 - [ ] Bridge job submission (MVP 2)
 
+## WebView diagnostics hotfix (completed)
+
+- [x] Fix inverted render timeout (was firing 15s after successful load)
+- [x] Main-frame vs subresource error separation
+- [x] slskd: no false timeout banner when page usable
+- [x] Compact status chip + collapsed diagnostics (Diag toggle)
+- [x] MeTube blank probe advisory only; external browser fallback preserved
+- [ ] Manual HiBy R4 slskd/MeTube acceptance on device
+
+### Known limitations (WebView hotfix)
+
+- MeTube may still not render in WebView on some devices — use external browser
+- Subresource warnings (fonts, API calls) are normal for SPAs and hidden in diagnostics
+
 ## MVP 1B.7 — Spotify hidden, theme expansion, MeTube WebView (completed)
 
 - [x] Spotify tab hidden from bottom dock (`visibleInDock = false`)

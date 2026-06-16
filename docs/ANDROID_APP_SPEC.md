@@ -314,7 +314,7 @@ Now Playing may be default landing or merge with mini-player bar on Library — 
 
 **Streaming tab (legacy):** Accessible only from Settings experimental area; not in bottom dock.
 
-**MeTube WebView:** Mobile UA default, desktop mode toggle, Web Diagnostics panel, external browser fallback when render fails.
+**MeTube WebView:** Mobile UA default, desktop mode toggle, compact diagnostics (collapsed by default), render timeout only while main frame loading, external browser fallback when render fails. slskd: main-frame errors only; subresource warnings in diagnostics.
 
 **Playback sources:**
 - **LOCAL CORE** — Ialemus ExoPlayer for device/SAF files

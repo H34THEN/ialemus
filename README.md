@@ -6,7 +6,14 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.7 — Spotify hidden from dock; distinct original themes; MeTube WebView diagnostics.
+**Status:** MVP 1B.7 + WebView hotfix — compact diagnostics; slskd false timeout fixed.
+
+### WebView Hotfix (`0.3.10-webview-hotfix`)
+
+- **Render timeout false positives fixed** — timeout only while main frame has not finished; clears on `onPageFinished` / progress 100 / title
+- **slskd** — no large warning banner when page loads; subresource errors go to collapsed diagnostics only
+- **Compact UI** — status chip in header; diagnostics collapsed by default (tap **Diag**); WebView gets most screen height
+- **MeTube** — blank-content probe MeTube-only; one-line compact warning if needed; external browser fallback preserved
 
 ### MVP 1B.7 (`0.3.9-mvp1b7`)
 
