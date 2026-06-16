@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.heathen.ialemus.core.model.ConnectionMode
 import com.heathen.ialemus.core.model.ThemeId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,6 +29,20 @@ class SettingsRepository(context: Context) {
         prefs[KEY_FULL_DEVICE_SCAN] ?: false
     }
 
+    val nasConnectionSettings: Flow<NasConnectionSettings> = dataStore.data.map { prefs ->
+        NasConnectionSettings(
+            nasDisplayName = prefs[KEY_NAS_DISPLAY_NAME].orEmpty(),
+            bridgeUrl = prefs[KEY_BRIDGE_URL].orEmpty(),
+            bridgeToken = prefs[KEY_BRIDGE_TOKEN].orEmpty(),
+            meTubeUrl = prefs[KEY_METUBE_URL].orEmpty(),
+            slskdUrl = prefs[KEY_SLSKD_URL].orEmpty(),
+            jellyfinUrl = prefs[KEY_JELLYFIN_URL].orEmpty(),
+            connectionMode = ConnectionMode.entries.find {
+                it.name == prefs[KEY_CONNECTION_MODE]
+            } ?: ConnectionMode.LOCAL_LAN,
+        )
+    }
+
     suspend fun setTheme(themeId: ThemeId) {
         dataStore.edit { prefs -> prefs[KEY_THEME] = themeId.name }
     }
@@ -40,9 +55,28 @@ class SettingsRepository(context: Context) {
         dataStore.edit { prefs -> prefs[KEY_FULL_DEVICE_SCAN] = enabled }
     }
 
+    suspend fun saveNasConnectionSettings(settings: NasConnectionSettings) {
+        dataStore.edit { prefs ->
+            prefs[KEY_NAS_DISPLAY_NAME] = settings.nasDisplayName.trim()
+            prefs[KEY_BRIDGE_URL] = settings.bridgeUrl.trim()
+            prefs[KEY_BRIDGE_TOKEN] = settings.bridgeToken.trim()
+            prefs[KEY_METUBE_URL] = settings.meTubeUrl.trim()
+            prefs[KEY_SLSKD_URL] = settings.slskdUrl.trim()
+            prefs[KEY_JELLYFIN_URL] = settings.jellyfinUrl.trim()
+            prefs[KEY_CONNECTION_MODE] = settings.connectionMode.name
+        }
+    }
+
     companion object {
         private val KEY_THEME = stringPreferencesKey("theme_id")
         private val KEY_DAP_MODE = booleanPreferencesKey("dap_mode")
         private val KEY_FULL_DEVICE_SCAN = booleanPreferencesKey("full_device_scan_enabled")
+        private val KEY_NAS_DISPLAY_NAME = stringPreferencesKey("nas_display_name")
+        private val KEY_BRIDGE_URL = stringPreferencesKey("bridge_url")
+        private val KEY_BRIDGE_TOKEN = stringPreferencesKey("bridge_token")
+        private val KEY_METUBE_URL = stringPreferencesKey("metube_url")
+        private val KEY_SLSKD_URL = stringPreferencesKey("slskd_url")
+        private val KEY_JELLYFIN_URL = stringPreferencesKey("jellyfin_url")
+        private val KEY_CONNECTION_MODE = stringPreferencesKey("connection_mode")
     }
 }

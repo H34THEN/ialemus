@@ -343,6 +343,71 @@ GET /library/browse?path=/volume1/Music
 
 **App must not:** Run `spotdl` or `docker exec` on device.
 
+#### 6.1.1 spotDL playlist job (MVP 2 draft)
+
+Android submits playlist jobs to Ialemus Bridge. The bridge runs on the Ugreen NAS (`/volume1` layout) and executes **allowlisted** spotDL profiles only. Downloader services that require outbound VPN routing (e.g. behind **Gluetun**) are started and networked on the NAS — the Android app never accesses VPN containers directly.
+
+**Workflow:**
+
+1. User configures Ialemus Bridge URL + token in app Settings.
+2. App sends `POST /jobs/spotdl/playlist` with validated Spotify URL and options.
+3. Bridge selects an allowlisted profile (bare-metal, `docker exec`, or `docker compose exec` — configured server-side).
+4. spotDL runs in the correct NAS network context (including Gluetun-protected stack when required).
+5. Bridge writes audio files and optional M3U/M3U8 playlists to **server-configured** output roots (`NAS_MUSIC_ROOT`, `NAS_PLAYLISTS`, `NAS_SPOTDL_STAGING`).
+6. Folder watcher + library rescan expose new media; app polls `GET /jobs/{id}` or `GET /library/recent`.
+
+**Request draft:**
+
+```http
+POST /jobs/spotdl/playlist
+Authorization: Bearer <IALEMUS_BRIDGE_TOKEN>
+Content-Type: application/json
+```
+
+```json
+{
+  "spotifyUrl": "https://open.spotify.com/playlist/...",
+  "playlistName": "Example Playlist",
+  "format": "m4a",
+  "outputTarget": "nas_music_playlists",
+  "generateM3u": true,
+  "m3uFormat": "m3u8",
+  "skipExisting": true,
+  "overwriteMode": "skip"
+}
+```
+
+**Response draft:**
+
+```json
+{
+  "jobId": "job_123",
+  "status": "queued",
+  "service": "spotdl",
+  "type": "playlist"
+}
+```
+
+**Bridge-side command templates (documentation only — never in Android code):**
+
+```bash
+# Bare-metal placeholder
+spotdl download "<spotifyUrl>" --output "<NAS_PLAYLISTS>/{artist}/{album}/{title}.{ext}" --format m4a
+
+# Docker exec placeholder
+docker exec <spotdl-container> spotdl download "<spotifyUrl>" ...
+
+# Docker Compose placeholder (Gluetun-protected stack)
+docker compose -f /volume1/docker/gluetun-stack.yml exec spotdl spotdl download "<spotifyUrl>" ...
+```
+
+**Safety rules:**
+
+- Android must not pass arbitrary filesystem paths; `outputTarget` is an enum mapped to bridge env vars.
+- Bridge validates Spotify URL scheme/host and rejects freeform shell.
+- M3U/M3U8 generation is server-side only.
+- Gluetun/VPN routing is a NAS deployment concern; bridge exposes safe job endpoints to Android.
+
 ---
 
 ### 6.2 MeTube

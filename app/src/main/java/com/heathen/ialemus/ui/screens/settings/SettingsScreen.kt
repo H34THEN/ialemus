@@ -35,7 +35,10 @@ import com.heathen.ialemus.core.library.LibraryScanState
 import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.library.MediaPermissionState
 import com.heathen.ialemus.core.model.ThemeId
-import com.heathen.ialemus.core.settings.SettingsPlaceholder
+import com.heathen.ialemus.core.model.ConnectionMode
+import com.heathen.ialemus.core.network.ConnectionTestStatus
+import com.heathen.ialemus.core.settings.NasConnectionSettings
+import com.heathen.ialemus.core.settings.NasUrlPlaceholders
 import com.heathen.ialemus.core.settings.SettingsViewModel
 import com.heathen.ialemus.ui.components.HudButton
 import com.heathen.ialemus.ui.components.HudCollapsiblePanel
@@ -55,6 +58,10 @@ fun SettingsScreen(
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
+    val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
+    val bridgeStatus by settingsViewModel.bridgeTestStatus.collectAsStateWithLifecycle()
+    val meTubeStatus by settingsViewModel.meTubeTestStatus.collectAsStateWithLifecycle()
+    val slskdStatus by settingsViewModel.slskdTestStatus.collectAsStateWithLifecycle()
     val permissionState by libraryViewModel.permissionState.collectAsStateWithLifecycle()
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
@@ -64,6 +71,16 @@ fun SettingsScreen(
     var libraryExpanded by rememberSaveable { mutableStateOf(true) }
     var aboutExpanded by rememberSaveable { mutableStateOf(false) }
     var pendingFullDeviceScan by rememberSaveable { mutableStateOf(false) }
+
+    var nasDisplayName by rememberSaveable(nasSettings.nasDisplayName) { mutableStateOf(nasSettings.nasDisplayName) }
+    var bridgeUrl by rememberSaveable(nasSettings.bridgeUrl) { mutableStateOf(nasSettings.bridgeUrl) }
+    var bridgeToken by rememberSaveable(nasSettings.bridgeToken) { mutableStateOf(nasSettings.bridgeToken) }
+    var meTubeUrl by rememberSaveable(nasSettings.meTubeUrl) { mutableStateOf(nasSettings.meTubeUrl) }
+    var slskdUrl by rememberSaveable(nasSettings.slskdUrl) { mutableStateOf(nasSettings.slskdUrl) }
+    var jellyfinUrl by rememberSaveable(nasSettings.jellyfinUrl) { mutableStateOf(nasSettings.jellyfinUrl) }
+    var connectionMode by rememberSaveable(nasSettings.connectionMode.name) {
+        mutableStateOf(nasSettings.connectionMode)
+    }
 
     val activity = context as? androidx.activity.ComponentActivity
     val folderLauncher = rememberLauncherForActivityResult(
@@ -100,7 +117,7 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B · Library Navigation + Widget",
+            subtitle = "Ialemus MVP 1B.1 · NAS connectors + dock polish",
         )
 
         HudCollapsiblePanel(
@@ -187,31 +204,127 @@ fun SettingsScreen(
         }
 
         HudCollapsiblePanel(
-            title = "NAS Bridge",
-            sectionTag = "FUTURE MODULE",
-            subtitle = "Future integration (MVP 2). No shell/SSH/Docker from Android.",
+            title = "NAS / Bridge Connections",
+            sectionTag = "NAS CONNECT",
+            subtitle = "Configure LAN service URLs. Android connects via HTTP only — no shell/SSH/Docker.",
             expanded = nasExpanded,
             onToggle = { nasExpanded = !nasExpanded },
-            statusLabel = "DISABLED",
+            statusLabel = if (nasSettings.bridgeConfigured) "CONFIGURED" else "SETUP",
         ) {
-            HudStatusChip(label = "NAS Bridge required", disabled = true)
             OutlinedTextField(
-                value = "http://nas.local:8787/api",
-                onValueChange = {},
+                value = nasDisplayName,
+                onValueChange = { nasDisplayName = it },
                 modifier = Modifier.fillMaxWidth(),
+                label = { Text("NAS display name") },
+                placeholder = { Text("Ugreen NAS") },
+                singleLine = true,
+            )
+            ConnectionModeSelector(
+                selected = connectionMode,
+                onSelect = { connectionMode = it },
+            )
+            OutlinedTextField(
+                value = bridgeUrl,
+                onValueChange = { bridgeUrl = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 label = { Text("Ialemus Bridge URL") },
-                readOnly = true,
-                enabled = false,
+                placeholder = { Text(NasUrlPlaceholders.BRIDGE) },
+                singleLine = true,
             )
             OutlinedTextField(
-                value = SettingsPlaceholder.TOKEN_MASK,
-                onValueChange = {},
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("API token") },
-                readOnly = true,
-                enabled = false,
+                value = bridgeToken,
+                onValueChange = { bridgeToken = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                label = { Text("Bridge API token") },
+                placeholder = { Text("Paste bridge token") },
+                singleLine = true,
             )
-            HudButton(label = "Test connection (MVP 2)", onClick = { }, enabled = false)
+            OutlinedTextField(
+                value = meTubeUrl,
+                onValueChange = { meTubeUrl = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                label = { Text("MeTube URL") },
+                placeholder = { Text(NasUrlPlaceholders.METUBE) },
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = slskdUrl,
+                onValueChange = { slskdUrl = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                label = { Text("slskd URL") },
+                placeholder = { Text(NasUrlPlaceholders.SLSKD) },
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = jellyfinUrl,
+                onValueChange = { jellyfinUrl = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                label = { Text("Jellyfin URL (optional)") },
+                placeholder = { Text(NasUrlPlaceholders.JELLYFIN) },
+                singleLine = true,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                HudStatusChip(label = "Bridge · ${bridgeStatus.label}", highlighted = bridgeStatus == ConnectionTestStatus.REACHABLE)
+                HudStatusChip(label = "MeTube · ${meTubeStatus.label}", highlighted = meTubeStatus == ConnectionTestStatus.REACHABLE)
+                HudStatusChip(label = "slskd · ${slskdStatus.label}", highlighted = slskdStatus == ConnectionTestStatus.REACHABLE)
+            }
+            HudButton(
+                label = "Save connections",
+                onClick = {
+                    settingsViewModel.saveNasConnectionSettings(
+                        NasConnectionSettings(
+                            nasDisplayName = nasDisplayName,
+                            bridgeUrl = bridgeUrl,
+                            bridgeToken = bridgeToken,
+                            meTubeUrl = meTubeUrl,
+                            slskdUrl = slskdUrl,
+                            jellyfinUrl = jellyfinUrl,
+                            connectionMode = connectionMode,
+                        ),
+                    )
+                },
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            HudButton(
+                label = "Test connections",
+                onClick = {
+                    settingsViewModel.saveNasConnectionSettings(
+                        NasConnectionSettings(
+                            nasDisplayName = nasDisplayName,
+                            bridgeUrl = bridgeUrl,
+                            bridgeToken = bridgeToken,
+                            meTubeUrl = meTubeUrl,
+                            slskdUrl = slskdUrl,
+                            jellyfinUrl = jellyfinUrl,
+                            connectionMode = connectionMode,
+                        ),
+                    )
+                    settingsViewModel.testAllConnections()
+                },
+                modifier = Modifier.padding(top = 8.dp),
+                accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+            )
+            Text(
+                text = "LAN HTTP is fine for local testing. Production bridge should use TLS where possible. Token storage is device-local DataStore (encrypted storage TODO).",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+                modifier = Modifier.padding(top = 6.dp),
+            )
         }
 
         HudCollapsiblePanel(
@@ -220,10 +333,10 @@ fun SettingsScreen(
             subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B",
+            statusLabel = "MVP 1B.1",
         ) {
             Text(
-                text = "Library browse modes, icons-only command dock, collapsible HUD modules, and Android widget scaffold.",
+                text = "Spotify-style dock polish, NAS connection settings, MeTube/slskd URL connectors, spotDL Bridge job scaffold.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
             )
@@ -233,6 +346,36 @@ fun SettingsScreen(
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun ConnectionModeSelector(
+    selected: ConnectionMode,
+    onSelect: (ConnectionMode) -> Unit,
+) {
+    Column(modifier = Modifier.padding(top = 8.dp)) {
+        Text(
+            text = "CONNECTION MODE",
+            style = MaterialTheme.typography.labelSmall,
+            color = LocalIalemusTokens.current.accentActive,
+        )
+        ConnectionMode.entries.forEach { mode ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(mode) }
+                    .padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(mode.displayName, style = MaterialTheme.typography.bodySmall)
+                HudStatusChip(
+                    label = if (mode == selected) "ACTIVE" else "SELECT",
+                    highlighted = mode == selected,
+                )
+            }
         }
     }
 }

@@ -95,9 +95,11 @@ fun IalemusApp(
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.ACQUIRE -> AcquireScreen(
+                    settingsViewModel = settingsViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.DOWNLOADS -> DownloadsScreen(
+                    settingsViewModel = settingsViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )
                 AppDestination.SETTINGS -> SettingsScreen(

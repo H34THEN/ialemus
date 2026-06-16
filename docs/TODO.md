@@ -134,6 +134,28 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - [x] Bottom dock `weight(1f)` tabs; screen horizontal padding; text ellipsis
 - [ ] Manual HiBy R4 acceptance test on device (see README install command)
 
+## MVP 1B.1 — Dock polish + NAS connector UI (completed)
+
+- [x] Spotify-style bottom dock (less squished on HiBy R4)
+- [x] NAS / Bridge Connections settings (DataStore)
+- [x] MeTube URL connector UI + external browser open
+- [x] slskd URL connector UI + external browser open
+- [x] spotDL Bridge-only job form scaffold (no Android execution)
+- [x] HTTP connection test helper (`ServiceUrlTester`)
+- [x] Downloads page job category placeholders
+- [x] `POST /jobs/spotdl/playlist` draft in `NAS_BRIDGE_SPEC.md`
+- [ ] Encrypted token storage (TODO)
+- [ ] In-app WebView for LAN services (future — external browser for now)
+- [ ] Bridge job submission endpoints (MVP 2)
+
+### Known limitations (MVP 1B.1)
+
+- Web UI opens in external browser (not in-app WebView)
+- Bridge token stored in DataStore (not encrypted yet)
+- spotDL Submit to Bridge disabled until Bridge MVP 2
+- No actual job polling from Bridge yet
+- Cleartext HTTP permitted for LAN testing (`network_security_config.xml`)
+
 ### Known limitations (HiBy hotfix)
 
 - Widget transport controls remain open-app only

@@ -55,6 +55,14 @@ Deliverables:
 - HiBy R4 responsive layout — compact width detection, scrollable tabs, weighted dock, no side clipping
 - Playback error snackbars; `PlaybackTransport` unit tests; debug-only transport logging
 
+### MVP 1B.1 — Dock polish + NAS connectors (shipped — `0.3.2-mvp1b1`)
+
+- Spotify-style bottom navigation (single HUD bar, active pill, roomy touch targets)
+- NAS / Bridge Connections in Settings (DataStore URLs + token)
+- Acquire: MeTube/slskd URL cards, external browser Web UI, connection tests
+- spotDL Bridge-only playlist job form (disabled until Bridge MVP 2)
+- Downloads job category placeholders aligned with Job Queue style
+
 ### MVP 1C / remaining 1B polish (next)
 
 Deliverables (full MVP 1):

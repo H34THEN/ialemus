@@ -6,9 +6,18 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** HiBy R4 hotfix — playback stability, Spotify-style mini player, library click-depth reduction, responsive DAP layout. Debug APK buildable (`0.3.1-hiby-hotfix`).
+**Status:** MVP 1B.1 — Spotify-style dock polish, NAS connection settings, MeTube/slskd URL connectors, spotDL Bridge job scaffold. Debug APK buildable (`0.3.2-mvp1b1`).
 
-### HiBy R4 Hotfix (current — `0.3.1-hiby-hotfix`)
+### MVP 1B.1 (current — `0.3.2-mvp1b1`)
+
+- **Spotify-style bottom dock** — single semi-transparent HUD bar; active pill indicator; roomy 48dp touch targets; icon-only on HiBy R4 compact width
+- **NAS / Bridge Connections** — DataStore settings for Bridge URL/token, MeTube URL, slskd URL, Jellyfin placeholder, connection mode
+- **Connection tests** — safe HTTP GET tests with status chips (Not configured / Ready / Checking / Reachable / Failed)
+- **Acquire connectors** — MeTube and slskd cards with Open Web UI (external browser), Test, Save URL; spotDL Bridge-only job form (disabled submit)
+- **Downloads job categories** — Bridge Jobs, MeTube Imports, slskd Downloads, spotDL Playlist Jobs, Completed, Failed (placeholders)
+- **Preserved:** HiBy playback stability (`PlaybackTransport`), mini player controls, folder-first scan, EVA HUD themes
+
+### HiBy R4 Hotfix (`0.3.1-hiby-hotfix`)
 
 - **Next/previous crash fix** — safe queue bounds checks, null-safe track lookup, try/catch on transport; repeat queue wraps; repeat one repeats current track; empty queue no-ops; player errors show snackbar instead of force-close
 - **Spotify-style mini player** — persistent bar above command dock when a track is loaded; tap body opens Now Playing; separate controls for shuffle, previous, play/pause, next, repeat (off → queue → one)

@@ -6,7 +6,7 @@
 **Minimum SDK:** API 26 (`minSdk`), target API 35  
 **Distribution:** Sideload/APK friendly; no Google Play Services required for core playback
 
-**Implementation status (HiBy hotfix):** Safe playback transport, Spotify-style mini player, library click-depth reduction, HiBy R4 responsive layout. Version `0.3.1-hiby-hotfix`.
+**Implementation status (MVP 1B.1):** Spotify-style dock polish, NAS connection settings, MeTube/slskd URL connectors, spotDL Bridge job UI scaffold. Version `0.3.2-mvp1b1`.
 
 See also: `DECISIONS.md`, `IALEMUS_PROJECT_SPEC.md`, `NAS_BRIDGE_SPEC.md`.
 
