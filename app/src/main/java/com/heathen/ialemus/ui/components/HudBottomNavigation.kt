@@ -15,9 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.heathen.ialemus.ui.navigation.AppDestination
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
@@ -36,16 +34,19 @@ fun HudBottomNavigation(
             .border(1.dp, tokens.hudBorderColor.copy(alpha = 0.5f)),
     ) {
         Text(
-            text = "COMMAND DOCK · DAP MODE",
+            text = selected.label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = tokens.textMuted,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            color = tokens.accentActive,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 4.dp),
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
+                .padding(horizontal = 6.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AppDestination.entries.forEach { destination ->
                 HudNavItem(
@@ -67,36 +68,25 @@ private fun HudNavItem(
     val tokens = LocalIalemusTokens.current
     val borderColor = if (selected) tokens.navActive else tokens.hudBorderColor.copy(alpha = 0.35f)
     val iconTint = if (selected) tokens.navActive else tokens.textMuted
+    val backgroundColor = if (selected) tokens.panelOverlay else tokens.surfaceDeep.copy(alpha = 0.6f)
+
     Column(
         modifier = Modifier
             .clickable(onClick = onClick)
             .border(
-                width = if (selected) 1.5.dp else 1.dp,
+                width = if (selected) 2.dp else 1.dp,
                 color = borderColor,
                 shape = MaterialTheme.shapes.small,
             )
-            .background(
-                if (selected) tokens.panelOverlay else tokens.surfaceDeep.copy(alpha = 0.6f),
-                MaterialTheme.shapes.small,
-            )
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .background(backgroundColor, MaterialTheme.shapes.small)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Icon(
             imageVector = destination.icon,
             contentDescription = destination.label,
             tint = iconTint,
-            modifier = Modifier.size(22.dp),
-        )
-        Text(
-            text = destination.label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = iconTint,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
+            modifier = Modifier.size(28.dp),
         )
     }
 }

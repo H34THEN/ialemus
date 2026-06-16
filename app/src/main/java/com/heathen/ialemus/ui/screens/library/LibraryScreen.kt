@@ -5,16 +5,10 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,22 +23,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.library.LibraryScanState
 import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.library.MediaPermissionState
-import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.core.model.LibraryBrowseMode
+import com.heathen.ialemus.core.model.LibraryDetail
 import com.heathen.ialemus.core.player.PlayerViewModel
-import com.heathen.ialemus.ui.components.EmptyLibraryState
 import com.heathen.ialemus.ui.components.HudHeader
 import com.heathen.ialemus.ui.components.HudSectionLabel
-import com.heathen.ialemus.ui.components.HudStatusChip
+import com.heathen.ialemus.ui.components.LibraryBrowseTabRow
 import com.heathen.ialemus.ui.components.MusicSourcePanel
 import com.heathen.ialemus.ui.components.PermissionGateCard
-import com.heathen.ialemus.ui.components.TrackRow
-
-private enum class LibraryTab(val label: String) {
-    TRACKS("Tracks"),
-    ALBUMS("Albums"),
-    ARTISTS("Artists"),
-    FOLDERS("Folders"),
-}
 
 @Composable
 fun LibraryScreen(
@@ -55,12 +41,24 @@ fun LibraryScreen(
     val context = LocalContext.current
     val permissionState by libraryViewModel.permissionState.collectAsStateWithLifecycle()
     val scanState by libraryViewModel.scanState.collectAsStateWithLifecycle()
-    val tracks by libraryViewModel.tracks.collectAsStateWithLifecycle()
     val trackCount by libraryViewModel.trackCount.collectAsStateWithLifecycle()
     val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
-    var selectedTab by rememberSaveable { mutableStateOf(LibraryTab.TRACKS) }
+    var browseMode by rememberSaveable { mutableStateOf(LibraryBrowseMode.TRACKS) }
+    var detailKind by rememberSaveable { mutableStateOf("none") }
+    var detailArtist by rememberSaveable { mutableStateOf("") }
+    var detailAlbum by rememberSaveable { mutableStateOf("") }
+    var detailFolderSourceId by rememberSaveable { mutableStateOf("") }
+    var detailFolderPath by rememberSaveable { mutableStateOf("") }
+    var detailFolderName by rememberSaveable { mutableStateOf("") }
+    var sourceExpanded by rememberSaveable { mutableStateOf(true) }
     var pendingFullDeviceScan by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(trackCount) {
+        if (trackCount > 0) {
+            sourceExpanded = false
+        }
+    }
 
     LaunchedEffect(Unit) {
         libraryViewModel.refreshPermissionState()
@@ -74,6 +72,7 @@ fun LibraryScreen(
         uri?.let {
             val displayName = DocumentFile.fromTreeUri(context, it)?.name ?: "Music Folder"
             libraryViewModel.addMusicFolder(it, displayName)
+            sourceExpanded = true
         }
     }
 
@@ -93,15 +92,33 @@ fun LibraryScreen(
     val isScanning = scanState is LibraryScanState.ScanningFolders ||
         scanState is LibraryScanState.ScanningFullDevice
 
+    val sourceCallbacks = SourceCallbacks(
+        onChooseFolder = { folderLauncher.launch(null) },
+        onScanSelectedFolders = libraryViewModel::scanSelectedFolders,
+        onFullDeviceScan = {
+            if (permissionState == MediaPermissionState.Granted) {
+                libraryViewModel.scanFullDeviceLibrary()
+            } else {
+                pendingFullDeviceScan = true
+                permissionLauncher.launch(libraryViewModel.requiredPermission())
+            }
+        },
+        onRequestPermission = {
+            pendingFullDeviceScan = true
+            permissionLauncher.launch(libraryViewModel.requiredPermission())
+        },
+        onRemoveSource = libraryViewModel::removeMusicFolder,
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         HudHeader(
             title = "Library",
-            statusLabel = "MUSIC SOURCE",
+            statusLabel = "TRACK INDEX",
             subtitle = "SIGNAL INDEX · $trackCount tracks",
         )
 
@@ -109,22 +126,15 @@ fun LibraryScreen(
             scanState = scanState,
             sources = sources,
             permissionState = permissionState,
-            onChooseFolder = { folderLauncher.launch(null) },
-            onScanSelectedFolders = libraryViewModel::scanSelectedFolders,
-            onFullDeviceScan = {
-                if (permissionState == MediaPermissionState.Granted) {
-                    libraryViewModel.scanFullDeviceLibrary()
-                } else {
-                    pendingFullDeviceScan = true
-                    permissionLauncher.launch(libraryViewModel.requiredPermission())
-                }
-            },
-            onRequestPermission = {
-                pendingFullDeviceScan = true
-                permissionLauncher.launch(libraryViewModel.requiredPermission())
-            },
-            onRemoveSource = libraryViewModel::removeMusicFolder,
+            onChooseFolder = sourceCallbacks.onChooseFolder,
+            onScanSelectedFolders = sourceCallbacks.onScanSelectedFolders,
+            onFullDeviceScan = sourceCallbacks.onFullDeviceScan,
+            onRequestPermission = sourceCallbacks.onRequestPermission,
+            onRemoveSource = sourceCallbacks.onRemoveSource,
             isScanning = isScanning,
+            expanded = sourceExpanded,
+            onToggleExpanded = { sourceExpanded = !sourceExpanded },
+            defaultExpandedGuide = trackCount == 0,
         )
 
         if (permissionState != MediaPermissionState.Granted) {
@@ -144,83 +154,68 @@ fun LibraryScreen(
             )
         }
 
-        HudSectionLabel(label = "Track Index", trailing = selectedTab.label.uppercase())
-        LibraryTabRow(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
-
-        when (selectedTab) {
-            LibraryTab.TRACKS -> TracksList(
-                tracks = tracks,
-                currentTrackId = playbackState.currentTrack?.id,
-                onTrackClick = { track -> playerViewModel.playTrack(tracks, track) },
-                modifier = Modifier.weight(1f),
-            )
-            LibraryTab.ALBUMS -> EmptyLibraryState(
-                title = "Albums",
-                body = "Album browsing arrives in MVP 1B.",
-                sectionTag = "TRACK INDEX",
-                modifier = Modifier.weight(1f),
-            )
-            LibraryTab.ARTISTS -> EmptyLibraryState(
-                title = "Artists",
-                body = "Artist browsing arrives in MVP 1B.",
-                sectionTag = "TRACK INDEX",
-                modifier = Modifier.weight(1f),
-            )
-            LibraryTab.FOLDERS -> EmptyLibraryState(
-                title = "Folders",
-                body = "Use Choose Music Folder above to approve SAF sources.",
-                sectionTag = "SOURCE SELECT",
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun LibraryTabRow(
-    selectedTab: LibraryTab,
-    onTabSelected: (LibraryTab) -> Unit,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        LibraryTab.entries.forEach { tab ->
-            Box(modifier = Modifier.clickable { onTabSelected(tab) }) {
-                HudStatusChip(
-                    label = tab.label,
-                    highlighted = selectedTab == tab,
+        if (detailKind != "none") {
+            val detail = when (detailKind) {
+                "artist" -> LibraryDetail.Artist(detailArtist)
+                "album" -> LibraryDetail.Album(detailAlbum, detailArtist)
+                "folder" -> LibraryDetail.Folder(detailFolderSourceId, detailFolderPath, detailFolderName)
+                else -> null
+            }
+            if (detail != null) {
+                LibraryDetailContent(
+                    detail = detail,
+                    libraryViewModel = libraryViewModel,
+                    playerViewModel = playerViewModel,
+                    currentTrackId = playbackState.currentTrack?.id,
+                    onBack = {
+                        detailKind = "none"
+                    },
+                    modifier = Modifier.weight(1f),
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun TracksList(
-    tracks: List<Track>,
-    currentTrackId: String?,
-    onTrackClick: (Track) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (tracks.isEmpty()) {
-        EmptyLibraryState(
-            title = "No local tracks",
-            body = "Choose a music folder or run an explicit scan. Full-device scan is opt-in only.",
-            sectionTag = "TRACK INDEX",
-            modifier = modifier,
-        )
-        return
-    }
-
-    LazyColumn(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
-            TrackRow(
-                track = track,
-                isPlaying = track.id == currentTrackId,
-                onClick = { onTrackClick(track) },
-                index = index,
+        } else {
+            HudSectionLabel(
+                label = "Library Browser",
+                trailing = browseMode.label.uppercase(),
+            )
+            LibraryBrowseTabRow(
+                selected = browseMode,
+                onSelect = { browseMode = it },
+            )
+            LibraryBrowserContent(
+                libraryViewModel = libraryViewModel,
+                playerViewModel = playerViewModel,
+                browseMode = browseMode,
+                onOpenDetail = { detail ->
+                    when (detail) {
+                        is LibraryDetail.Artist -> {
+                            detailKind = "artist"
+                            detailArtist = detail.artist
+                        }
+                        is LibraryDetail.Album -> {
+                            detailKind = "album"
+                            detailAlbum = detail.album
+                            detailArtist = detail.artist
+                        }
+                        is LibraryDetail.Folder -> {
+                            detailKind = "folder"
+                            detailFolderSourceId = detail.librarySourceId
+                            detailFolderPath = detail.folderPath
+                            detailFolderName = detail.displayName
+                        }
+                    }
+                },
+                currentTrackId = playbackState.currentTrack?.id,
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
+
+private data class SourceCallbacks(
+    val onChooseFolder: () -> Unit,
+    val onScanSelectedFolders: () -> Unit,
+    val onFullDeviceScan: () -> Unit,
+    val onRequestPermission: () -> Unit,
+    val onRemoveSource: (String) -> Unit,
+)

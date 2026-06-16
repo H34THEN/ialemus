@@ -29,4 +29,36 @@ interface TrackStatsDao {
         """,
     )
     suspend fun incrementPlayCount(trackId: String, playedAt: Long)
+
+    @Query(
+        """
+        SELECT tracks.* FROM tracks
+        INNER JOIN track_stats ON tracks.id = track_stats.trackId
+        WHERE track_stats.favorite = 1
+        ORDER BY tracks.title COLLATE NOCASE ASC
+        """,
+    )
+    fun observeFavoriteTracks(): Flow<List<com.heathen.ialemus.data.local.entity.TrackEntity>>
+
+    @Query(
+        """
+        SELECT tracks.* FROM tracks
+        INNER JOIN track_stats ON tracks.id = track_stats.trackId
+        WHERE track_stats.lastPlayedAt IS NOT NULL AND track_stats.lastPlayedAt > 0
+        ORDER BY track_stats.lastPlayedAt DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeRecentlyPlayedTracks(limit: Int = 50): Flow<List<com.heathen.ialemus.data.local.entity.TrackEntity>>
+
+    @Query(
+        """
+        SELECT tracks.* FROM tracks
+        INNER JOIN track_stats ON tracks.id = track_stats.trackId
+        WHERE track_stats.playCount > 0
+        ORDER BY track_stats.playCount DESC, track_stats.lastPlayedAt DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeMostPlayedTracks(limit: Int = 50): Flow<List<com.heathen.ialemus.data.local.entity.TrackEntity>>
 }

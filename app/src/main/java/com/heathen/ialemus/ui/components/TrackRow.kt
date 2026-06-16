@@ -52,7 +52,7 @@ fun TrackRow(
             .background(backgroundColor, MaterialTheme.shapes.small)
             .border(1.dp, borderColor, MaterialTheme.shapes.small)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

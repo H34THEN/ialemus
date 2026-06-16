@@ -269,11 +269,35 @@ private fun AlbumArtModule(track: Track) {
                     contentScale = ContentScale.Crop,
                 )
             } else {
-                Text(
-                    text = "NO ART SIGNAL",
-                    color = tokens.textMuted,
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "◢ IALEMUS ◣",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = tokens.glowColor,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "NO ART SIGNAL",
+                        color = tokens.accentActive,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Text(
+                        text = "DISPLAY MODULE STANDBY",
+                        color = tokens.textMuted,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.GraphicEq,
+                        contentDescription = null,
+                        tint = tokens.hudBorderColor.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .size(40.dp),
+                    )
+                }
             }
         }
     }

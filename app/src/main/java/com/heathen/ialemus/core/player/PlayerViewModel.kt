@@ -69,6 +69,12 @@ class PlayerViewModel(
         playerConnection.playTrackById(tracks, track.id, queueRepository.shuffleMode.value)
     }
 
+    fun playCollection(tracks: List<Track>, shuffle: Boolean = false) {
+        if (tracks.isEmpty()) return
+        val mode = if (shuffle) ShuffleMode.TRUE_RANDOM else queueRepository.shuffleMode.value
+        playerConnection.playTracks(tracks, 0, mode)
+    }
+
     fun playPause() = playerConnection.playPause()
 
     fun seekTo(positionMs: Long) = playerConnection.seekTo(positionMs)

@@ -10,6 +10,7 @@ import com.heathen.ialemus.core.player.QueueRepository
 import com.heathen.ialemus.core.player.ShuffleEngine
 import com.heathen.ialemus.core.settings.SettingsRepository
 import com.heathen.ialemus.data.local.IalemusDatabase
+import com.heathen.ialemus.widget.WidgetStateStore
 
 /**
  * Manual dependency container for MVP 1A.
@@ -31,6 +32,7 @@ class AppContainer(context: Context) {
     val librarySourceDao = database.librarySourceDao()
 
     val settingsRepository = SettingsRepository(appContext)
+    val widgetStateStore = WidgetStateStore(appContext)
 
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)
@@ -50,5 +52,6 @@ class AppContainer(context: Context) {
         context = appContext,
         queueRepository = queueRepository,
         shuffleEngine = shuffleEngine,
+        widgetStateStore = widgetStateStore,
     )
 }

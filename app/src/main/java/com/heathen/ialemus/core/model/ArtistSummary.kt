@@ -4,4 +4,6 @@ data class ArtistSummary(
     val artist: String,
     val trackCount: Int,
     val albumCount: Int,
-)
+) {
+    val displayName: String get() = artist
+}

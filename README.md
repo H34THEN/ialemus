@@ -6,9 +6,20 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1A EVA HUD Pass — tap-to-play fixed, folder-first SAF scan, EVA-01 default theme, full HUD interface overhaul. Debug APK buildable (`0.2.2-mvp1a-eva-hud`).
+**Status:** MVP 1B — library navigation, icons-only command dock, collapsible HUD modules, Android widget scaffold. Debug APK buildable (`0.3.0-mvp1b`).
 
-### MVP 1A EVA HUD Pass (current)
+### MVP 1B (current)
+
+- **Icons-only command dock** — bottom nav shows icons only; selected tab label appears above dock
+- **Library browser** — prominent Track Index with tabs: Tracks, Artists, Albums, Genres, Playlists, Folders, Audiobooks, Signal
+- **Real browse data** — Artists, Albums, Folders from Room aggregation; artist/album/folder detail views with Play All / Shuffle
+- **Signal index** — Favorites, Recently Added, Recently Played, Most Played
+- **Collapsible modules** — Music Source panel collapses after scan; Settings themes/NAS/source sections collapsible
+- **Source management in Settings** — same SAF folder controls as Library (shared repository logic)
+- **Android widget scaffold** — semi-transparent EVA HUD home-screen widget (opens app; shows current track when playing)
+- **Preserved:** folder-first SAF scan, tap-to-play, EVA HUD themes, playback stability guard
+
+### MVP 1A EVA HUD Pass
 
 - **EVA HUD interface:** Custom command-console styling — angular panels, neon outlines, grid/scanline motif (DAP mode disables overlays)
 - **Default theme:** EVA-01 Berserk (violet / acid green / orange accents)
@@ -101,6 +112,12 @@ Install on a connected device or HiBy R4:
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
+
+### Home-screen widget
+
+Add the **Ialemus HUD playback module** widget from the Android widget picker. Tap to open the app. Shows last/current track title and artist when playback is active.
+
+**Widget limitations (MVP 1B):** transport controls are placeholders (open app only); no play/pause/prev/next from widget yet; semi-transparent EVA-01 styling is fixed.
 
 ---
 

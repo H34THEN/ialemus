@@ -37,12 +37,17 @@ Deliverables:
 - Favorites (Room), DataStore settings
 - **EVA HUD Pass:** Custom HUD design system, EVA-01 Berserk default theme, command-dock navigation, playback error snackbar guard
 
-### MVP 1B (next)
+### MVP 1B (shipped)
 
-- Album / artist / folder views
-- WorkManager rescan, play-count rules
-- Queue reorder/remove, lyrics panel, widget
-- Landscape Now Playing polish
+- Album / artist / folder browse from Room aggregation
+- Artist/album/folder detail views with Play All / Shuffle
+- Signal index: favorites, recently added/played, most played
+- Genres / Playlists / Audiobooks scaffolds (honest limitations documented)
+- Icons-only command dock; collapsible Music Source and Settings modules
+- Source management in Settings (shared repository)
+- Android home-screen widget scaffold (HUD RemoteViews)
+
+### MVP 1C / remaining 1B polish (next)
 
 Deliverables (full MVP 1):
 

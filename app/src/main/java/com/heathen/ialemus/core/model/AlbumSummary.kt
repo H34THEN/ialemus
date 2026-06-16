@@ -6,4 +6,7 @@ data class AlbumSummary(
     val artist: String,
     val trackCount: Int,
     val totalDurationMs: Long,
-)
+) {
+    val displayAlbum: String get() = album
+    val displayArtist: String get() = artist
+}

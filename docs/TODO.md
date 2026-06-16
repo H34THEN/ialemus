@@ -98,16 +98,38 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 
 ### Known limitations (EVA HUD pass)
 
-- Album / artist / folder depth still MVP 1B
 - NAS Bridge, spot-dl, MeTube, slskd remain disabled placeholders
 - Heavy blur / infinite animations intentionally omitted for battery
 - Navigation still state-based tabs (not Navigation Compose deep links)
 
-### MVP 1B — Next tasks (blocked until hotfix verified on device)
+## MVP 1B — Library navigation + HUD usability + widget (completed)
 
-- [ ] Album detail view
-- [ ] Artist detail view
-- [ ] Folder browsing (SAF)
+- [x] Icons-only command dock (accessibility contentDescription preserved)
+- [x] Collapsible Music Source panel (auto-collapses after scan)
+- [x] Prominent Library Browser / Track Index with full-height lists
+- [x] Browse modes: Tracks (real), Artists (real), Albums (real), Folders (real)
+- [x] Browse scaffolds: Genres, Playlists, Audiobooks (classification heuristic)
+- [x] Signal index: Favorites, Recently Added, Recently Played, Most Played
+- [x] Artist/Album/Folder detail views with Play All / Shuffle
+- [x] Source management in Settings (shared `LibraryViewModel` / repository)
+- [x] Collapsible Settings sections (themes, NAS, source management)
+- [x] `HudCollapsiblePanel`, `MusicSourceControls`, `LibraryBrowseRows`
+- [x] Room DAO aggregation queries (artists, albums, folders)
+- [x] Android widget scaffold (`IalemusPlaybackWidgetProvider`, RemoteViews HUD layout)
+- [x] Widget state sync from playback (title/artist/playing)
+- [x] Downloads job-queue collapsible panels (style preserved)
+
+### Known limitations (MVP 1B)
+
+- Genres: not indexed yet (honest empty state; TODO MediaStore/metadata retriever)
+- Playlists: UI scaffold only (no Room playlist schema yet)
+- Audiobooks: heuristic classification only (no resume/chapters/speed/bookmarks)
+- Widget: open-app only; no MediaSession transport from widget yet
+- SAF tracks may lack artist/album metadata until tag extraction is added
+- Navigation still state-based (no Nav Compose back stack for detail drill-down)
+
+### MVP 1B — Remaining polish (future)
+
 - [ ] Richer queue UI (remove/reorder)
 - [ ] Favorite persistence polish across screens
 - [ ] Play count threshold polish (50% / 4 min rule)

@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.content.ContextCompat
+import com.heathen.ialemus.core.model.AlbumSummary
+import com.heathen.ialemus.core.model.ArtistSummary
+import com.heathen.ialemus.core.model.FolderSummary
 import com.heathen.ialemus.core.model.LibrarySource
 import com.heathen.ialemus.core.model.LibrarySourceType
 import com.heathen.ialemus.core.model.Track
@@ -18,6 +21,9 @@ import com.heathen.ialemus.data.local.defaultStatsEntity
 import com.heathen.ialemus.data.local.toEntity
 import com.heathen.ialemus.data.local.toLibrarySource
 import com.heathen.ialemus.data.local.toTrack
+import com.heathen.ialemus.data.local.model.AlbumBrowseRow
+import com.heathen.ialemus.data.local.model.ArtistBrowseRow
+import com.heathen.ialemus.data.local.model.FolderBrowseRow
 import com.heathen.ialemus.data.local.entity.LibrarySourceEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -45,6 +51,39 @@ class LibraryRepository(
     val safFolderSources: Flow<List<LibrarySource>> = librarySourceDao.observeSafFolders().map { list ->
         list.map { it.toLibrarySource() }
     }
+
+    val artistSummaries: Flow<List<ArtistSummary>> =
+        trackDao.observeArtistSummaries().map { rows -> rows.map { it.toArtistSummary() } }
+
+    val albumSummaries: Flow<List<AlbumSummary>> =
+        trackDao.observeAlbumSummaries().map { rows -> rows.map { it.toAlbumSummary() } }
+
+    val folderSummaries: Flow<List<FolderSummary>> =
+        trackDao.observeFolderSummaries().map { rows -> rows.map { it.toFolderSummary() } }
+
+    val audiobookTracks: Flow<List<Track>> =
+        trackDao.observeAudiobookTracks().map { entities -> entities.map { it.toTrack() } }
+
+    val favoriteTracks: Flow<List<Track>> =
+        trackStatsDao.observeFavoriteTracks().map { entities -> entities.map { it.toTrack() } }
+
+    val recentlyAddedTracks: Flow<List<Track>> =
+        trackDao.observeRecentlyAddedTracks().map { entities -> entities.map { it.toTrack() } }
+
+    val recentlyPlayedTracks: Flow<List<Track>> =
+        trackStatsDao.observeRecentlyPlayedTracks().map { entities -> entities.map { it.toTrack() } }
+
+    val mostPlayedTracks: Flow<List<Track>> =
+        trackStatsDao.observeMostPlayedTracks().map { entities -> entities.map { it.toTrack() } }
+
+    fun tracksForArtist(artist: String): Flow<List<Track>> =
+        trackDao.observeTracksForArtist(artist).map { entities -> entities.map { it.toTrack() } }
+
+    fun tracksForAlbum(album: String, artist: String): Flow<List<Track>> =
+        trackDao.observeTracksForAlbum(album, artist).map { entities -> entities.map { it.toTrack() } }
+
+    fun tracksForFolder(librarySourceId: String, folderPath: String): Flow<List<Track>> =
+        trackDao.observeTracksForFolder(librarySourceId, folderPath).map { entities -> entities.map { it.toTrack() } }
 
     fun resolvePermissionState(): MediaPermissionState {
         val permission = requiredPermission()
@@ -152,4 +191,25 @@ private fun LibrarySource.toEntity() = LibrarySourceEntity(
     displayName = displayName,
     treeUri = treeUri,
     addedAt = addedAt,
+)
+
+private fun ArtistBrowseRow.toArtistSummary() = ArtistSummary(
+    artist = artistKey,
+    trackCount = trackCount,
+    albumCount = albumCount,
+)
+
+private fun AlbumBrowseRow.toAlbumSummary() = AlbumSummary(
+    albumId = albumId,
+    album = albumKey,
+    artist = artistKey,
+    trackCount = trackCount,
+    totalDurationMs = totalDurationMs,
+)
+
+private fun FolderBrowseRow.toFolderSummary() = FolderSummary(
+    librarySourceId = librarySourceId,
+    sourceLabel = sourceLabel,
+    folderPath = folderPath,
+    trackCount = trackCount,
 )

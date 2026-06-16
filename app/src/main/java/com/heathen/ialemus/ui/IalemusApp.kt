@@ -98,6 +98,7 @@ fun IalemusApp(
                 )
                 AppDestination.SETTINGS -> SettingsScreen(
                     settingsViewModel = settingsViewModel,
+                    libraryViewModel = libraryViewModel,
                     modifier = Modifier.padding(innerPadding),
                 )
             }

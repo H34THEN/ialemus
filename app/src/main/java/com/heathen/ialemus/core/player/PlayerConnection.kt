@@ -10,6 +10,8 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.heathen.ialemus.core.model.ShuffleMode
 import com.heathen.ialemus.core.model.Track
+import com.heathen.ialemus.widget.IalemusPlaybackWidgetProvider
+import com.heathen.ialemus.widget.WidgetStateStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,9 +30,12 @@ class PlayerConnection(
     private val context: Context,
     private val queueRepository: QueueRepository,
     private val shuffleEngine: ShuffleEngine,
+    private val widgetStateStore: WidgetStateStore? = null,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var controller: MediaController? = null
+    private var lastWidgetTitle: String? = null
+    private var lastWidgetPlaying: Boolean? = null
 
     private val _playbackState = MutableStateFlow(PlaybackState())
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
@@ -213,6 +218,20 @@ class PlayerConnection(
                 isConnected = mediaController != null,
             )
         }
+        syncWidget(
+            track = currentTrack,
+            isPlaying = mediaController?.isPlaying == true,
+        )
+    }
+
+    private fun syncWidget(track: Track?, isPlaying: Boolean) {
+        val store = widgetStateStore ?: return
+        val title = track?.title
+        if (title == lastWidgetTitle && isPlaying == lastWidgetPlaying) return
+        lastWidgetTitle = title
+        lastWidgetPlaying = isPlaying
+        store.update(title, track?.displayArtist, isPlaying)
+        IalemusPlaybackWidgetProvider.refreshAll(context)
     }
 
     private fun setPlaybackError(message: String) {

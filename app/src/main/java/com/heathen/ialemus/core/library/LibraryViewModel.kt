@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.heathen.ialemus.AppContainer
+import com.heathen.ialemus.core.model.AlbumSummary
+import com.heathen.ialemus.core.model.ArtistSummary
+import com.heathen.ialemus.core.model.FolderSummary
 import com.heathen.ialemus.core.model.LibrarySource
 import com.heathen.ialemus.core.model.Track
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +40,54 @@ class LibraryViewModel(
         initialValue = emptyList(),
     )
 
+    val artistSummaries: StateFlow<List<ArtistSummary>> = repository.artistSummaries.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val albumSummaries: StateFlow<List<AlbumSummary>> = repository.albumSummaries.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val folderSummaries: StateFlow<List<FolderSummary>> = repository.folderSummaries.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val audiobookTracks: StateFlow<List<Track>> = repository.audiobookTracks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val favoriteTracks: StateFlow<List<Track>> = repository.favoriteTracks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val recentlyAddedTracks: StateFlow<List<Track>> = repository.recentlyAddedTracks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val recentlyPlayedTracks: StateFlow<List<Track>> = repository.recentlyPlayedTracks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    val mostPlayedTracks: StateFlow<List<Track>> = repository.mostPlayedTracks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
     private val _permissionState = MutableStateFlow<MediaPermissionState>(MediaPermissionState.Unknown)
     val permissionState: StateFlow<MediaPermissionState> = _permissionState.asStateFlow()
 
@@ -47,6 +98,27 @@ class LibraryViewModel(
         refreshPermissionState()
         refreshScanState()
     }
+
+    fun tracksForArtist(artist: String): StateFlow<List<Track>> =
+        repository.tracksForArtist(artist).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    fun tracksForAlbum(album: String, artist: String): StateFlow<List<Track>> =
+        repository.tracksForAlbum(album, artist).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    fun tracksForFolder(librarySourceId: String, folderPath: String): StateFlow<List<Track>> =
+        repository.tracksForFolder(librarySourceId, folderPath).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
 
     fun refreshPermissionState() {
         _permissionState.value = repository.resolvePermissionState()
