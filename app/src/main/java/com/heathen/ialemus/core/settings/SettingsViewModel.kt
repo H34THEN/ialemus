@@ -55,6 +55,13 @@ class SettingsViewModel(
             initialValue = NowPlayingVisualizerMode.SIGNAL_BARS,
         )
 
+    val reactiveVisualizerEnabled: StateFlow<Boolean> =
+        settingsRepository.reactiveVisualizerEnabled.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
+
     val trackCount: StateFlow<Int> = container.libraryRepository.trackCount.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -122,6 +129,10 @@ class SettingsViewModel(
 
     fun setNowPlayingVisualizerMode(mode: NowPlayingVisualizerMode) {
         viewModelScope.launch { settingsRepository.setNowPlayingVisualizerMode(mode) }
+    }
+
+    fun setReactiveVisualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setReactiveVisualizerEnabled(enabled) }
     }
 
     fun cycleNowPlayingVisualizerMode(current: NowPlayingVisualizerMode) {

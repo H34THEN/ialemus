@@ -13,8 +13,8 @@ android {
         applicationId = "com.heathen.ialemus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.3.12-mvp1b8-fix"
+        versionCode = 16
+        versionName = "0.3.13-mvp1b9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

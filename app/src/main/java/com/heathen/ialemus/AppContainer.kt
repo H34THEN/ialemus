@@ -1,6 +1,9 @@
 package com.heathen.ialemus
 
 import android.content.Context
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.room.Room
 import com.heathen.ialemus.core.library.LibraryRepository
 import com.heathen.ialemus.core.playlist.PlaylistRepository
@@ -12,6 +15,10 @@ import com.heathen.ialemus.core.player.ShuffleEngine
 import com.heathen.ialemus.core.settings.SettingsRepository
 import com.heathen.ialemus.data.local.IalemusDatabase
 import com.heathen.ialemus.data.local.MIGRATION_3_4
+import com.heathen.ialemus.data.local.MIGRATION_4_5
+import com.heathen.ialemus.core.lyrics.LyricsRepository
+import com.heathen.ialemus.core.lyrics.LyricsScanner
+import com.heathen.ialemus.core.visualizer.AudioVisualizerController
 import com.heathen.ialemus.widget.WidgetStateStore
 
 /**
@@ -26,7 +33,7 @@ class AppContainer(context: Context) {
         IalemusDatabase::class.java,
         "ialemus.db",
     )
-        .addMigrations(MIGRATION_3_4)
+        .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
         .fallbackToDestructiveMigration()
         .build()
 
@@ -35,6 +42,7 @@ class AppContainer(context: Context) {
     val trackOverrideDao = database.trackOverrideDao()
     val librarySourceDao = database.librarySourceDao()
     val playlistDao = database.playlistDao()
+    val lyricsDao = database.lyricsDao()
 
     val settingsRepository = SettingsRepository(appContext)
     val widgetStateStore = WidgetStateStore(appContext)
@@ -51,6 +59,10 @@ class AppContainer(context: Context) {
         playlistDao = playlistDao,
         trackDao = trackDao,
     )
+
+    val lyricsScanner = LyricsScanner(appContext)
+    val lyricsRepository = LyricsRepository(lyricsDao, lyricsScanner)
+    val audioVisualizerController = AudioVisualizerController()
 
     val libraryRepository = LibraryRepository(
         context = appContext,
@@ -72,4 +84,8 @@ class AppContainer(context: Context) {
         shuffleEngine = shuffleEngine,
         widgetStateStore = widgetStateStore,
     )
+
+    fun hasRecordAudioPermission(): Boolean =
+        ContextCompat.checkSelfPermission(appContext, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
 }

@@ -6,7 +6,16 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.8 fix — library persistence, Now Playing layout fixes, Cyberpunk visualizers (`0.3.12-mvp1b8-fix`).
+**Status:** MVP 1B.9 — ANR hardening, reactive visualizer, Image Heavy safe area, lyrics foundation (`0.3.13-mvp1b9`).
+
+### MVP 1B.9 (`0.3.13-mvp1b9`)
+
+- **ANR / stability** — playback position ticker off main `Default` dispatcher (400ms playing / 1s paused); removed `rememberInfiniteTransition` visualizer recomposition; SAF scan skips per-file `MediaMetadataRetriever`; queue preview uses `LazyColumn`; debug `StrictMode` + `StabilityDiagnostics`
+- **Image Heavy safe area** — `WindowInsets.safeDrawing` padding; compact artwork capped at 132dp
+- **Reactive visualizer** — `AudioVisualizerController` attaches to ExoPlayer `audioSessionId` via Android `Visualizer` API when user enables reactive mode + grants optional `RECORD_AUDIO`; simulated playback-reactive fallback otherwise (labeled in HUD)
+- **Visualizer modes** — Signal Bars, Wave Trace, Radar Sweep, Hex Pulse, Spectrum Tunnel, Static HUD (DAP forces Static)
+- **Lyrics foundation** — Room `lyrics` table; manual paste/edit, `.lrc`/`.txt` import, SAF sidecar scan; synced LRC line highlight in Now Playing
+- **Preserved:** local playback, folder-first scan, playlists/metadata/audio tools, slskd, hidden Spotify
 
 ### MVP 1B.8 fix (`0.3.12-mvp1b8-fix`)
 

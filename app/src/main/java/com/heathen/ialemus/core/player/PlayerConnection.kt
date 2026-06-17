@@ -17,6 +17,7 @@ import com.heathen.ialemus.widget.IalemusPlaybackWidgetProvider
 import com.heathen.ialemus.widget.WidgetStateStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -26,6 +27,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.heathen.ialemus.core.diagnostics.StabilityDiagnostics
 
 private const val TAG = "PlayerConnection"
 private const val PLAYBACK_ERROR_MESSAGE = "Playback link failed. Try rescanning this source."
@@ -39,10 +42,13 @@ class PlayerConnection(
     private val widgetStateStore: WidgetStateStore? = null,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val tickerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var controller: MediaController? = null
     private var lastWidgetTitle: String? = null
     private var lastWidgetPlaying: Boolean? = null
     private var sleepTimerJob: kotlinx.coroutines.Job? = null
+    private var positionTickerJob: Job? = null
+    private var lastPublishedPositionMs = -1L
 
     private val _playbackState = MutableStateFlow(PlaybackState())
     val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
@@ -366,12 +372,33 @@ class PlayerConnection(
     }
 
     private fun startPositionUpdates() {
-        scope.launch {
+        positionTickerJob?.cancel()
+        positionTickerJob = tickerScope.launch {
             while (controller != null) {
-                updateFromPlayer()
-                kotlinx.coroutines.delay(500)
+                val playing = controller?.isPlaying == true
+                val intervalMs = if (playing) 400L else 1_000L
+                withContext(Dispatchers.Main.immediate) {
+                    updateFromPlayerThrottled()
+                }
+                StabilityDiagnostics.playbackTicker(intervalMs, playing)
+                delay(intervalMs)
             }
         }
+    }
+
+    private fun updateFromPlayerThrottled() {
+        val mediaController = controller ?: return
+        val positionMs = mediaController.currentPosition
+        val playing = mediaController.isPlaying
+        if (!playing &&
+            positionMs == lastPublishedPositionMs &&
+            _playbackState.value.isPlaying == false &&
+            _playbackState.value.positionMs == positionMs
+        ) {
+            return
+        }
+        lastPublishedPositionMs = positionMs
+        updateFromPlayer()
     }
 
     private fun updateFromPlayer() {

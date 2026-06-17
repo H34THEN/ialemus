@@ -37,6 +37,7 @@ fun IalemusApp(
     settingsViewModel: SettingsViewModel,
     spotifyViewModel: SpotifyViewModel,
     onRequestNotificationPermission: () -> Unit = {},
+    onRequestRecordAudioPermission: () -> Unit = {},
 ) {
     var destination by rememberSaveable {
         mutableStateOf(AppDestination.NOW_PLAYING)
@@ -132,6 +133,7 @@ fun IalemusApp(
                     spotifyViewModel = spotifyViewModel,
                     libraryViewModel = libraryViewModel,
                     onOpenSpotifyExperimental = { destination = AppDestination.STREAMING },
+                    onRequestRecordAudioPermission = onRequestRecordAudioPermission,
                     modifier = Modifier.padding(innerPadding),
                 )
             }

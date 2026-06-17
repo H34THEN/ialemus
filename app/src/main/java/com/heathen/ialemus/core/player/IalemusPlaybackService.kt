@@ -23,6 +23,7 @@ class IalemusPlaybackService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true)
             .build()
         player = exoPlayer
+        PlaybackAudioSessionHolder.update(exoPlayer.audioSessionId)
         mediaSession = MediaSession.Builder(this, exoPlayer).build()
         // TODO: ReplayGain, lyrics, output device info, persistent queue restore, Android Auto.
     }
@@ -30,6 +31,7 @@ class IalemusPlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
+        PlaybackAudioSessionHolder.clear()
         mediaSession?.release()
         player?.release()
         mediaSession = null

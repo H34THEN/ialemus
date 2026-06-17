@@ -3,6 +3,7 @@ package com.heathen.ialemus.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.heathen.ialemus.data.local.dao.LibrarySourceDao
+import com.heathen.ialemus.data.local.dao.LyricsDao
 import com.heathen.ialemus.data.local.dao.PlaylistDao
 import com.heathen.ialemus.data.local.dao.TrackDao
 import com.heathen.ialemus.data.local.dao.TrackOverrideDao
@@ -10,6 +11,7 @@ import com.heathen.ialemus.data.local.dao.TrackStatsDao
 import com.heathen.ialemus.data.local.entity.LibrarySourceEntity
 import com.heathen.ialemus.data.local.entity.PlaylistEntity
 import com.heathen.ialemus.data.local.entity.PlaylistTrackEntity
+import com.heathen.ialemus.data.local.entity.LyricsEntity
 import com.heathen.ialemus.data.local.entity.TrackEntity
 import com.heathen.ialemus.data.local.entity.TrackOverrideEntity
 import com.heathen.ialemus.data.local.entity.TrackStatsEntity
@@ -22,8 +24,9 @@ import com.heathen.ialemus.data.local.entity.TrackStatsEntity
         TrackOverrideEntity::class,
         PlaylistEntity::class,
         PlaylistTrackEntity::class,
+        LyricsEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class IalemusDatabase : RoomDatabase() {
@@ -32,4 +35,5 @@ abstract class IalemusDatabase : RoomDatabase() {
     abstract fun librarySourceDao(): LibrarySourceDao
     abstract fun trackOverrideDao(): TrackOverrideDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun lyricsDao(): LyricsDao
 }

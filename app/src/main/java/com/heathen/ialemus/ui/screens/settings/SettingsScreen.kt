@@ -68,6 +68,7 @@ fun SettingsScreen(
     spotifyViewModel: SpotifyViewModel,
     libraryViewModel: LibraryViewModel,
     onOpenSpotifyExperimental: () -> Unit = {},
+    onRequestRecordAudioPermission: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tokens = LocalIalemusTokens.current
@@ -77,6 +78,7 @@ fun SettingsScreen(
     val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
     val nowPlayingLayoutMode by settingsViewModel.nowPlayingLayoutMode.collectAsStateWithLifecycle()
     val nowPlayingVisualizerMode by settingsViewModel.nowPlayingVisualizerMode.collectAsStateWithLifecycle()
+    val reactiveVisualizerEnabled by settingsViewModel.reactiveVisualizerEnabled.collectAsStateWithLifecycle()
     val spotifyUi by spotifyViewModel.uiState.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
     val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
@@ -219,6 +221,21 @@ fun SettingsScreen(
                 selected = nowPlayingVisualizerMode,
                 dapMode = dapMode,
                 onSelect = settingsViewModel::setNowPlayingVisualizerMode,
+            )
+            RowSwitch(
+                label = "Reactive audio visualizer (optional RECORD_AUDIO for session capture — not mic input)",
+                checked = reactiveVisualizerEnabled,
+                onCheckedChange = { enabled ->
+                    if (enabled) onRequestRecordAudioPermission()
+                    else settingsViewModel.setReactiveVisualizerEnabled(false)
+                },
+            )
+            Text(
+                text = "Needed only for reactive audio visualizer. Music playback works without it. " +
+                    "Falls back to simulated signal if unavailable.",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.textMuted,
+                modifier = Modifier.padding(bottom = 8.dp),
             )
             Text(
                 text = "THEME SELECT",

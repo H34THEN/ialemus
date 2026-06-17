@@ -91,7 +91,13 @@ Background rescans via WorkManager.
 
 ### 3.3 Now Playing screen
 
-**Responsibility:** Primary playback HUD (MVP 1B.3, usability pass MVP 1B.8).
+**Responsibility:** Primary playback HUD (MVP 1B.3, usability pass MVP 1B.8, stability/visualizer/lyrics MVP 1B.9).
+
+**Safe area (MVP 1B.9):** Now Playing layouts apply `WindowInsets.safeDrawing` so Image Heavy and Cyberpunk HUD do not clip behind the status bar on edge-to-edge HiBy R4.
+
+**Visualizer (MVP 1B.9):** `AudioVisualizerController` reads ExoPlayer `audioSessionId` and attaches Android `Visualizer` when user enables **Reactive audio visualizer** in Settings (optional `RECORD_AUDIO` — session capture, not microphone ambient input). Falls back to playback-reactive simulated bars/waveform labeled **Simulated signal**. Modes: Signal Bars, Wave Trace, Radar Sweep, Hex Pulse, Spectrum Tunnel, Static HUD. DAP Mode forces Static HUD.
+
+**Lyrics (MVP 1B.9):** Room `LyricsEntity`; sources: manual paste, `.lrc`/`.txt` import, SAF sidecar scan. Synced LRC highlights current line by playback position. No web scraping or bundled copyrighted lyrics. Embedded tag extraction TODO.
 
 **Above-the-fold transport (MVP 1B.8):** All layout modes show `NowPlayingPrimaryControls` (shuffle, previous, play/pause, next, repeat) without scrolling on HiBy R4 portrait. Fixed header column + scrollable panels below.
 
@@ -107,7 +113,7 @@ Background rescans via WorkManager.
 | Playlist / Radio | Queue-first with seek + controls above fold |
 | Cyberpunk HUD | EVA/NERV panels, level meter, retro transport frame |
 
-**Collapsible panels:** Local Signal / Metadata (original vs override values, play count), Queue / Up Next, Track Cleanup (title/artist/album overrides), Lyrics (placeholder), **Audio Tools** (speed, sleep timer, session readout).
+**Collapsible panels:** Local Signal / Metadata (original vs override values, play count), Queue / Up Next, Track Cleanup (title/artist/album overrides), **Lyrics** (paste/import/sidecar/synced LRC), **Audio Tools** (speed, sleep timer, session readout).
 
 **Playlists (MVP 1B.8):** Add to Playlist action on Now Playing; Library → Playlists tab for create/import/detail.
 

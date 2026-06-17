@@ -46,6 +46,10 @@ class SettingsRepository(context: Context) {
             ?: NowPlayingVisualizerMode.SIGNAL_BARS
     }
 
+    val reactiveVisualizerEnabled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[KEY_REACTIVE_VISUALIZER] ?: false
+    }
+
     val spotifySettings: Flow<SpotifySettings> = dataStore.data.map { prefs ->
         SpotifySettings(
             clientId = prefs[KEY_SPOTIFY_CLIENT_ID].orEmpty(),
@@ -94,6 +98,10 @@ class SettingsRepository(context: Context) {
         dataStore.edit { prefs -> prefs[KEY_NOW_PLAYING_VISUALIZER] = mode.name }
     }
 
+    suspend fun setReactiveVisualizerEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[KEY_REACTIVE_VISUALIZER] = enabled }
+    }
+
     suspend fun saveSpotifySettings(settings: SpotifySettings) {
         dataStore.edit { prefs ->
             if (settings.clientId.isBlank()) {
@@ -129,6 +137,7 @@ class SettingsRepository(context: Context) {
         private val KEY_SHOW_MINI_PLAYER = booleanPreferencesKey("show_mini_player_bar")
         private val KEY_NOW_PLAYING_LAYOUT = stringPreferencesKey("now_playing_layout_mode")
         private val KEY_NOW_PLAYING_VISUALIZER = stringPreferencesKey("now_playing_visualizer_mode")
+        private val KEY_REACTIVE_VISUALIZER = booleanPreferencesKey("reactive_visualizer_enabled")
         private val KEY_SPOTIFY_CLIENT_ID = stringPreferencesKey("spotify_client_id")
         private val KEY_SPOTIFY_DISPLAY_NAME = stringPreferencesKey("spotify_display_name")
         private val KEY_SPOTIFY_CONNECTED = booleanPreferencesKey("spotify_connected")

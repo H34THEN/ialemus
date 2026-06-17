@@ -65,6 +65,8 @@ import com.heathen.ialemus.ui.components.HudOutlinedTextField
 import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.components.TrackRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.util.albumArtUri
 import com.heathen.ialemus.ui.util.formatDuration
@@ -111,8 +113,8 @@ fun NowPlayingArtworkPanel(
     val tokens = LocalIalemusTokens.current
     val artUri = track.albumArtUri()
     val maxArtHeight = when {
-        imageHeavy && compact -> 168.dp
-        imageHeavy -> 220.dp
+        imageHeavy && compact -> 132.dp
+        imageHeavy -> 200.dp
         compact -> 200.dp
         else -> 280.dp
     }
@@ -693,13 +695,19 @@ fun NowPlayingQueuePreview(
         statusLabel = "${queueItems.size} TRACKS",
         modifier = modifier,
     ) {
-        queueItems.take(previewCount).forEach { item ->
-            TrackRow(
-                track = item.track,
-                onClick = { onPlayQueueItem(item.queueIndex) },
-                isPlaying = item.isCurrent,
-                index = item.queueIndex,
-            )
+        val previewItems = queueItems.take(previewCount)
+        LazyColumn(
+            modifier = Modifier.heightIn(max = if (expanded) 360.dp else 220.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            items(previewItems, key = { it.queueIndex }) { item ->
+                TrackRow(
+                    track = item.track,
+                    onClick = { onPlayQueueItem(item.queueIndex) },
+                    isPlaying = item.isCurrent,
+                    index = item.queueIndex,
+                )
+            }
         }
         if (queueItems.size > previewCount) {
             Text(

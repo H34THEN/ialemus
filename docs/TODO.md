@@ -172,6 +172,29 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - MeTube may still not render in WebView on some devices — use external browser
 - Subresource warnings (fonts, API calls) are normal for SPAs and hidden in diagnostics
 
+## MVP 1B.9 — ANR hardening, reactive visualizer, lyrics (completed)
+
+- [x] Playback position ticker off main thread + throttled updates
+- [x] Removed infinite-transition visualizer recomposition; canvas driven by `AudioVisualizerState`
+- [x] SAF scan skips per-file `MediaMetadataRetriever` during bulk crawl
+- [x] Queue preview `LazyColumn`; lyrics synced list `LazyColumn`
+- [x] Debug `StrictMode` + `StabilityDiagnostics` logging
+- [x] Image Heavy `WindowInsets.safeDrawing` + compact art cap (132dp)
+- [x] `AudioVisualizerController` — ExoPlayer session `Visualizer` API + simulated fallback
+- [x] Settings: Reactive Audio Visualizer toggle (optional `RECORD_AUDIO`, user-triggered)
+- [x] Lyrics Room entity/DAO/repository/parser/scanner
+- [x] Now Playing lyrics panel: paste, import, sidecar scan, synced LRC highlight
+- [ ] Embedded lyrics extraction (TODO — tag format varies)
+- [ ] Manual HiBy R4 acceptance on device
+- [ ] Future performance profiling on HiBy R4 (Systrace / Android Studio Profiler)
+
+### Known limitations (MVP 1B.9)
+
+- Reactive visualizer requires optional `RECORD_AUDIO` for Android `Visualizer` session attach — not ambient mic capture
+- Simulated signal fallback labeled in Cyberpunk HUD when reactive unavailable
+- Embedded lyrics not extracted yet; sidecar/manual/import paths are reliable
+- SAF sidecar lookup requires same-folder sibling files via tree URI parent
+
 ## MVP 1B.8 fix — library persistence + Now Playing layout fixes (completed)
 
 - [x] Safe folder rescan — empty/failed scans preserve existing Room tracks
@@ -374,7 +397,7 @@ Handoff for next Cursor pass:
 - [ ] Richer queue UI (remove/reorder)
 - [ ] Favorite persistence polish across screens
 - [ ] Play count threshold polish (50% / 4 min rule)
-- [ ] Local lyrics panel
+- [x] Local lyrics panel (MVP 1B.9 — manual, import, sidecar, synced LRC highlight)
 - [ ] Widget
 - [ ] Landscape two-pane Now Playing
 - [ ] WorkManager background rescan

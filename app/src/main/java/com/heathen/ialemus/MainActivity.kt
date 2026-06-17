@@ -38,6 +38,12 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission(),
     ) { /* optional for MVP 1A */ }
 
+    private val recordAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        settingsViewModel.setReactiveVisualizerEnabled(granted)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,6 +59,7 @@ class MainActivity : ComponentActivity() {
                 settingsViewModel = settingsViewModel,
                 spotifyViewModel = spotifyViewModel,
                 onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
+                onRequestRecordAudioPermission = ::requestRecordAudioForVisualizer,
             )
         }
     }
@@ -81,6 +88,17 @@ class MainActivity : ComponentActivity() {
     private fun startPlaybackService() {
         val intent = Intent(this, IalemusPlaybackService::class.java)
         ContextCompat.startForegroundService(this, intent)
+    }
+
+    private fun requestRecordAudioForVisualizer() {
+        val permission = Manifest.permission.RECORD_AUDIO
+        if (ContextCompat.checkSelfPermission(this, permission) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            settingsViewModel.setReactiveVisualizerEnabled(true)
+            return
+        }
+        recordAudioPermissionLauncher.launch(permission)
     }
 
     private fun requestNotificationPermissionIfNeeded() {

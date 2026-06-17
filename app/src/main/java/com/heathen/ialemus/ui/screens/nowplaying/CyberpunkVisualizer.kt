@@ -1,14 +1,9 @@
 package com.heathen.ialemus.ui.screens.nowplaying
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,16 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
 import com.heathen.ialemus.core.model.NowPlayingVisualizerMode
 import com.heathen.ialemus.core.player.PlaybackState
+import com.heathen.ialemus.core.visualizer.AudioVisualizerState
+import com.heathen.ialemus.ui.components.HudButton
+import com.heathen.ialemus.ui.components.HudButtonAccent
 import com.heathen.ialemus.ui.components.HudPanel
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import kotlin.math.PI
@@ -37,6 +35,7 @@ import kotlin.math.sin
 fun CyberpunkVisualizerPanel(
     mode: NowPlayingVisualizerMode,
     playbackState: PlaybackState,
+    visualizerState: AudioVisualizerState,
     dapMode: Boolean,
     onCycleMode: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -48,7 +47,12 @@ fun CyberpunkVisualizerPanel(
         mode
     }
     val animEnabled = playbackState.isPlaying && !dapMode && effectiveMode != NowPlayingVisualizerMode.STATIC_HUD
-    val phase = rememberPlaybackPhase(animEnabled, playbackState.positionMs)
+    val intensity = remember(visualizerState.barLevels) {
+        visualizerState.barLevels.average().toFloat().coerceIn(0.05f, 1f)
+    }
+    val phase = remember(playbackState.positionMs, intensity) {
+        ((playbackState.positionMs % 4000L) / 4000f + intensity * 0.25f) % 1f
+    }
 
     HudPanel(
         title = "Signal Visualizer",
@@ -56,7 +60,7 @@ fun CyberpunkVisualizerPanel(
         subtitle = effectiveMode.label,
         modifier = modifier,
     ) {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
@@ -64,25 +68,67 @@ fun CyberpunkVisualizerPanel(
                 .padding(4.dp),
         ) {
             when (effectiveMode) {
-                NowPlayingVisualizerMode.SIGNAL_BARS -> SignalBarsVisualizer(phase, playbackState.isPlaying, tokens.accentActive, tokens.glowColor)
-                NowPlayingVisualizerMode.RADAR_SWEEP -> RadarSweepVisualizer(phase, playbackState.isPlaying, tokens.accentActive, tokens.warningColor)
-                NowPlayingVisualizerMode.WAVE_TRACE -> WaveTraceVisualizer(phase, playbackState.isPlaying, tokens.glowColor, tokens.accentActive)
-                NowPlayingVisualizerMode.HEX_PULSE -> HexPulseVisualizer(phase, playbackState.isPlaying, tokens.accentActive, tokens.hudBorderColor)
-                NowPlayingVisualizerMode.SPECTRUM_TUNNEL -> SpectrumTunnelVisualizer(phase, playbackState.isPlaying, tokens.accentActive, tokens.glowColor)
-                NowPlayingVisualizerMode.STATIC_HUD -> StaticHudVisualizer(playbackState.isPlaying, tokens.accentActive, tokens.textMuted)
+                NowPlayingVisualizerMode.SIGNAL_BARS -> SignalBarsVisualizer(
+                    levels = visualizerState.barLevels,
+                    playing = animEnabled,
+                    active = tokens.accentActive,
+                    glow = tokens.glowColor,
+                )
+                NowPlayingVisualizerMode.RADAR_SWEEP -> RadarSweepVisualizer(
+                    phase = phase,
+                    intensity = intensity,
+                    playing = animEnabled,
+                    active = tokens.accentActive,
+                    warning = tokens.warningColor,
+                )
+                NowPlayingVisualizerMode.WAVE_TRACE -> WaveTraceVisualizer(
+                    waveform = visualizerState.waveform,
+                    phase = phase,
+                    playing = animEnabled,
+                    glow = tokens.glowColor,
+                    active = tokens.accentActive,
+                )
+                NowPlayingVisualizerMode.HEX_PULSE -> HexPulseVisualizer(
+                    intensity = intensity,
+                    phase = phase,
+                    playing = animEnabled,
+                    active = tokens.accentActive,
+                    border = tokens.hudBorderColor,
+                )
+                NowPlayingVisualizerMode.SPECTRUM_TUNNEL -> SpectrumTunnelVisualizer(
+                    levels = visualizerState.barLevels,
+                    phase = phase,
+                    playing = animEnabled,
+                    active = tokens.accentActive,
+                    glow = tokens.glowColor,
+                )
+                NowPlayingVisualizerMode.STATIC_HUD -> StaticHudVisualizer(
+                    playing = playbackState.isPlaying,
+                    active = tokens.accentActive,
+                    muted = tokens.textMuted,
+                )
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 6.dp)) {
+            val signalLabel = when {
+                visualizerState.isReactiveAudio -> "REACTIVE AUDIO"
+                visualizerState.fallbackReason != null -> visualizerState.fallbackReason.uppercase()
+                else -> "SIMULATED SIGNAL"
+            }
             Text(
-                text = if (playbackState.isPlaying) "SIGNAL LIVE · ${playbackState.playbackSpeed}x" else "SIGNAL IDLE",
+                text = if (playbackState.isPlaying) {
+                    "$signalLabel · ${playbackState.playbackSpeed}x"
+                } else {
+                    "SIGNAL IDLE"
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = if (playbackState.isPlaying) tokens.glowColor else tokens.textMuted,
             )
             if (onCycleMode != null) {
-                com.heathen.ialemus.ui.components.HudButton(
+                HudButton(
                     label = "Cycle Visualizer",
                     onClick = onCycleMode,
-                    accent = com.heathen.ialemus.ui.components.HudButtonAccent.Neutral,
+                    accent = HudButtonAccent.Neutral,
                 )
             }
         }
@@ -90,30 +136,18 @@ fun CyberpunkVisualizerPanel(
 }
 
 @Composable
-private fun rememberPlaybackPhase(animEnabled: Boolean, positionMs: Long): Float {
-    val transition = rememberInfiniteTransition(label = "viz")
-    val animated by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = if (animEnabled) 1800 else 60_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "vizPhase",
-    )
-    val positionPhase = (positionMs % 4000L) / 4000f
-    return if (animEnabled) (animated + positionPhase) % 1f else positionPhase
-}
-
-@Composable
-private fun SignalBarsVisualizer(phase: Float, playing: Boolean, active: androidx.compose.ui.graphics.Color, glow: androidx.compose.ui.graphics.Color) {
+private fun SignalBarsVisualizer(
+    levels: List<Float>,
+    playing: Boolean,
+    active: Color,
+    glow: Color,
+) {
     Canvas(Modifier.fillMaxSize()) {
-        val barCount = 16
+        val barCount = levels.size.coerceAtLeast(1)
         val barWidth = size.width / (barCount * 1.6f)
         val alphaBase = if (playing) 1f else 0.35f
-        repeat(barCount) { index ->
-            val wave = sin((index * 0.55f + phase * PI * 2).toDouble()).toFloat()
-            val height = size.height * (0.25f + 0.65f * ((wave + 1f) / 2f)) * alphaBase
+        levels.forEachIndexed { index, level ->
+            val height = size.height * level.coerceIn(0.08f, 1f) * alphaBase
             val left = index * (barWidth * 1.6f) + barWidth * 0.3f
             drawRect(
                 color = if (index % 3 == 0) glow else active,
@@ -126,10 +160,16 @@ private fun SignalBarsVisualizer(phase: Float, playing: Boolean, active: android
 }
 
 @Composable
-private fun RadarSweepVisualizer(phase: Float, playing: Boolean, active: androidx.compose.ui.graphics.Color, warning: androidx.compose.ui.graphics.Color) {
+private fun RadarSweepVisualizer(
+    phase: Float,
+    intensity: Float,
+    playing: Boolean,
+    active: Color,
+    warning: Color,
+) {
     Canvas(Modifier.fillMaxSize()) {
         val center = Offset(size.width / 2f, size.height / 2f)
-        val radius = size.minDimension * 0.42f
+        val radius = size.minDimension * (0.35f + intensity * 0.12f)
         drawCircle(color = active.copy(alpha = 0.2f), radius = radius, center = center, style = Stroke(1.5f))
         drawCircle(color = active.copy(alpha = 0.12f), radius = radius * 0.66f, center = center, style = Stroke(1f))
         if (playing) {
@@ -139,9 +179,10 @@ private fun RadarSweepVisualizer(phase: Float, playing: Boolean, active: android
         }
         repeat(6) { i ->
             val a = (i / 6f) * PI.toFloat() * 2f
+            val dotRadius = 2f + intensity * 3f
             drawCircle(
                 color = active,
-                radius = 3f,
+                radius = dotRadius,
                 center = Offset(center.x + cos(a) * radius * 0.7f, center.y + sin(a) * radius * 0.7f),
                 alpha = if (playing) 0.9f else 0.3f,
             )
@@ -150,14 +191,23 @@ private fun RadarSweepVisualizer(phase: Float, playing: Boolean, active: android
 }
 
 @Composable
-private fun WaveTraceVisualizer(phase: Float, playing: Boolean, glow: androidx.compose.ui.graphics.Color, active: androidx.compose.ui.graphics.Color) {
+private fun WaveTraceVisualizer(
+    waveform: List<Float>,
+    phase: Float,
+    playing: Boolean,
+    glow: Color,
+    active: Color,
+) {
     Canvas(Modifier.fillMaxSize()) {
         val path = Path()
-        val steps = 48
+        val steps = waveform.size.coerceAtLeast(16)
         path.moveTo(0f, size.height / 2f)
         repeat(steps + 1) { step ->
             val x = size.width * step / steps
-            val y = size.height / 2f + sin((step * 0.35f + phase * PI * 2).toDouble()).toFloat() * size.height * 0.32f * (if (playing) 1f else 0.2f)
+            val sample = waveform.getOrNull(step % waveform.size) ?: 0f
+            val fallback = sin((step * 0.35f + phase * PI * 2).toDouble()).toFloat()
+            val amp = if (waveform.isNotEmpty()) sample else fallback
+            val y = size.height / 2f + amp * size.height * 0.32f * (if (playing) 1f else 0.2f)
             path.lineTo(x, y)
         }
         drawPath(path, color = glow, style = Stroke(2f), alpha = if (playing) 1f else 0.4f)
@@ -166,12 +216,18 @@ private fun WaveTraceVisualizer(phase: Float, playing: Boolean, glow: androidx.c
 }
 
 @Composable
-private fun HexPulseVisualizer(phase: Float, playing: Boolean, active: androidx.compose.ui.graphics.Color, border: androidx.compose.ui.graphics.Color) {
+private fun HexPulseVisualizer(
+    intensity: Float,
+    phase: Float,
+    playing: Boolean,
+    active: Color,
+    border: Color,
+) {
     Canvas(Modifier.fillMaxSize()) {
         val cx = size.width / 2f
         val cy = size.height / 2f
         repeat(3) { ring ->
-            val pulse = if (playing) 0.85f + 0.15f * sin((phase * PI * 2 + ring).toDouble()).toFloat() else 0.5f
+            val pulse = if (playing) 0.75f + 0.25f * intensity + 0.1f * sin((phase * PI * 2 + ring).toDouble()).toFloat() else 0.5f
             val radius = size.minDimension * (0.18f + ring * 0.14f) * pulse
             drawHexagon(center = Offset(cx, cy), radius = radius, color = if (ring == 1) active else border, alpha = if (playing) 0.8f else 0.35f)
         }
@@ -179,10 +235,17 @@ private fun HexPulseVisualizer(phase: Float, playing: Boolean, active: androidx.
 }
 
 @Composable
-private fun SpectrumTunnelVisualizer(phase: Float, playing: Boolean, active: androidx.compose.ui.graphics.Color, glow: androidx.compose.ui.graphics.Color) {
+private fun SpectrumTunnelVisualizer(
+    levels: List<Float>,
+    phase: Float,
+    playing: Boolean,
+    active: Color,
+    glow: Color,
+) {
     Canvas(Modifier.fillMaxSize()) {
         repeat(8) { band ->
-            val t = (band + phase) % 1f
+            val level = levels.getOrElse(band % levels.size) { 0.2f }
+            val t = ((band + phase + level * 0.2f) % 1f)
             val inset = size.width * t * 0.45f
             val top = size.height * 0.15f + band * 4f
             val bottom = size.height * 0.85f - band * 4f
@@ -190,7 +253,7 @@ private fun SpectrumTunnelVisualizer(phase: Float, playing: Boolean, active: and
                 color = if (band % 2 == 0) active else glow,
                 topLeft = Offset(inset, top),
                 size = androidx.compose.ui.geometry.Size(size.width - inset * 2f, bottom - top),
-                alpha = (if (playing) 0.55f else 0.2f) * (1f - t * 0.7f),
+                alpha = (if (playing) 0.55f else 0.2f) * (1f - t * 0.7f) * level.coerceIn(0.3f, 1f),
                 style = Stroke(1.5f),
             )
         }
@@ -198,7 +261,7 @@ private fun SpectrumTunnelVisualizer(phase: Float, playing: Boolean, active: and
 }
 
 @Composable
-private fun StaticHudVisualizer(playing: Boolean, active: androidx.compose.ui.graphics.Color, muted: androidx.compose.ui.graphics.Color) {
+private fun StaticHudVisualizer(playing: Boolean, active: Color, muted: Color) {
     Canvas(Modifier.fillMaxSize()) {
         val gridColor = if (playing) active.copy(alpha = 0.35f) else muted.copy(alpha = 0.25f)
         val step = size.width / 8f
@@ -216,7 +279,12 @@ private fun StaticHudVisualizer(playing: Boolean, active: androidx.compose.ui.gr
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHexagon(center: Offset, radius: Float, color: androidx.compose.ui.graphics.Color, alpha: Float) {
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHexagon(
+    center: Offset,
+    radius: Float,
+    color: Color,
+    alpha: Float,
+) {
     val path = Path()
     repeat(6) { i ->
         val angle = (PI / 3.0 * i - PI / 6.0).toFloat()

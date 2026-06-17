@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import com.heathen.ialemus.core.model.AlbumSummary
 import com.heathen.ialemus.core.model.ArtistSummary
+import com.heathen.ialemus.core.diagnostics.StabilityDiagnostics
 import com.heathen.ialemus.core.model.FolderSummary
 import com.heathen.ialemus.core.model.LibrarySource
 import com.heathen.ialemus.core.model.LibrarySourceType
@@ -154,6 +155,8 @@ class LibraryRepository(
 
     private suspend fun scanSources(sources: List<LibrarySource>): LibraryScanResult {
         return try {
+            StabilityDiagnostics.scanStart(sources.size)
+            val scanStartedAt = System.currentTimeMillis()
             safAccessHelper.restorePersistedFolderPermissions(sources)
             var total = 0
             val warnings = mutableListOf<String>()
@@ -188,6 +191,7 @@ class LibraryRepository(
                 total += scanned.size
             }
             val label = if (sources.size == 1) sources.first().displayName else "Selected folders"
+            StabilityDiagnostics.scanEnd(total, System.currentTimeMillis() - scanStartedAt)
             LibraryScanResult.Success(total, label, warnings)
         } catch (error: Exception) {
             LibraryScanResult.Error(error.message ?: "Folder scan failed.")

@@ -49,7 +49,8 @@ class SafFolderScanner(
                 )
             } else if (child.isFile && isAudioFile(child)) {
                 val uri = child.uri.toString()
-                val durationMs = extractDurationMs(child.uri)
+                // Skip per-file MediaMetadataRetriever during bulk scan to avoid IO storms / UI jank.
+                val durationMs = 0L
                 if (durationMs in 1..<minimumDurationMs) continue
                 val fileName = child.name ?: "Unknown"
                 val title = fileName.substringBeforeLast('.').ifBlank { fileName }

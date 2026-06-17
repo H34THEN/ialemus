@@ -92,6 +92,13 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.9 — ANR hardening, reactive visualizer, lyrics (shipped — `0.3.13-mvp1b9`)
+
+- Playback/scan performance hardening; debug StrictMode
+- Reactive audio visualizer (session attach + simulated fallback)
+- Image Heavy safe-area fix
+- Lyrics foundation (Room + Now Playing panel)
+
 ### MVP 1B.8 fix — library persistence + visualizers (shipped — `0.3.12-mvp1b8-fix`)
 
 - Safe rescan preserves Room tracks when SAF unreachable

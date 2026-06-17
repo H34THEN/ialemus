@@ -32,7 +32,11 @@ import com.heathen.ialemus.ui.components.HudStatusChip
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.theme.isCompactWidth
 import com.heathen.ialemus.ui.theme.screenHorizontalPadding
-import com.heathen.ialemus.ui.util.formatDuration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import com.heathen.ialemus.core.visualizer.AudioVisualizerState
+import com.heathen.ialemus.data.local.entity.LyricsEntity
 
 data class NowPlayingEmptyCallbacks(
     val trackCount: Int = 0,
@@ -63,8 +67,11 @@ fun NowPlayingLayoutRouter(
     playCount: Int? = null,
     lastPlayedAt: Long? = null,
     visualizerMode: NowPlayingVisualizerMode = NowPlayingVisualizerMode.SIGNAL_BARS,
+    visualizerState: AudioVisualizerState = AudioVisualizerState(),
     dapMode: Boolean = false,
     onCycleVisualizer: (() -> Unit)? = null,
+    lyrics: LyricsEntity? = null,
+    sourceTreeUri: String? = null,
     modifier: Modifier = Modifier,
 ) {
     when (layoutMode) {
@@ -72,29 +79,35 @@ fun NowPlayingLayoutRouter(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
             playCount, lastPlayedAt, modifier, imageHeavy = false, textFirst = false,
+            lyrics, sourceTreeUri,
         )
         NowPlayingLayoutMode.IMAGE_HEAVY -> BalancedNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
             playCount, lastPlayedAt, modifier, imageHeavy = true, textFirst = false,
+            lyrics, sourceTreeUri,
         )
         NowPlayingLayoutMode.TEXT_METADATA -> BalancedNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
             playCount, lastPlayedAt, modifier, imageHeavy = false, textFirst = true,
+            lyrics, sourceTreeUri,
         )
         NowPlayingLayoutMode.PLAYLIST_RADIO -> PlaylistRadioNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
-            playCount, lastPlayedAt, modifier,
+            playCount, lastPlayedAt, modifier, lyrics, sourceTreeUri,
         )
         NowPlayingLayoutMode.CYBERPUNK_HUD -> CyberpunkHudNowPlayingLayout(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
             playCount, lastPlayedAt, modifier,
             visualizerMode = visualizerMode,
+            visualizerState = visualizerState,
             dapMode = dapMode,
             onCycleVisualizer = onCycleVisualizer,
+            lyrics = lyrics,
+            sourceTreeUri = sourceTreeUri,
         )
     }
 }
@@ -128,6 +141,8 @@ private fun NowPlayingLayoutScaffold(
     imageHeavy: Boolean = false,
     textFirst: Boolean = false,
     topContent: (@Composable () -> Unit)? = null,
+    lyrics: LyricsEntity? = null,
+    sourceTreeUri: String? = null,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
@@ -138,6 +153,7 @@ private fun NowPlayingLayoutScaffold(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontalPad)
             .padding(vertical = 8.dp),
     ) {
@@ -238,22 +254,20 @@ private fun NowPlayingLayoutScaffold(
                 },
             )
 
-            HudCollapsiblePanel(
-                title = "Lyrics",
-                sectionTag = "LYRICS",
-                subtitle = "Local lyrics panel — coming soon.",
+            NowPlayingLyricsPanel(
+                track = track,
+                playbackState = playbackState,
+                lyrics = lyrics,
                 expanded = panelState.lyricsExpanded,
                 onToggle = {
                     onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
                 },
-                statusLabel = "TODO",
-            ) {
-                Text(
-                    text = "Lyrics placeholder for MVP 1B.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalIalemusTokens.current.textMuted,
-                )
-            }
+                onSaveManual = { text -> playerViewModel.saveManualLyrics(track.id, text) },
+                onClear = { playerViewModel.clearLyrics(track.id) },
+                onScanSidecar = { playerViewModel.scanSidecarLyrics(track, sourceTreeUri) },
+                onTryEmbedded = { playerViewModel.tryEmbeddedLyrics(track) },
+                onImportFile = { uri -> playerViewModel.importLyricsFile(track.id, uri) },
+            )
 
             NowPlayingTrackCleanupPanel(
                 track = track,
@@ -298,12 +312,15 @@ private fun BalancedNowPlayingLayout(
     modifier: Modifier = Modifier,
     imageHeavy: Boolean,
     textFirst: Boolean,
+    lyrics: LyricsEntity? = null,
+    sourceTreeUri: String? = null,
 ) {
     val effectivePanelState = if (textFirst) panelState.copy(metadataExpanded = true) else panelState
     NowPlayingLayoutScaffold(
         uiState, playerViewModel, onOpenLibrary, onOpenQueue, effectivePanelState, onPanelStateChange,
         override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
         playCount, lastPlayedAt, modifier, imageHeavy = imageHeavy, textFirst = textFirst,
+        lyrics = lyrics, sourceTreeUri = sourceTreeUri,
     )
 }
 
@@ -323,6 +340,8 @@ private fun PlaylistRadioNowPlayingLayout(
     playCount: Int?,
     lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
+    lyrics: LyricsEntity? = null,
+    sourceTreeUri: String? = null,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
@@ -330,7 +349,11 @@ private fun PlaylistRadioNowPlayingLayout(
     val scrollState = rememberScrollState()
 
     Column(
-        modifier = modifier.fillMaxSize().padding(horizontalPad).padding(vertical = 8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(horizontalPad)
+            .padding(vertical = 8.dp),
     ) {
         NowPlayingStatusRow(track = track, playbackState = playbackState)
         if (track == null) {
@@ -375,7 +398,9 @@ private fun PlaylistRadioNowPlayingLayout(
                 onToggleFavorite = { playerViewModel.toggleFavorite(track.id, !uiState.isFavorite) },
                 onOpenQueue = onOpenQueue,
                 onAddToPlaylist = onAddToPlaylist,
-                onToggleLyrics = {},
+                onToggleLyrics = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
                 onToggleMetadata = {
                     onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
                 },
@@ -427,6 +452,20 @@ private fun PlaylistRadioNowPlayingLayout(
                 style = MaterialTheme.typography.labelSmall,
                 color = LocalIalemusTokens.current.textMuted,
             )
+            NowPlayingLyricsPanel(
+                track = track,
+                playbackState = playbackState,
+                lyrics = lyrics,
+                expanded = panelState.lyricsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
+                onSaveManual = { text -> playerViewModel.saveManualLyrics(track.id, text) },
+                onClear = { playerViewModel.clearLyrics(track.id) },
+                onScanSidecar = { playerViewModel.scanSidecarLyrics(track, sourceTreeUri) },
+                onTryEmbedded = { playerViewModel.tryEmbeddedLyrics(track) },
+                onImportFile = { uri -> playerViewModel.importLyricsFile(track.id, uri) },
+            )
             NowPlayingTrackCleanupPanel(
                 track = track,
                 override = override,
@@ -458,8 +497,11 @@ private fun CyberpunkHudNowPlayingLayout(
     lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
     visualizerMode: NowPlayingVisualizerMode,
+    visualizerState: AudioVisualizerState,
     dapMode: Boolean,
     onCycleVisualizer: (() -> Unit)?,
+    lyrics: LyricsEntity? = null,
+    sourceTreeUri: String? = null,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
@@ -470,6 +512,7 @@ private fun CyberpunkHudNowPlayingLayout(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontalPad)
             .padding(vertical = 8.dp),
     ) {
@@ -528,6 +571,7 @@ private fun CyberpunkHudNowPlayingLayout(
             CyberpunkVisualizerPanel(
                 mode = visualizerMode,
                 playbackState = playbackState,
+                visualizerState = visualizerState,
                 dapMode = dapMode,
                 onCycleMode = onCycleVisualizer,
             )
@@ -600,6 +644,21 @@ private fun CyberpunkHudNowPlayingLayout(
                 onToggle = {
                     onPanelStateChange(panelState.copy(queueExpanded = !panelState.queueExpanded))
                 },
+            )
+
+            NowPlayingLyricsPanel(
+                track = track,
+                playbackState = playbackState,
+                lyrics = lyrics,
+                expanded = panelState.lyricsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(lyricsExpanded = !panelState.lyricsExpanded))
+                },
+                onSaveManual = { text -> playerViewModel.saveManualLyrics(track.id, text) },
+                onClear = { playerViewModel.clearLyrics(track.id) },
+                onScanSidecar = { playerViewModel.scanSidecarLyrics(track, sourceTreeUri) },
+                onTryEmbedded = { playerViewModel.tryEmbeddedLyrics(track) },
+                onImportFile = { uri -> playerViewModel.importLyricsFile(track.id, uri) },
             )
 
             NowPlayingTrackCleanupPanel(

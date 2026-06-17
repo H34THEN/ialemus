@@ -41,7 +41,14 @@ fun NowPlayingScreen(
     val recentlyPlayed by libraryViewModel.recentlyPlayedTracks.collectAsStateWithLifecycle()
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
     val visualizerMode by settingsViewModel.nowPlayingVisualizerMode.collectAsStateWithLifecycle()
+    val visualizerState by playerViewModel.visualizerState.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
+
+    val lyrics by playerViewModel
+        .observeLyrics(track?.id.orEmpty())
+        .collectAsStateWithLifecycle(initialValue = null)
+
+    val sourceTreeUri = sources.find { it.id == track?.librarySourceId }?.treeUri
 
     val isFavorite by playerViewModel
         .observeFavorite(track?.id.orEmpty())
@@ -107,8 +114,11 @@ fun NowPlayingScreen(
         playCount = stats?.playCount,
         lastPlayedAt = stats?.lastPlayedAt,
         visualizerMode = visualizerMode,
+        visualizerState = visualizerState,
         dapMode = dapMode,
         onCycleVisualizer = { settingsViewModel.cycleNowPlayingVisualizerMode(visualizerMode) },
+        lyrics = lyrics,
+        sourceTreeUri = sourceTreeUri,
         modifier = modifier,
     )
 
