@@ -36,6 +36,7 @@ class LibraryRepository(
     private val context: Context,
     private val mediaStoreScanner: MediaStoreScanner,
     private val safFolderScanner: SafFolderScanner,
+    private val safAccessHelper: SafAccessHelper,
     private val trackDao: TrackDao,
     private val trackStatsDao: TrackStatsDao,
     private val trackOverrideDao: TrackOverrideDao,
@@ -153,23 +154,49 @@ class LibraryRepository(
 
     private suspend fun scanSources(sources: List<LibrarySource>): LibraryScanResult {
         return try {
+            safAccessHelper.restorePersistedFolderPermissions(sources)
             var total = 0
+            val warnings = mutableListOf<String>()
             sources.forEach { source ->
+                if (!safAccessHelper.canReadSource(source)) {
+                    val kept = trackDao.countTracksForSource(source.id)
+                    warnings += if (kept > 0) {
+                        "${source.displayName}: folder not reachable — kept $kept indexed tracks"
+                    } else {
+                        "${source.displayName}: folder not reachable — reselect folder in Library"
+                    }
+                    return@forEach
+                }
                 val scanned = safFolderScanner.scanSource(source)
+                if (scanned.isEmpty()) {
+                    val kept = trackDao.countTracksForSource(source.id)
+                    if (safAccessHelper.isFolderConfirmedEmpty(source)) {
+                        trackDao.deleteTracksForSource(source.id)
+                        if (kept > 0) {
+                            warnings += "${source.displayName}: folder empty — removed $kept stale entries"
+                        }
+                    } else if (kept > 0) {
+                        warnings += "${source.displayName}: scan found no files — kept $kept indexed tracks"
+                    } else {
+                        warnings += "${source.displayName}: no audio files found"
+                    }
+                    return@forEach
+                }
                 trackDao.upsertTracks(scanned.map { it.toEntity() })
                 scanned.forEach { track -> trackStatsDao.insertIfAbsent(defaultStatsEntity(track.id)) }
-                if (scanned.isNotEmpty()) {
-                    trackDao.deleteMissingTracksForSource(scanned.map { it.id }, source.id)
-                } else {
-                    trackDao.deleteTracksForSource(source.id)
-                }
+                trackDao.deleteMissingTracksForSource(scanned.map { it.id }, source.id)
                 total += scanned.size
             }
             val label = if (sources.size == 1) sources.first().displayName else "Selected folders"
-            LibraryScanResult.Success(total, label)
+            LibraryScanResult.Success(total, label, warnings)
         } catch (error: Exception) {
             LibraryScanResult.Error(error.message ?: "Folder scan failed.")
         }
+    }
+
+    suspend fun restorePersistedLibraryAccess() {
+        val sources = librarySourceDao.getSafFoldersOnce().map { it.toLibrarySource() }
+        safAccessHelper.restorePersistedFolderPermissions(sources)
     }
 
     suspend fun scanFullDeviceLibrary(): LibraryScanResult {
@@ -179,11 +206,21 @@ class LibraryRepository(
         return try {
             settingsRepository.setFullDeviceScanEnabled(true)
             val scanned = mediaStoreScanner.scanFullDevice()
+            if (scanned.isEmpty()) {
+                val kept = trackDao.countTracksOnce()
+                return if (kept > 0) {
+                    LibraryScanResult.Success(
+                        trackCount = kept,
+                        sourceLabel = "Full device library",
+                        warnings = listOf("Full device scan found no new files — kept $kept indexed tracks"),
+                    )
+                } else {
+                    LibraryScanResult.Error("Full device scan found no audio files.")
+                }
+            }
             trackDao.upsertTracks(scanned.map { it.toEntity() })
             scanned.forEach { track -> trackStatsDao.insertIfAbsent(defaultStatsEntity(track.id)) }
-            if (scanned.isNotEmpty()) {
-                trackDao.deleteMissingFullDeviceTracks(scanned.map { it.id })
-            }
+            trackDao.deleteMissingFullDeviceTracks(scanned.map { it.id })
             LibraryScanResult.Success(scanned.size, "Full device library")
         } catch (error: Exception) {
             LibraryScanResult.Error(error.message ?: "Full device scan failed.")

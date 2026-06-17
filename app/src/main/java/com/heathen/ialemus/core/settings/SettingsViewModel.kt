@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.heathen.ialemus.AppContainer
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.model.NowPlayingVisualizerMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.network.ServiceUrlTester
 import com.heathen.ialemus.core.network.ServiceUrlValidator
@@ -45,6 +46,13 @@ class SettingsViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = NowPlayingLayoutMode.BALANCED,
+        )
+
+    val nowPlayingVisualizerMode: StateFlow<NowPlayingVisualizerMode> =
+        settingsRepository.nowPlayingVisualizerMode.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = NowPlayingVisualizerMode.SIGNAL_BARS,
         )
 
     val trackCount: StateFlow<Int> = container.libraryRepository.trackCount.stateIn(
@@ -110,6 +118,17 @@ class SettingsViewModel(
 
     fun setNowPlayingLayoutMode(mode: NowPlayingLayoutMode) {
         viewModelScope.launch { settingsRepository.setNowPlayingLayoutMode(mode) }
+    }
+
+    fun setNowPlayingVisualizerMode(mode: NowPlayingVisualizerMode) {
+        viewModelScope.launch { settingsRepository.setNowPlayingVisualizerMode(mode) }
+    }
+
+    fun cycleNowPlayingVisualizerMode(current: NowPlayingVisualizerMode) {
+        val next = NowPlayingVisualizerMode.entries[
+            (NowPlayingVisualizerMode.entries.indexOf(current) + 1) % NowPlayingVisualizerMode.entries.size
+        ]
+        setNowPlayingVisualizerMode(next)
     }
 
     fun clearValidationError() {

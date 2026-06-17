@@ -50,6 +50,7 @@ class PlayerConnection(
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updateFromPlayer()
+            maybeStopForEndOfTrackSleep()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -307,8 +308,12 @@ class PlayerConnection(
     fun setSleepTimer(minutes: Int?) {
         sleepTimerJob?.cancel()
         sleepTimerJob = null
-        if (minutes == null || minutes <= 0) {
+        if (minutes == null || minutes == 0) {
             _playbackState.update { it.copy(sleepTimerMinutes = null, sleepTimerEndsAtMs = null) }
+            return
+        }
+        if (minutes < 0) {
+            _playbackState.update { it.copy(sleepTimerMinutes = minutes, sleepTimerEndsAtMs = null) }
             return
         }
         val endsAt = System.currentTimeMillis() + minutes * 60_000L
@@ -322,6 +327,16 @@ class PlayerConnection(
             }
             _playbackState.update { it.copy(sleepTimerMinutes = null, sleepTimerEndsAtMs = null) }
             sleepTimerJob = null
+        }
+    }
+
+    private fun maybeStopForEndOfTrackSleep() {
+        val state = _playbackState.value
+        if (state.sleepTimerMinutes != -1) return
+        val mc = controller ?: return
+        if (!mc.isPlaying && mc.playbackState == Player.STATE_ENDED) {
+            mc.pause()
+            _playbackState.update { it.copy(sleepTimerMinutes = null, sleepTimerEndsAtMs = null) }
         }
     }
 

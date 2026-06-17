@@ -11,6 +11,7 @@ import com.heathen.ialemus.core.player.QueueRepository
 import com.heathen.ialemus.core.player.ShuffleEngine
 import com.heathen.ialemus.core.settings.SettingsRepository
 import com.heathen.ialemus.data.local.IalemusDatabase
+import com.heathen.ialemus.data.local.MIGRATION_3_4
 import com.heathen.ialemus.widget.WidgetStateStore
 
 /**
@@ -25,6 +26,7 @@ class AppContainer(context: Context) {
         IalemusDatabase::class.java,
         "ialemus.db",
     )
+        .addMigrations(MIGRATION_3_4)
         .fallbackToDestructiveMigration()
         .build()
 
@@ -44,6 +46,7 @@ class AppContainer(context: Context) {
 
     private val mediaStoreScanner = MediaStoreScanner(appContext)
     private val safFolderScanner = SafFolderScanner(appContext)
+    private val safAccessHelper = com.heathen.ialemus.core.library.SafAccessHelper(appContext)
     val playlistRepository = PlaylistRepository(
         playlistDao = playlistDao,
         trackDao = trackDao,
@@ -53,6 +56,7 @@ class AppContainer(context: Context) {
         context = appContext,
         mediaStoreScanner = mediaStoreScanner,
         safFolderScanner = safFolderScanner,
+        safAccessHelper = safAccessHelper,
         trackDao = trackDao,
         trackStatsDao = trackStatsDao,
         trackOverrideDao = trackOverrideDao,

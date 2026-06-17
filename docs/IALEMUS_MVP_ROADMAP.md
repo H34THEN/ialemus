@@ -92,6 +92,16 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.8 fix — library persistence + visualizers (shipped — `0.3.12-mvp1b8-fix`)
+
+- Safe rescan preserves Room tracks when SAF unreachable
+- Image Heavy / Playlist-Radio / Cyberpunk HUD layout fixes
+- Six Cyberpunk visualizer modes + DAP static fallback
+
+### MVP 1C — Next (planned)
+
+Playlist deepening, audiobook mode, genre/artist/album polish — see `docs/TODO.md` MVP 1C section.
+
 ### MVP 1B.8 — Now Playing usability + playlists (shipped — `0.3.11-mvp1b8`)
 
 - Above-fold transport controls in all Now Playing layouts

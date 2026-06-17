@@ -21,6 +21,9 @@ interface TrackDao {
     @Query("SELECT COUNT(*) FROM tracks")
     suspend fun countTracksOnce(): Int
 
+    @Query("SELECT COUNT(*) FROM tracks WHERE librarySourceId = :sourceId")
+    suspend fun countTracksForSource(sourceId: String): Int
+
     @Query("SELECT * FROM tracks WHERE id = :id LIMIT 1")
     suspend fun getTrackById(id: String): TrackEntity?
 

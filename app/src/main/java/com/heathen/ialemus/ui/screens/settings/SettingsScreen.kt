@@ -41,6 +41,7 @@ import com.heathen.ialemus.core.library.MediaPermissionState
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.model.ConnectionMode
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.model.NowPlayingVisualizerMode
 import com.heathen.ialemus.core.network.ConnectionTestStatus
 import com.heathen.ialemus.core.settings.LocalServiceDefaults
 import com.heathen.ialemus.core.settings.NasConnectionSettings
@@ -75,6 +76,7 @@ fun SettingsScreen(
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
     val nowPlayingLayoutMode by settingsViewModel.nowPlayingLayoutMode.collectAsStateWithLifecycle()
+    val nowPlayingVisualizerMode by settingsViewModel.nowPlayingVisualizerMode.collectAsStateWithLifecycle()
     val spotifyUi by spotifyViewModel.uiState.collectAsStateWithLifecycle()
     val trackCount by settingsViewModel.trackCount.collectAsStateWithLifecycle()
     val nasSettings by settingsViewModel.nasConnectionSettings.collectAsStateWithLifecycle()
@@ -170,7 +172,7 @@ fun SettingsScreen(
         HudHeader(
             title = "Settings",
             statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.7 · Themes, NAS tools, local core",
+            subtitle = "Ialemus MVP 1B.8 · Themes, NAS tools, local core",
         )
 
         HudCollapsiblePanel(
@@ -206,6 +208,17 @@ fun SettingsScreen(
             NowPlayingLayoutSelector(
                 selected = nowPlayingLayoutMode,
                 onSelect = settingsViewModel::setNowPlayingLayoutMode,
+            )
+            Text(
+                text = "CYBERPUNK VISUALIZER",
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.accentActive,
+                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+            )
+            NowPlayingVisualizerSelector(
+                selected = nowPlayingVisualizerMode,
+                dapMode = dapMode,
+                onSelect = settingsViewModel::setNowPlayingVisualizerMode,
             )
             Text(
                 text = "THEME SELECT",
@@ -537,18 +550,43 @@ fun SettingsScreen(
             subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B.7",
+            statusLabel = "MVP 1B.8",
         ) {
+            val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
             Text(
-                text = "Spotify hidden from dock; original theme palette expansion; EVA hex accents; MeTube WebView diagnostics.",
+                text = "Library index: $trackCount tracks · ${sources.size} sources in Room",
                 style = MaterialTheme.typography.bodySmall,
-                color = tokens.textMuted,
+                color = tokens.glowColor,
             )
             Text(
-                text = "Default theme: EVA-01 Berserk · Original EVA-inspired styling only.",
+                text = "Tracks persist in Room across restarts. Rescan updates index; failed scans no longer wipe your library.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp),
+            )
+            Text(
+                text = "MVP 1B.8: library persistence fix, Now Playing layout fixes, Cyberpunk visualizer modes, playlists.",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.textMuted,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun NowPlayingVisualizerSelector(
+    selected: NowPlayingVisualizerMode,
+    dapMode: Boolean,
+    onSelect: (NowPlayingVisualizerMode) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        NowPlayingVisualizerMode.entries.forEach { mode ->
+            val isSelected = mode == selected
+            HudButton(
+                label = mode.label + if (dapMode && mode != NowPlayingVisualizerMode.STATIC_HUD) " (DAP → Static)" else "",
+                onClick = { onSelect(mode) },
+                accent = if (isSelected) HudButtonAccent.Primary else HudButtonAccent.Neutral,
             )
         }
     }

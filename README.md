@@ -6,7 +6,17 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.8 — Now Playing usability, playlists, metadata/audio tools, collapsed modules (`0.3.11-mvp1b8`).
+**Status:** MVP 1B.8 fix — library persistence, Now Playing layout fixes, Cyberpunk visualizers (`0.3.12-mvp1b8-fix`).
+
+### MVP 1B.8 fix (`0.3.12-mvp1b8-fix`)
+
+- **Library persistence fix** — rescans no longer wipe Room tracks when SAF access fails or scan returns empty; permissions restored on launch
+- **Image Heavy** — capped artwork height so time labels + transport controls stay visible
+- **Playlist / Radio** — removed stray artwork square; collapsible queue preview; Audio Tools above full queue
+- **Cyberpunk HUD** — scrollable panels + 6 playback-reactive visualizer modes (Settings + Cycle in HUD)
+- **DAP Mode** — forces Static HUD visualizer for battery-friendly playback
+- **Room migration 3→4** — playlist tables migrate without wiping tracks on upgrade
+- **Preserved:** Library SOURCES chip, local playback, folder-first scan, slskd, hidden Spotify
 
 ### MVP 1B.8 (`0.3.11-mvp1b8`)
 

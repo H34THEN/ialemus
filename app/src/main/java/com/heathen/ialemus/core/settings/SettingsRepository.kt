@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.heathen.ialemus.core.model.ConnectionMode
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.model.NowPlayingVisualizerMode
 import com.heathen.ialemus.core.model.ThemeId
 import com.heathen.ialemus.core.spotify.SpotifyDefaults
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +39,11 @@ class SettingsRepository(context: Context) {
     val nowPlayingLayoutMode: Flow<NowPlayingLayoutMode> = dataStore.data.map { prefs ->
         NowPlayingLayoutMode.entries.find { it.name == prefs[KEY_NOW_PLAYING_LAYOUT] }
             ?: NowPlayingLayoutMode.BALANCED
+    }
+
+    val nowPlayingVisualizerMode: Flow<NowPlayingVisualizerMode> = dataStore.data.map { prefs ->
+        NowPlayingVisualizerMode.entries.find { it.name == prefs[KEY_NOW_PLAYING_VISUALIZER] }
+            ?: NowPlayingVisualizerMode.SIGNAL_BARS
     }
 
     val spotifySettings: Flow<SpotifySettings> = dataStore.data.map { prefs ->
@@ -84,6 +90,10 @@ class SettingsRepository(context: Context) {
         dataStore.edit { prefs -> prefs[KEY_NOW_PLAYING_LAYOUT] = mode.name }
     }
 
+    suspend fun setNowPlayingVisualizerMode(mode: NowPlayingVisualizerMode) {
+        dataStore.edit { prefs -> prefs[KEY_NOW_PLAYING_VISUALIZER] = mode.name }
+    }
+
     suspend fun saveSpotifySettings(settings: SpotifySettings) {
         dataStore.edit { prefs ->
             if (settings.clientId.isBlank()) {
@@ -118,6 +128,7 @@ class SettingsRepository(context: Context) {
         private val KEY_FULL_DEVICE_SCAN = booleanPreferencesKey("full_device_scan_enabled")
         private val KEY_SHOW_MINI_PLAYER = booleanPreferencesKey("show_mini_player_bar")
         private val KEY_NOW_PLAYING_LAYOUT = stringPreferencesKey("now_playing_layout_mode")
+        private val KEY_NOW_PLAYING_VISUALIZER = stringPreferencesKey("now_playing_visualizer_mode")
         private val KEY_SPOTIFY_CLIENT_ID = stringPreferencesKey("spotify_client_id")
         private val KEY_SPOTIFY_DISPLAY_NAME = stringPreferencesKey("spotify_display_name")
         private val KEY_SPOTIFY_CONNECTED = booleanPreferencesKey("spotify_connected")

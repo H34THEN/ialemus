@@ -172,6 +172,37 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - MeTube may still not render in WebView on some devices — use external browser
 - Subresource warnings (fonts, API calls) are normal for SPAs and hidden in diagnostics
 
+## MVP 1B.8 fix — library persistence + Now Playing layout fixes (completed)
+
+- [x] Safe folder rescan — empty/failed scans preserve existing Room tracks
+- [x] SAF permission restore on app launch
+- [x] `SharingStarted.Eagerly` for library track flows
+- [x] Room migration 3→4 for playlists (no wipe on upgrade from v3)
+- [x] Image Heavy artwork height cap + controls visible
+- [x] Playlist/Radio — remove stray square, collapsible queue, tools before queue
+- [x] Cyberpunk HUD scroll + 6 visualizer modes (Signal Bars, Radar, Wave, Hex, Tunnel, Static)
+- [x] DAP Mode forces Static HUD visualizer
+- [x] Sleep timer end-of-track option
+- [x] Settings library index diagnostics in About
+- [ ] Manual HiBy R4 acceptance on device
+
+### Known limitations (MVP 1B.8 fix)
+
+- Destructive migration still applies for unknown schema jumps (not normal restarts)
+- Visualizers are playback-reactive/simulated — no microphone capture
+- M3U import matching remains best-effort
+
+## MVP 1C — Next flow: Playlist Deepening + Audiobooks + Genre/Artist/Album Polish (planned)
+
+Handoff for next Cursor pass:
+
+1. **Playlist deepening** — drag/reorder tracks, export M3U/M3U8, playlist artwork, duplicate handling, multi-add, smart/favorites/recent/most-played playlists
+2. **Audiobook mode** — resume position, bookmarks, chapter scaffold, audiobook Now Playing layout, speed defaults
+3. **Genre polish** — extraction/override, genre browser + detail + shuffle
+4. **Artist polish** — detail pages, albums/tracks, shuffle artist
+5. **Album polish** — artwork, sorting, play/shuffle album
+6. **Metadata/tag roadmap** — display overrides (done); future physical tag write + file rename with explicit SAF write
+
 ## MVP 1B.8 — Now Playing usability, playlists, collapsed modules (completed)
 
 - [x] `NowPlayingPrimaryControls` — shuffle/previous/play-pause/next/repeat above fold in all 5 layouts

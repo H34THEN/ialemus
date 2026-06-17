@@ -39,6 +39,7 @@ fun NowPlayingAudioToolsPanel(
         15 to "15 min",
         30 to "30 min",
         60 to "60 min",
+        -1 to "End of track",
     )
 
     HudCollapsiblePanel(
@@ -74,7 +75,8 @@ fun NowPlayingAudioToolsPanel(
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             sleepPresets.forEach { (minutes, label) ->
-                val active = playbackState.sleepTimerMinutes == minutes
+                val active = playbackState.sleepTimerMinutes == minutes ||
+                    (minutes == -1 && playbackState.sleepTimerMinutes == -1)
                 HudButton(
                     label = label,
                     onClick = { onSetSleepTimer(minutes) },

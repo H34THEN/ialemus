@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -108,24 +110,35 @@ fun NowPlayingArtworkPanel(
 ) {
     val tokens = LocalIalemusTokens.current
     val artUri = track.albumArtUri()
+    val maxArtHeight = when {
+        imageHeavy && compact -> 168.dp
+        imageHeavy -> 220.dp
+        compact -> 200.dp
+        else -> 280.dp
+    }
     val aspect = when {
-        imageHeavy -> if (compact) 0.72f else 0.88f
-        compact -> 1f
+        imageHeavy -> 1f
         else -> 1f
     }
     val widthFraction = when {
-        imageHeavy -> if (compact) 0.88f else 1f
+        imageHeavy -> if (compact) 0.9f else 1f
         compact -> 0.72f
         else -> 1f
     }
-    Box(
-        modifier = modifier
-            .fillMaxWidth(widthFraction)
-            .aspectRatio(aspect)
-            .border(2.dp, tokens.accentActive.copy(alpha = 0.6f), MaterialTheme.shapes.medium)
-            .background(tokens.surfaceDeep, MaterialTheme.shapes.medium),
+    BoxWithConstraints(
+        modifier = modifier.fillMaxWidth(widthFraction),
         contentAlignment = Alignment.Center,
     ) {
+        val boxModifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = maxArtHeight)
+            .aspectRatio(aspect)
+            .border(2.dp, tokens.accentActive.copy(alpha = 0.6f), MaterialTheme.shapes.medium)
+            .background(tokens.surfaceDeep, MaterialTheme.shapes.medium)
+        Box(
+            modifier = boxModifier,
+            contentAlignment = Alignment.Center,
+        ) {
         if (artUri != null) {
             AsyncImage(
                 model = artUri,
@@ -149,6 +162,7 @@ fun NowPlayingArtworkPanel(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
+        }
         }
     }
 }
@@ -663,17 +677,23 @@ fun NowPlayingQueuePreview(
     expanded: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    collapsedPreviewCount: Int = 5,
 ) {
+    val previewCount = if (expanded) 12 else collapsedPreviewCount
     HudCollapsiblePanel(
         title = "Up Next",
         sectionTag = "QUEUE SYNC",
-        subtitle = "${queueItems.size} tracks in queue",
+        subtitle = if (expanded) {
+            "${queueItems.size} tracks in queue"
+        } else {
+            "${queueItems.size} tracks · showing $previewCount"
+        },
         expanded = expanded,
         onToggle = onToggle,
         statusLabel = "${queueItems.size} TRACKS",
         modifier = modifier,
     ) {
-        queueItems.take(12).forEach { item ->
+        queueItems.take(previewCount).forEach { item ->
             TrackRow(
                 track = item.track,
                 onClick = { onPlayQueueItem(item.queueIndex) },
@@ -681,9 +701,13 @@ fun NowPlayingQueuePreview(
                 index = item.queueIndex,
             )
         }
-        if (queueItems.size > 12) {
+        if (queueItems.size > previewCount) {
             Text(
-                text = "+ ${queueItems.size - 12} more in full queue",
+                text = if (expanded) {
+                    "+ ${queueItems.size - previewCount} more in full queue"
+                } else {
+                    "Expand to see full queue (${queueItems.size} tracks)"
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = LocalIalemusTokens.current.textMuted,
             )

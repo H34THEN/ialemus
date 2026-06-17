@@ -1,7 +1,11 @@
 package com.heathen.ialemus.core.library
 
 sealed interface LibraryScanResult {
-    data class Success(val trackCount: Int, val sourceLabel: String) : LibraryScanResult
+    data class Success(
+        val trackCount: Int,
+        val sourceLabel: String,
+        val warnings: List<String> = emptyList(),
+    ) : LibraryScanResult
     data class Error(val message: String) : LibraryScanResult
 }
 

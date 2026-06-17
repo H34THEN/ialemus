@@ -13,6 +13,7 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.heathen.ialemus.core.library.LibraryViewModel
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.settings.SettingsViewModel
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.ui.screens.queue.QueueSheet
 
@@ -20,6 +21,7 @@ import com.heathen.ialemus.ui.screens.queue.QueueSheet
 fun NowPlayingScreen(
     playerViewModel: PlayerViewModel,
     libraryViewModel: LibraryViewModel,
+    settingsViewModel: SettingsViewModel,
     layoutMode: NowPlayingLayoutMode,
     onOpenLibrary: () -> Unit,
     modifier: Modifier = Modifier,
@@ -38,6 +40,8 @@ fun NowPlayingScreen(
     val tracks by libraryViewModel.tracks.collectAsStateWithLifecycle()
     val recentlyPlayed by libraryViewModel.recentlyPlayedTracks.collectAsStateWithLifecycle()
     val playlists by libraryViewModel.playlists.collectAsStateWithLifecycle()
+    val visualizerMode by settingsViewModel.nowPlayingVisualizerMode.collectAsStateWithLifecycle()
+    val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
 
     val isFavorite by playerViewModel
         .observeFavorite(track?.id.orEmpty())
@@ -102,6 +106,9 @@ fun NowPlayingScreen(
         emptyCallbacks = emptyCallbacks,
         playCount = stats?.playCount,
         lastPlayedAt = stats?.lastPlayedAt,
+        visualizerMode = visualizerMode,
+        dapMode = dapMode,
+        onCycleVisualizer = { settingsViewModel.cycleNowPlayingVisualizerMode(visualizerMode) },
         modifier = modifier,
     )
 

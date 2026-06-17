@@ -27,13 +27,13 @@ class LibraryViewModel(
 
     val tracks: StateFlow<List<Track>> = repository.tracks.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Eagerly,
         initialValue = emptyList(),
     )
 
     val trackCount: StateFlow<Int> = repository.trackCount.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Eagerly,
         initialValue = 0,
     )
 
@@ -108,7 +108,10 @@ class LibraryViewModel(
 
     init {
         refreshPermissionState()
-        refreshScanState()
+        viewModelScope.launch {
+            repository.restorePersistedLibraryAccess()
+            refreshScanState()
+        }
     }
 
     fun tracksForArtist(artist: String): StateFlow<List<Track>> =
@@ -169,9 +172,7 @@ class LibraryViewModel(
         viewModelScope.launch {
             _scanState.value = LibraryScanState.ScanningFolders
             when (val result = repository.scanSelectedFolders()) {
-                is LibraryScanResult.Success -> {
-                    _scanState.value = LibraryScanState.FolderScanComplete(result.trackCount)
-                }
+                is LibraryScanResult.Success -> applyScanSuccess(result)
                 is LibraryScanResult.Error -> {
                     _scanState.value = LibraryScanState.Failed(result.message)
                 }
@@ -184,9 +185,7 @@ class LibraryViewModel(
         viewModelScope.launch {
             _scanState.value = LibraryScanState.ScanningFolders
             when (val result = repository.scanPrimaryFolder()) {
-                is LibraryScanResult.Success -> {
-                    _scanState.value = LibraryScanState.FolderScanComplete(result.trackCount)
-                }
+                is LibraryScanResult.Success -> applyScanSuccess(result)
                 is LibraryScanResult.Error -> {
                     _scanState.value = LibraryScanState.Failed(result.message)
                 }
@@ -200,11 +199,31 @@ class LibraryViewModel(
             _scanState.value = LibraryScanState.ScanningFullDevice
             when (val result = repository.scanFullDeviceLibrary()) {
                 is LibraryScanResult.Success -> {
-                    _scanState.value = LibraryScanState.FullDeviceComplete(result.trackCount)
+                    if (result.trackCount > 0) {
+                        _scanState.value = LibraryScanState.FullDeviceComplete(result.trackCount)
+                    } else if (result.warnings.isNotEmpty()) {
+                        _scanState.value = LibraryScanState.Failed(result.warnings.joinToString(" · "))
+                    } else {
+                        _scanState.value = LibraryScanState.FullDeviceComplete(0)
+                    }
                 }
                 is LibraryScanResult.Error -> {
                     _scanState.value = LibraryScanState.Failed(result.message)
                 }
+            }
+        }
+    }
+
+    private fun applyScanSuccess(result: LibraryScanResult.Success) {
+        when {
+            result.trackCount > 0 -> {
+                _scanState.value = LibraryScanState.FolderScanComplete(result.trackCount)
+            }
+            result.warnings.isNotEmpty() -> {
+                _scanState.value = LibraryScanState.Failed(result.warnings.joinToString(" · "))
+            }
+            else -> {
+                _scanState.value = LibraryScanState.FolderScanComplete(0)
             }
         }
     }

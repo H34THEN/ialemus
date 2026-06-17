@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.heathen.ialemus.core.library.LibraryScanState
 import com.heathen.ialemus.core.model.NowPlayingLayoutMode
+import com.heathen.ialemus.core.model.NowPlayingVisualizerMode
 import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.data.local.entity.TrackOverrideEntity
@@ -61,6 +62,9 @@ fun NowPlayingLayoutRouter(
     emptyCallbacks: NowPlayingEmptyCallbacks,
     playCount: Int? = null,
     lastPlayedAt: Long? = null,
+    visualizerMode: NowPlayingVisualizerMode = NowPlayingVisualizerMode.SIGNAL_BARS,
+    dapMode: Boolean = false,
+    onCycleVisualizer: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     when (layoutMode) {
@@ -88,6 +92,9 @@ fun NowPlayingLayoutRouter(
             uiState, playerViewModel, onOpenLibrary, onOpenQueue, panelState, onPanelStateChange,
             override, onSaveOverrides, onResetOverrides, onAddToPlaylist, emptyCallbacks,
             playCount, lastPlayedAt, modifier,
+            visualizerMode = visualizerMode,
+            dapMode = dapMode,
+            onCycleVisualizer = onCycleVisualizer,
         )
     }
 }
@@ -99,6 +106,7 @@ data class NowPlayingPanelState(
     val lyricsExpanded: Boolean = false,
     val toolsExpanded: Boolean = false,
     val showTechnicalDetails: Boolean = false,
+    val playlistQueueExpanded: Boolean = false,
 )
 
 @Composable
@@ -377,14 +385,8 @@ private fun PlaylistRadioNowPlayingLayout(
                 onToggleTools = {
                     onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
                 },
+                toolsActive = panelState.toolsExpanded,
             )
-            NowPlayingQueuePreview(
-                queueItems = uiState.queueItems,
-                onPlayQueueItem = playerViewModel::playQueueItem,
-                expanded = true,
-                onToggle = {},
-            )
-            NowPlayingCompactArtwork(track = track, modifier = Modifier.padding(top = 4.dp))
             NowPlayingAudioToolsPanel(
                 track = track,
                 playbackState = playbackState,
@@ -394,6 +396,46 @@ private fun PlaylistRadioNowPlayingLayout(
                 },
                 onSetSpeed = playerViewModel::setPlaybackSpeed,
                 onSetSleepTimer = playerViewModel::setSleepTimer,
+            )
+            NowPlayingMetadataPanel(
+                track = track,
+                playbackState = playbackState,
+                isFavorite = uiState.isFavorite,
+                playCount = playCount,
+                lastPlayedAt = lastPlayedAt,
+                override = override,
+                expanded = panelState.metadataExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(metadataExpanded = !panelState.metadataExpanded))
+                },
+                showTechnicalDetails = panelState.showTechnicalDetails,
+                onToggleTechnicalDetails = {
+                    onPanelStateChange(panelState.copy(showTechnicalDetails = !panelState.showTechnicalDetails))
+                },
+            )
+            NowPlayingQueuePreview(
+                queueItems = uiState.queueItems,
+                onPlayQueueItem = playerViewModel::playQueueItem,
+                expanded = panelState.playlistQueueExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(playlistQueueExpanded = !panelState.playlistQueueExpanded))
+                },
+                collapsedPreviewCount = 4,
+            )
+            Text(
+                text = "Radio mode: TODO · smart queue generation",
+                style = MaterialTheme.typography.labelSmall,
+                color = LocalIalemusTokens.current.textMuted,
+            )
+            NowPlayingTrackCleanupPanel(
+                track = track,
+                override = override,
+                onSaveOverrides = onSaveOverrides,
+                onResetOverrides = onResetOverrides,
+                expanded = panelState.cleanupExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
+                },
             )
         }
     }
@@ -415,15 +457,22 @@ private fun CyberpunkHudNowPlayingLayout(
     playCount: Int?,
     lastPlayedAt: Long?,
     modifier: Modifier = Modifier,
+    visualizerMode: NowPlayingVisualizerMode,
+    dapMode: Boolean,
+    onCycleVisualizer: (() -> Unit)?,
 ) {
     val track = uiState.track
     val playbackState = uiState.playbackState
     val tokens = LocalIalemusTokens.current
     val horizontalPad = screenHorizontalPadding()
     val scrollState = rememberScrollState()
-    val meterLevels = listOf(0.35f, 0.55f, 0.8f, 0.45f, 0.7f, 0.5f, 0.9f, 0.4f)
 
-    Column(modifier = modifier.fillMaxSize().padding(horizontalPad).padding(vertical = 8.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontalPad)
+            .padding(vertical = 8.dp),
+    ) {
         NowPlayingStatusRow(track = track, playbackState = playbackState)
         if (track == null) {
             NowPlayingEmptyState(
@@ -442,69 +491,47 @@ private fun CyberpunkHudNowPlayingLayout(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            HudPanel(title = "NERV Playback Unit", sectionTag = "LOCAL SIGNAL") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    NowPlayingCompactArtwork(track = track, sizeDp = 64.dp)
-                    Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
-                        Text(track.displayTitle, style = MaterialTheme.typography.titleSmall, color = tokens.accentActive, fontWeight = FontWeight.Bold, maxLines = 1)
-                        Text(track.displayArtist, style = MaterialTheme.typography.bodySmall, color = tokens.glowColor, maxLines = 1)
-                        Text("SYNC RATE · ${playbackState.playbackSpeed}x", style = MaterialTheme.typography.labelSmall, color = tokens.textMuted)
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                    HudStatusChip(label = "AUDIO LINK", highlighted = playbackState.isPlaying)
-                    HudStatusChip(label = "QUEUE SYNC", highlighted = playbackState.queueSize > 0)
-                    HudStatusChip(label = playbackState.repeatMode.displayName.uppercase(), warning = true)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                NowPlayingCompactArtwork(track = track, sizeDp = 56.dp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(track.displayTitle, style = MaterialTheme.typography.titleSmall, color = tokens.accentActive, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(track.displayArtist, style = MaterialTheme.typography.bodySmall, color = tokens.glowColor, maxLines = 1)
                 }
             }
-
-            HudPanel(title = "Level Meter", sectionTag = "SIGNAL TRACE") {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(36.dp),
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    meterLevels.forEach { level ->
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .height((36 * level).dp)
-                                .background(tokens.accentActive.copy(alpha = 0.35f + level * 0.4f))
-                                .border(0.5.dp, tokens.hudBorderColor),
-                        )
-                    }
-                }
-                Text(
-                    text = "WINAMP-STYLE METER · ${formatDuration(playbackState.positionMs)} / ${formatDuration(playbackState.durationMs)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tokens.textMuted,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                HudStatusChip(label = "AUDIO LINK", highlighted = playbackState.isPlaying)
+                HudStatusChip(label = "QUEUE SYNC", highlighted = playbackState.queueSize > 0)
+                HudStatusChip(label = playbackState.repeatMode.displayName.uppercase(), warning = true)
             }
-
             NowPlayingSeekBar(playbackState = playbackState, onSeek = playerViewModel::seekTo)
-
-            HudPanel(title = "Playback Core", sectionTag = "TRANSPORT") {
-                NowPlayingPrimaryControls(
-                    playbackState = playbackState,
-                    onToggleShuffle = playerViewModel::toggleShuffle,
-                    onPrevious = playerViewModel::skipToPrevious,
-                    onPlayPause = playerViewModel::playPause,
-                    onNext = playerViewModel::skipToNext,
-                    onCycleRepeat = playerViewModel::cycleRepeat,
-                )
-            }
+            NowPlayingPrimaryControls(
+                playbackState = playbackState,
+                onToggleShuffle = playerViewModel::toggleShuffle,
+                onPrevious = playerViewModel::skipToPrevious,
+                onPlayPause = playerViewModel::playPause,
+                onNext = playerViewModel::skipToNext,
+                onCycleRepeat = playerViewModel::cycleRepeat,
+            )
         }
 
         Column(
-            modifier = Modifier.weight(1f).verticalScroll(scrollState).padding(top = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState)
+                .padding(top = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            CyberpunkVisualizerPanel(
+                mode = visualizerMode,
+                playbackState = playbackState,
+                dapMode = dapMode,
+                onCycleMode = onCycleVisualizer,
+            )
+
             HudPanel(title = "Playlist Readout", sectionTag = "PLAYLIST") {
                 Text(
                     text = "▶ ${track.displayTitle} — ${track.displayArtist}",
@@ -512,7 +539,7 @@ private fun CyberpunkHudNowPlayingLayout(
                     color = tokens.textPrimary,
                 )
                 Text(
-                    text = "NEXT IN QUEUE · ${uiState.queueItems.size.coerceAtLeast(1)} TRACKS",
+                    text = "QUEUE ${playbackState.queueIndex + 1}/${playbackState.queueSize.coerceAtLeast(1)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = tokens.textMuted,
                 )
@@ -535,6 +562,18 @@ private fun CyberpunkHudNowPlayingLayout(
                 onToggleTools = {
                     onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
                 },
+                toolsActive = panelState.toolsExpanded,
+            )
+
+            NowPlayingAudioToolsPanel(
+                track = track,
+                playbackState = playbackState,
+                expanded = panelState.toolsExpanded,
+                onToggle = {
+                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
+                },
+                onSetSpeed = playerViewModel::setPlaybackSpeed,
+                onSetSleepTimer = playerViewModel::setSleepTimer,
             )
 
             NowPlayingMetadataPanel(
@@ -572,17 +611,6 @@ private fun CyberpunkHudNowPlayingLayout(
                 onToggle = {
                     onPanelStateChange(panelState.copy(cleanupExpanded = !panelState.cleanupExpanded))
                 },
-            )
-
-            NowPlayingAudioToolsPanel(
-                track = track,
-                playbackState = playbackState,
-                expanded = panelState.toolsExpanded,
-                onToggle = {
-                    onPanelStateChange(panelState.copy(toolsExpanded = !panelState.toolsExpanded))
-                },
-                onSetSpeed = playerViewModel::setPlaybackSpeed,
-                onSetSleepTimer = playerViewModel::setSleepTimer,
             )
         }
     }
