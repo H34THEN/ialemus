@@ -172,6 +172,23 @@ Actionable tasks organized by MVP phase. This checklist complements `IALEMUS_MVP
 - MeTube may still not render in WebView on some devices — use external browser
 - Subresource warnings (fonts, API calls) are normal for SPAs and hidden in diagnostics
 
+## MVP 1B.10 — Release Candidate Polish (completed)
+
+- [x] New cyberpunk adaptive app icon (vector, monochrome layer)
+- [x] Black splash screen (core-splashscreen, Theme.Ialemus.Splash)
+- [x] Dark window theme — no white flash on launch
+- [x] Settings/About RC branding (version, build label)
+- [x] Visualizer deferred until Cyberpunk HUD layout active
+- [x] Ialemus mark on Now Playing empty state
+- [ ] Manual HiBy R4 RC acceptance (see README checklist)
+- [ ] Future performance profiling on HiBy R4
+
+### Known limitations (RC)
+
+- MeTube WebView may still fail on some devices — external browser fallback
+- Embedded lyrics extraction not implemented
+- Release signing / Play Store packaging deferred to next pass
+
 ## MVP 1B.9 — ANR hardening, reactive visualizer, lyrics (completed)
 
 - [x] Playback position ticker off main thread + throttled updates

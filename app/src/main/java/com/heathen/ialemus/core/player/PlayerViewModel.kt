@@ -12,6 +12,7 @@ import android.net.Uri
 import com.heathen.ialemus.core.lyrics.LyricsRepository
 import com.heathen.ialemus.core.player.PlaybackAudioSessionHolder
 import com.heathen.ialemus.core.settings.SettingsRepository
+import com.heathen.ialemus.core.model.NowPlayingLayoutMode
 import com.heathen.ialemus.core.visualizer.AudioVisualizerState
 import com.heathen.ialemus.data.local.entity.LyricsEntity
 import kotlinx.coroutines.flow.Flow
@@ -41,15 +42,20 @@ class PlayerViewModel(
                 trackOverrideRepository.overrides,
                 settingsRepository.reactiveVisualizerEnabled,
                 settingsRepository.dapModeEnabled,
-            ) { state, overrides, reactiveEnabled, dapMode ->
+                settingsRepository.nowPlayingLayoutMode,
+            ) { state, overrides, reactiveEnabled, dapMode, layoutMode ->
                 Triple(
                     state.withTrackOverrides(overrides),
-                    reactiveEnabled,
-                    dapMode,
+                    reactiveEnabled && !dapMode,
+                    layoutMode == NowPlayingLayoutMode.CYBERPUNK_HUD,
                 )
-            }.collect { (merged, reactiveEnabled, dapMode) ->
+            }.collect { (merged, reactiveEnabled, cyberpunkLayout) ->
+                if (!cyberpunkLayout) {
+                    audioVisualizerController.release()
+                    return@collect
+                }
                 audioVisualizerController.setReactiveEnabled(
-                    enabled = reactiveEnabled && !dapMode,
+                    enabled = reactiveEnabled,
                     permissionGranted = container.hasRecordAudioPermission(),
                 )
                 audioVisualizerController.onPlaybackChanged(merged, merged.currentTrack)

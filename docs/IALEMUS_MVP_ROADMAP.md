@@ -92,6 +92,12 @@ Deliverables:
 - Docker Web UI modules on Downloads page
 - MeTube WebView render warning + debug panel
 
+### MVP 1B.10 — Release Candidate Polish (shipped — `0.3.2-rc-polish`)
+
+- New adaptive app icon + black splash
+- RC branding in Settings/About
+- Startup/layout polish for HiBy R4
+
 ### MVP 1B.9 — ANR hardening, reactive visualizer, lyrics (shipped — `0.3.13-mvp1b9`)
 
 - Playback/scan performance hardening; debug StrictMode

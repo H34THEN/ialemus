@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1A1A1A</color>
+    <color name="ic_launcher_background">#000000</color>
+    <color name="splash_background">#000000</color>
+    <color name="ialemus_violet">#8B5CF6</color>
+    <color name="ialemus_acid_green">#8DFF5A</color>
+    <color name="ialemus_orange_accent">#FF8C42</color>
 </resources>

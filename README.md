@@ -6,7 +6,39 @@ Ialemus connects to a Ugreen NAS media stack through **Ialemus Bridge** — a re
 
 **Features (planned):** local and NAS music, play counts, favorites, strong shuffle, lyrics, themes, widgets, portrait/landscape layouts, and polished DAP low-power mode.
 
-**Status:** MVP 1B.9 — ANR hardening, reactive visualizer, Image Heavy safe area, lyrics foundation (`0.3.13-mvp1b9`).
+**Status:** Release Candidate Polish — MVP 1B.10 (`0.3.2-rc-polish`).
+
+### MVP 1B.10 / RC Polish (`0.3.2-rc-polish`)
+
+- **New app icon** — original cyberpunk/EVA-inspired adaptive icon (hex audio core, acid-green signal, violet frame)
+- **Black splash screen** — Android 12+ SplashScreen API, no white flash on launch
+- **Dark window theme** — black status/navigation bars at startup
+- **RC branding** — Settings/About shows version, build label, library index
+- **Startup polish** — visualizer only active on Cyberpunk HUD layout; no auto-scan on launch
+- **Preserved:** local playback, scanning, lyrics, visualizers, playlists, slskd, hidden Spotify
+
+### Release Candidate Manual Test Checklist
+
+1. Install APK on HiBy R4.
+2. Launch app and confirm black splash.
+3. Confirm new icon appears in launcher.
+4. Confirm no white flash on cold start.
+5. Choose music folder.
+6. Scan.
+7. Restart app and confirm tracks persist.
+8. Play track.
+9. Next/previous 10 times.
+10. Toggle shuffle/repeat.
+11. Test all Now Playing layouts.
+12. Test lyrics paste/save/restart.
+13. Test visualizer modes (Cyberpunk HUD).
+14. Test DAP Mode visualizer reduction.
+15. Create playlist and add track.
+16. Open Downloads/slskd.
+17. Confirm MeTube external fallback works if WebView fails.
+18. Confirm Settings sections collapsed by default.
+19. Confirm Spotify remains hidden/deprecated.
+20. Confirm no ANR during 10 minutes of use.
 
 ### MVP 1B.9 (`0.3.13-mvp1b9`)
 

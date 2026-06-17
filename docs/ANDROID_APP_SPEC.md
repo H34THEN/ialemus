@@ -91,6 +91,8 @@ Background rescans via WorkManager.
 
 ### 3.3 Now Playing screen
 
+**Branding (MVP 1B.10):** Adaptive launcher icon (cyberpunk hex/audio-core motif). Black splash via `Theme.Ialemus.Splash` + Android SplashScreen API. App label: **Ialemus**. Settings → About (collapsed by default) shows version, build label **Release Candidate Polish / MVP 1B.10**, library index.
+
 **Responsibility:** Primary playback HUD (MVP 1B.3, usability pass MVP 1B.8, stability/visualizer/lyrics MVP 1B.9).
 
 **Safe area (MVP 1B.9):** Now Playing layouts apply `WindowInsets.safeDrawing` so Image Heavy and Cyberpunk HUD do not clip behind the status bar on edge-to-edge HiBy R4.

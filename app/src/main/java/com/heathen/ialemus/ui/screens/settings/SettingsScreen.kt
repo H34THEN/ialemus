@@ -61,6 +61,7 @@ import com.heathen.ialemus.ui.components.MusicSourceControls
 import com.heathen.ialemus.ui.util.openSpotifyApp
 import com.heathen.ialemus.ui.theme.LocalIalemusTokens
 import com.heathen.ialemus.ui.theme.previewColorsFor
+import com.heathen.ialemus.ui.theme.screenHorizontalPadding
 
 @Composable
 fun SettingsScreen(
@@ -73,6 +74,7 @@ fun SettingsScreen(
 ) {
     val tokens = LocalIalemusTokens.current
     val context = LocalContext.current
+    val horizontalPad = screenHorizontalPadding()
     val selectedTheme by settingsViewModel.themeId.collectAsStateWithLifecycle()
     val dapMode by settingsViewModel.dapModeEnabled.collectAsStateWithLifecycle()
     val showMiniPlayerBar by settingsViewModel.showMiniPlayerBar.collectAsStateWithLifecycle()
@@ -168,13 +170,13 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = horizontalPad, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         HudHeader(
             title = "Settings",
-            statusLabel = "DAP MODE",
-            subtitle = "Ialemus MVP 1B.8 · Themes, NAS tools, local core",
+            statusLabel = "RC POLISH",
+            subtitle = "Ialemus ${BuildConfig.VERSION_NAME} · Release Candidate Polish / MVP 1B.10",
         )
 
         HudCollapsiblePanel(
@@ -563,17 +565,29 @@ fun SettingsScreen(
 
         HudCollapsiblePanel(
             title = "About",
-            sectionTag = "PLAYBACK CORE",
-            subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            sectionTag = "IALEMUS",
+            subtitle = "Ialemus ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             expanded = aboutExpanded,
             onToggle = { aboutExpanded = !aboutExpanded },
-            statusLabel = "MVP 1B.8",
+            statusLabel = "RC 1B.10",
         ) {
             val sources by libraryViewModel.librarySources.collectAsStateWithLifecycle()
+            Text(
+                text = "Ialemus — cyberpunk DAP music player for local libraries and NAS tools.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = tokens.accentActive,
+            )
+            Text(
+                text = "Build: Release Candidate Polish / MVP 1B.10",
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.glowColor,
+                modifier = Modifier.padding(top = 4.dp),
+            )
             Text(
                 text = "Library index: $trackCount tracks · ${sources.size} sources in Room",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.glowColor,
+                modifier = Modifier.padding(top = 6.dp),
             )
             Text(
                 text = "Tracks persist in Room across restarts. Rescan updates index; failed scans no longer wipe your library.",
@@ -582,7 +596,7 @@ fun SettingsScreen(
                 modifier = Modifier.padding(top = 4.dp),
             )
             Text(
-                text = "MVP 1B.8: library persistence fix, Now Playing layout fixes, Cyberpunk visualizer modes, playlists.",
+                text = "MVP 1B.10: new app icon, black splash, RC branding, HiBy layout hardening, startup polish.",
                 style = MaterialTheme.typography.bodySmall,
                 color = tokens.textMuted,
                 modifier = Modifier.padding(top = 4.dp),

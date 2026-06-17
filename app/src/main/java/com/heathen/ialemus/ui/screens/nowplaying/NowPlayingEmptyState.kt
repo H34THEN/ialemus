@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import com.heathen.ialemus.R
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
@@ -77,10 +79,10 @@ fun NowPlayingEmptyState(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(
-                    imageVector = Icons.Filled.GraphicEq,
-                    contentDescription = null,
-                    tint = tokens.glowColor,
-                    modifier = Modifier.size(44.dp),
+                    painter = painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = "Ialemus",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(56.dp),
                 )
                 Text(
                     text = title.uppercase(),
