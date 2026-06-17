@@ -9,7 +9,10 @@ data class WidgetPlaybackSnapshot(
 )
 
 class WidgetStateStore(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
+    private val prefs by lazy {
+        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     fun update(title: String?, artist: String?, isPlaying: Boolean) {
         prefs.edit()

@@ -12,7 +12,6 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.heathen.ialemus.core.library.LibraryViewModel
-import com.heathen.ialemus.core.player.IalemusPlaybackService
 import com.heathen.ialemus.core.player.PlayerViewModel
 import com.heathen.ialemus.core.settings.SettingsViewModel
 import com.heathen.ialemus.core.spotify.SpotifyViewModel
@@ -50,7 +49,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        startPlaybackService()
+        // MediaController.connect() starts/binds MediaSessionService; do not startForegroundService here.
         playerViewModel.connect()
         handleSpotifyCallback(intent)
 
@@ -85,11 +84,6 @@ class MainActivity : ComponentActivity() {
             spotifyViewModel.handleAuthCallback(uri)
             intent.data = null
         }
-    }
-
-    private fun startPlaybackService() {
-        val intent = Intent(this, IalemusPlaybackService::class.java)
-        ContextCompat.startForegroundService(this, intent)
     }
 
     private fun requestRecordAudioForVisualizer() {

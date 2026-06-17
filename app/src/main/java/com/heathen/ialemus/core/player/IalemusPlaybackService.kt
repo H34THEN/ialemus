@@ -6,6 +6,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 
+/**
+ * Started by Media3 when [MediaController] connects — not via [android.content.Context.startForegroundService].
+ * Foreground promotion is handled by MediaSessionService when playback requires a notification.
+ */
 class IalemusPlaybackService : MediaSessionService() {
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null

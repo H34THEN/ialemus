@@ -1,0 +1,54 @@
+06-16 20:27:26.339 19283 19283 I Finsky  : [2] VerifyApps: Install-time verification requested for package com.heathen.ialemus, PackageManager id = 17, Verifier id = 2e3d01bb-7078-4b60-8013-ab98b2fcae4a
+06-16 20:27:26.354 19283 23340 I Finsky  : [453] VerifyApps: Anti-malware verification task started for package=com.heathen.ialemus
+06-16 20:27:26.359 19283 23340 I Finsky  : [453] VerifyApps: Skipping anti malware verification (preconditions not met). package=com.heathen.ialemus
+06-16 20:27:26.360 19283 23340 I Finsky  : [453] VerifyApps: Starting required split types check for com.heathen.ialemus.
+06-16 20:27:26.363 19283 23340 I Finsky  : [453] VerifyApps: Required split types check successful for com.heathen.ialemus.
+06-16 20:27:26.385 19283 19283 I Finsky  : [2] VerifyApps: Install-time verification complete: id=17, package_name=com.heathen.ialemus
+06-16 20:27:26.399  1298  1376 D PackageManager: Renaming /data/app/vmdl839235243.tmp to /data/app/~~xEZ8jVL7aZIGQVnzIOYEDg==/com.heathen.ialemus-SvJrLrGGOZ6Cjh8xCdv5ow==
+06-16 20:27:26.402  1298  1376 D PackageManager: installNewPackageLI: Package{3406cf6 com.heathen.ialemus}
+06-16 20:27:26.409  1298  1376 D PackageManager: New package installed in /data/app/~~xEZ8jVL7aZIGQVnzIOYEDg==/com.heathen.ialemus-SvJrLrGGOZ6Cjh8xCdv5ow==
+06-16 20:27:26.483  1298  1376 I PackageManager: Package com.android.systemui(10119) checking android.permission.MODIFY_THEME_OVERLAY: com.android.server.pm.permission.Permission@bfb1309
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.INTERNET: com.android.server.pm.permission.Permission@58dde32
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.READ_EXTERNAL_STORAGE: com.android.server.pm.permission.Permission@773ac56
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.FOREGROUND_SERVICE: com.android.server.pm.permission.Permission@684c065
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.RECORD_AUDIO: com.android.server.pm.permission.Permission@a3da25
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.ACCESS_NETWORK_STATE: com.android.server.pm.permission.Permission@a6898df
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking com.heathen.ialemus.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: com.android.server.pm.permission.Permission@6d49de7
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.INTERNET: com.android.server.pm.permission.Permission@58dde32
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.READ_EXTERNAL_STORAGE: com.android.server.pm.permission.Permission@773ac56
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.FOREGROUND_SERVICE: com.android.server.pm.permission.Permission@684c065
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.RECORD_AUDIO: com.android.server.pm.permission.Permission@a3da25
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking android.permission.ACCESS_NETWORK_STATE: com.android.server.pm.permission.Permission@a6898df
+06-16 20:27:26.491  1298  1376 I PackageManager: Package com.heathen.ialemus(10172) checking com.heathen.ialemus.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION: com.android.server.pm.permission.Permission@6d49de7
+06-16 20:27:26.551  1298  1376 V PackageManager: restoreAndPostInstall userId=-1 package=Package{3406cf6 com.heathen.ialemus}
+06-16 20:27:26.552  1298  1376 V BackupManagerService: [UserID:0] restoreAtInstall pkg=com.heathen.ialemus token=12 restoreSet=0
+06-16 20:27:26.553  1298  1376 D PackageManager: packageName:com.heathen.ialemus ,succeeded:true
+06-16 20:27:26.555  2937  9865 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.heathen.ialemus. Reason: op android:read_external_storage
+06-16 20:27:26.555  2937  9865 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.heathen.ialemus. Reason: op android:read_external_storage
+06-16 20:27:26.571  2937  2937 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.heathen.ialemus. Reason: package android.intent.action.PACKAGE_ADDED
+06-16 20:27:26.583  1298  6742 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.android.packageinstaller/.PackageInstalledReceiver
+06-16 20:27:26.595  1298  1352 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.android.gallery3d/.app.PackagesMonitor
+06-16 20:27:26.595  1298  1352 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.android.vending/com.google.android.finsky.packagemonitor.impl.PackageMonitorReceiverImpl$RegisteredReceiver
+06-16 20:27:26.595  1298  1352 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.android.vending/com.google.android.finsky.packagemonitor.backgroundimpl.BackgroundPackageMonitorReceiverImpl$RegisteredReceiver
+06-16 20:27:26.598  2044  2044 D ImsResolver: maybeAddedImsService, packageName: com.heathen.ialemus
+06-16 20:27:26.635  1704  1704 D BluetoothMapAppObserver: The installed package is: com.heathen.ialemus
+06-16 20:27:26.646  1298  6742 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.google.android.gms/.gass.chimera.PackageChangeBroadcastReceiver
+06-16 20:27:26.647  1298  1352 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 (has extras) } to com.google.android.gms/.chimera.GmsIntentOperationService$PersistentTrustedReceiver
+06-16 20:27:26.656 19283 19283 I Finsky  : [2] AIM: AppInfoCacheUpdater -> invalidating apps: [com.heathen.ialemus]
+06-16 20:27:26.659 19283 19321 I Finsky  : [59] AIM: AppInfoManager-Perf > OnDeviceAppInfo > cacheHitCount=0, cacheMissCount=1. Missed  in cache (limit 10) : [com.heathen.ialemus]
+06-16 20:27:26.666  1298  1373 E VerityUtils: Failed to measure fs-verity, errno 1: /data/app/~~xEZ8jVL7aZIGQVnzIOYEDg==/com.heathen.ialemus-SvJrLrGGOZ6Cjh8xCdv5ow==/base.apk
+06-16 20:27:26.685 20145 23845 W GCM     : Unexpected forwarded intent: Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 pkg=com.google.android.gms cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) }
+06-16 20:27:26.690 20145 23849 W NetworkScheduler: Unexpected forwarded intent: Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.heathen.ialemus flg=0x4000010 pkg=com.google.android.gms cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) }
+06-16 20:27:26.716 19283 19316 I Finsky  : [54] AIM: AppInfoManager-Perf > OnDeviceAppInfo > cacheHitCount=0, cacheMissCount=1. Missed  in cache (limit 10) : [com.heathen.ialemus]
+06-16 20:27:26.719  1298  1298 V PackageManager: Sending package changed: package=com.heathen.ialemus components=[com.heathen.ialemus]
+06-16 20:27:26.729  1298  1342 D CompanionDeviceManagerService: onPackageModified(packageName = com.heathen.ialemus)
+06-16 20:27:26.733  2044  2044 D ImsResolver: maybeAddedImsService, packageName: com.heathen.ialemus
+06-16 20:27:26.801 19283 19283 I Finsky  : [2] AIM: AppInfoCacheUpdater -> invalidating apps: [com.heathen.ialemus]
+06-16 20:27:26.805 19283 19317 I Finsky  : [55] AIM: AppInfoManager-Perf > OnDeviceAppInfo > cacheHitCount=0, cacheMissCount=1. Missed  in cache (limit 10) : [com.heathen.ialemus]
+06-16 20:27:26.855  2196  2196 D AllAppsGridAdapter: packageName:com.heathen.ialemus
+06-16 20:27:26.903 19283 19319 I Finsky  : [57] Installer package name of package com.heathen.ialemus is 
+06-16 20:27:26.964 19283 19283 I Finsky  : [2] Received an install/uninstall event for package com.heathen.ialemus
+06-16 20:27:27.086  2196  2196 D AllAppsGridAdapter: packageName:com.heathen.ialemus
+06-16 20:27:35.212  1298 10846 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.heathen.ialemus/.MainActivity bnds=[375,715][551,958]} from uid 10109
+06-16 20:27:35.271  1298  1353 I ActivityManager: Start proc 23880:com.heathen.ialemus/u0a172 for pre-top-activity {com.heathen.ialemus/com.heathen.ialemus.MainActivity}
+06-16 20:27:36.313 23880 23880 V GraphicsEnvironment: ANGLE Developer option for 'com.heathen.ialemus' set to: 'default'

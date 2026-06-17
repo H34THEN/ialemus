@@ -1,0 +1,111 @@
+06-16 20:28:23.373 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:23.373 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:23.373 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:24.903 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:24.903 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:24.903 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:27.986 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:27.986 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:27.987 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:29.745 I/ActivityManager( 1298): Force stopping com.heathen.ialemus appid=10172 user=0: from pid 23991
+06-16 20:28:29.748 I/ActivityManager( 1298): Killing 23941:com.heathen.ialemus/u0a172 (adj 905): stop com.heathen.ialemus due to from pid 23991
+06-16 20:28:29.768 W/ActivityManager( 1298): Ignoring remove of inactive process: ProcessRecord{7ab2335 0:com.heathen.ialemus/u0a172}
+06-16 20:28:29.771 W/InputManager-JNI( 1298): Input channel object '40cdc73 Application Error: com.heathen.ialemus (client)' was disposed without first being removed with the input manager!
+06-16 20:28:29.853 V/ActivityManager( 1298): Got obituary of 23941:com.heathen.ialemus
+06-16 20:28:30.022 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:30.023 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:30.023 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:30.023 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:30.024 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:30.024 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:31.561 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:31.561 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:31.561 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:38.314 D/AndroidRuntime(23995): >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+06-16 20:28:38.342 I/AndroidRuntime(23995): Using default boot image
+06-16 20:28:38.342 I/AndroidRuntime(23995): Leaving lock profiling enabled
+06-16 20:28:38.757 D/AndroidRuntime(23995): Calling main entry com.android.commands.monkey.Monkey
+06-16 20:28:38.759 W/Monkey  (23995): args: [-p, com.heathen.ialemus, 1]
+06-16 20:28:38.759 W/Monkey  (23995):  arg: "com.heathen.ialemus"
+06-16 20:28:38.760 W/Monkey  (23995): data="com.heathen.ialemus"
+06-16 20:28:38.832 I/ActivityTaskManager( 1298): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.heathen.ialemus/.MainActivity} from uid 2000
+06-16 20:28:38.938 I/ActivityManager( 1298): Start proc 24012:com.heathen.ialemus/u0a172 for pre-top-activity {com.heathen.ialemus/com.heathen.ialemus.MainActivity}
+06-16 20:28:38.985 I/AndroidRuntime(23995): VM exiting with result code 0.
+06-16 20:28:39.154 I/WindowManager( 1298): finishDrawing of orientation change: Window{433663b u0 Splash Screen com.heathen.ialemus} 60ms
+06-16 20:28:39.757 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:39.757 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:39.757 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:40.113 V/GraphicsEnvironment(24012): ANGLE Developer option for 'com.heathen.ialemus' set to: 'default'
+06-16 20:28:40.419 D/StrictMode(24012): 	at com.heathen.ialemus.widget.WidgetStateStore.<init>(WidgetStateStore.kt:12)
+06-16 20:28:40.419 D/StrictMode(24012): 	at com.heathen.ialemus.AppContainer.<init>(AppContainer.kt:48)
+06-16 20:28:40.419 D/StrictMode(24012): 	at com.heathen.ialemus.IalemusApplication.onCreate(IalemusApplication.kt:23)
+06-16 20:28:40.421 D/StrictMode(24012): 	at com.heathen.ialemus.widget.WidgetStateStore.<init>(WidgetStateStore.kt:12)
+06-16 20:28:40.421 D/StrictMode(24012): 	at com.heathen.ialemus.AppContainer.<init>(AppContainer.kt:48)
+06-16 20:28:40.421 D/StrictMode(24012): 	at com.heathen.ialemus.IalemusApplication.onCreate(IalemusApplication.kt:23)
+06-16 20:28:41.825 I/WindowManager( 1298): Screen frozen for +2s906ms due to Window{1d3a78e u0 com.heathen.ialemus/com.heathen.ialemus.MainActivity}
+06-16 20:28:41.825 I/ActivityTaskManager( 1298): Displayed com.heathen.ialemus/.MainActivity: +2s984ms
+06-16 20:28:42.051 D/###     ( 2998): mediaController: com.heathen.ialemus android.media.session.MediaController@851068c index: 1
+06-16 20:28:42.079 D/Avrcp_ext( 1704): Adding media player info for com.heathen.ialemus with id 20
+06-16 20:28:42.109 W/InputManager-JNI( 1298): Input channel object '433663b Splash Screen com.heathen.ialemus (client)' was disposed without first being removed with the input manager!
+06-16 20:28:42.193 E/AndroidRuntime(24012): FATAL EXCEPTION: DefaultDispatcher-worker-3
+06-16 20:28:42.193 E/AndroidRuntime(24012): Process: com.heathen.ialemus, PID: 24012
+06-16 20:28:42.193 E/AndroidRuntime(24012): java.lang.IllegalStateException: MediaController method is called from a wrong thread. See javadoc of MediaController for details.
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at androidx.media3.common.util.Assertions.checkState(Assertions.java:100)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at androidx.media3.session.MediaController.verifyApplicationThread(MediaController.java:2034)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at androidx.media3.session.MediaController.isPlaying(MediaController.java:810)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at com.heathen.ialemus.core.player.PlayerConnection$startPositionUpdates$1.invokeSuspend(PlayerConnection.kt:378)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:832)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+06-16 20:28:42.193 E/AndroidRuntime(24012): 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@e9ffe4, Dispatchers.Default]
+06-16 20:28:42.199 W/ActivityTaskManager( 1298):   Force finishing activity com.heathen.ialemus/.MainActivity
+06-16 20:28:42.271 I/WindowManager( 1298): WIN DEATH: Window{1d3a78e u0 com.heathen.ialemus/com.heathen.ialemus.MainActivity}
+06-16 20:28:42.272 W/InputManager-JNI( 1298): Input channel object '1d3a78e com.heathen.ialemus/com.heathen.ialemus.MainActivity (client)' was disposed without first being removed with the input manager!
+06-16 20:28:42.272 I/ActivityManager( 1298): Process com.heathen.ialemus (pid 24012) has died: fg +50 TOP 
+06-16 20:28:42.281 W/ActivityManager( 1298): Scheduling restart of crashed service com.heathen.ialemus/.core.player.IalemusPlaybackService in 1000ms for start-requested
+06-16 20:28:43.314 I/ActivityManager( 1298): Start proc 24084:com.heathen.ialemus/u0a172 for service {com.heathen.ialemus/com.heathen.ialemus.core.player.IalemusPlaybackService}
+06-16 20:28:43.609 W/Auth    (20145): [ChimeraGetToken] exception while trying to fetch auth tokens for app=com.google.android.gms, scope=oauth2:https://www.googleapis.com/auth/googleplay [CONTEXT service_id=153 ]
+06-16 20:28:44.081 I/iorapd  (  973): Perfetto TraceBuffer saved to file: /data/misc/iorapd/com.heathen.ialemus/17/com.heathen.ialemus.MainActivity/raw_traces/1781656124078492749.perfetto_trace.pb
+06-16 20:28:44.162 W/Auth    (20145): [ChimeraGetToken] exception while trying to fetch auth tokens for app=com.google.android.gms, scope=oauth2:https://www.googleapis.com/auth/googleplay [CONTEXT service_id=153 ]
+06-16 20:28:44.394 V/GraphicsEnvironment(24084): ANGLE Developer option for 'com.heathen.ialemus' set to: 'default'
+06-16 20:28:44.701 D/StrictMode(24084): 	at com.heathen.ialemus.widget.WidgetStateStore.<init>(WidgetStateStore.kt:12)
+06-16 20:28:44.701 D/StrictMode(24084): 	at com.heathen.ialemus.AppContainer.<init>(AppContainer.kt:48)
+06-16 20:28:44.701 D/StrictMode(24084): 	at com.heathen.ialemus.IalemusApplication.onCreate(IalemusApplication.kt:23)
+06-16 20:28:44.703 D/StrictMode(24084): 	at com.heathen.ialemus.widget.WidgetStateStore.<init>(WidgetStateStore.kt:12)
+06-16 20:28:44.703 D/StrictMode(24084): 	at com.heathen.ialemus.AppContainer.<init>(AppContainer.kt:48)
+06-16 20:28:44.703 D/StrictMode(24084): 	at com.heathen.ialemus.IalemusApplication.onCreate(IalemusApplication.kt:23)
+06-16 20:28:44.977 D/###     ( 2998): mediaController: com.heathen.ialemus android.media.session.MediaController@6780eb6 index: 1
+06-16 20:28:44.992 D/Avrcp_ext( 1704): Adding media player info for com.heathen.ialemus with id 20
+06-16 20:28:47.915 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:47.915 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:47.916 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:48.084 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:48.084 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:48.084 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:49.124 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:49.124 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:49.124 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response
+06-16 20:28:50.512 W/ActivityManager( 1298): Bringing down service while still waiting for start foreground: ServiceRecord{843fcb7 u0 com.heathen.ialemus/.core.player.IalemusPlaybackService}
+06-16 20:28:50.534 D/AndroidRuntime(24084): Shutting down VM
+06-16 20:28:50.537 E/AndroidRuntime(24084): FATAL EXCEPTION: main
+06-16 20:28:50.537 E/AndroidRuntime(24084): Process: com.heathen.ialemus, PID: 24084
+06-16 20:28:50.537 E/AndroidRuntime(24084): android.app.ForegroundServiceDidNotStartInTimeException: Context.startForegroundService() did not then call Service.startForeground(): ServiceRecord{843fcb7 u0 com.heathen.ialemus/.core.player.IalemusPlaybackService}
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.app.ActivityThread.throwRemoteServiceException(ActivityThread.java:1928)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.app.ActivityThread.access$2700(ActivityThread.java:248)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2153)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.os.Looper.loopOnce(Looper.java:201)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.os.Looper.loop(Looper.java:288)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at android.app.ActivityThread.main(ActivityThread.java:7883)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at java.lang.reflect.Method.invoke(Native Method)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:548)
+06-16 20:28:50.537 E/AndroidRuntime(24084): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1009)
+06-16 20:28:50.576 I/ActivityManager( 1298): Crashing app skipping ANR: com.android.server.am.ProcessErrorStateRecord@f223f9a Context.startForegroundService() did not then call Service.startForeground(): ServiceRecord{843fcb7 u0 com.heathen.ialemus/.core.player.IalemusPlaybackService}
+06-16 20:28:50.576 D/ActivityManager( 1298): Completed ANR of com.heathen.ialemus in 54ms, latency 2ms
+06-16 20:28:50.611 I/ActivityManager( 1298): Process com.heathen.ialemus (pid 24084) has died: cch+5 CEM 
+06-16 20:28:51.581 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Send scan meas to listener
+06-16 20:28:51.581 D/LOWI-9.0.0.87( 1176): [LOWIScanResultReceiver] Enter passive listening mode
+06-16 20:28:51.582 D/LOWI-9.0.0.87( 1176): [LOWIControllerExtn] sendLOWILpDiscoveryScanResponse: Not a discovery scan response

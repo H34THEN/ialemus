@@ -4,33 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Outer hex frame -->
+    <!-- Violet hex outline -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M54,20 L84,37 L84,71 L54,88 L24,71 L24,37 Z"
-        android:strokeWidth="2.5"
+        android:pathData="M54,28 L72,38 L72,58 L54,68 L36,58 L36,38 Z"
+        android:strokeWidth="2"
         android:strokeColor="#8B5CF6" />
-    <!-- Inner audio core -->
+    <!-- Dark core -->
     <path
         android:fillColor="#1A0F2E"
-        android:pathData="M54,27 L77,41 L77,67 L54,81 L31,67 L31,41 Z" />
-    <!-- Angular stylized I -->
+        android:pathData="M54,34 L66,42 L66,54 L54,62 L42,54 L42,42 Z" />
+    <!-- Acid-green signal bars -->
     <path
         android:fillColor="#8DFF5A"
-        android:pathData="M44,34 L64,34 L64,39 L50,39 L50,69 L64,69 L64,74 L44,74 L44,69 L48,69 L48,39 L44,39 Z" />
-    <!-- Signal waveform bars -->
-    <path
-        android:fillColor="#8DFF5A"
-        android:pathData="M33,80 h5 v-10 h-5z M41,80 h5 v-16 h-5z M49,80 h5 v-22 h-5z M57,80 h5 v-14 h-5z M65,80 h5 v-20 h-5z M73,80 h5 v-8 h-5z" />
-    <!-- Orange HUD accent -->
+        android:pathData="M44,56 h5 v-12 h-5z M51,56 h5 v-18 h-5z M58,56 h5 v-10 h-5z" />
+    <!-- Orange accent -->
     <path
         android:fillColor="#FF8C42"
-        android:pathData="M76,28 h10 v3 h-10z M79,28 h3 v8 h-3z" />
-    <!-- Core pulse ring -->
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M54,40 a14,14 0 1,1 0.01,0"
-        android:strokeWidth="1.5"
-        android:strokeColor="#8DFF5A"
-        android:strokeAlpha="0.55" />
+        android:pathData="M68,36 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
 </vector>

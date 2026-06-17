@@ -15,22 +15,27 @@ import com.heathen.ialemus.core.model.ShuffleMode
 import com.heathen.ialemus.core.model.Track
 import com.heathen.ialemus.widget.IalemusPlaybackWidgetProvider
 import com.heathen.ialemus.widget.WidgetStateStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.heathen.ialemus.core.diagnostics.StabilityDiagnostics
 
 private const val TAG = "PlayerConnection"
+// MediaController must be read/written on the application main thread (Main.immediate here).
+// TODO: instrumentation test — position ticker never touches MediaController off main.
+private const val POSITION_TICK_PLAYING_MS = 500L
+private const val POSITION_TICK_PAUSED_MS = 1_000L
 private const val PLAYBACK_ERROR_MESSAGE = "Playback link failed. Try rescanning this source."
 private const val PLAYBACK_FAILED_MESSAGE = "Playback failed. Try rescanning this source."
 private const val TRACK_UNAVAILABLE_MESSAGE = "Track unavailable. Rescan or reselect the source."
@@ -42,7 +47,6 @@ class PlayerConnection(
     private val widgetStateStore: WidgetStateStore? = null,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private val tickerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var controller: MediaController? = null
     private var lastWidgetTitle: String? = null
     private var lastWidgetPlaying: Boolean? = null
@@ -101,6 +105,8 @@ class PlayerConnection(
     }
 
     fun disconnect() {
+        positionTickerJob?.cancel()
+        positionTickerJob = null
         controller?.removeListener(playerListener)
         controller?.release()
         controller = null
@@ -373,15 +379,22 @@ class PlayerConnection(
 
     private fun startPositionUpdates() {
         positionTickerJob?.cancel()
-        positionTickerJob = tickerScope.launch {
-            while (controller != null) {
-                val playing = controller?.isPlaying == true
-                val intervalMs = if (playing) 400L else 1_000L
-                withContext(Dispatchers.Main.immediate) {
+        positionTickerJob = scope.launch {
+            while (isActive && controller != null) {
+                try {
                     updateFromPlayerThrottled()
+                    val playing = _playbackState.value.isPlaying
+                    val intervalMs = if (playing) POSITION_TICK_PLAYING_MS else POSITION_TICK_PAUSED_MS
+                    StabilityDiagnostics.playbackTicker(intervalMs, playing)
+                    delay(intervalMs)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "position ticker error", error)
+                    }
+                    delay(POSITION_TICK_PAUSED_MS)
                 }
-                StabilityDiagnostics.playbackTicker(intervalMs, playing)
-                delay(intervalMs)
             }
         }
     }
